@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.web.SearchWeb.member.dao.MemberDao"> <!--Dao 이름-->
+
+    <!-- 회원가입 -->
+    <insert id="joinProcess" parameterType="com.web.SearchWeb.member.dto.MemberDto">
+        insert into
+            member (username, password, role)
+            VALUES(#{username}, #{password}, #{role})
+    </insert>
+
+
+    <select id="findByMemberId" parameterType="int" resultType="com.web.SearchWeb.member.domain.Member">
+        select * from member
+        where memberId=#{memberId}
+    </select>
+
+
+    <select id="findByUserName" parameterType="String" resultType="com.web.SearchWeb.member.domain.Member">
+        select * from member
+        where username=#{username}
+    </select>
+</mapper>
+
+
+
