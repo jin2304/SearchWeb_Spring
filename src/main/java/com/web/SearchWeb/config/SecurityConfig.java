@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .formLogin((auth) -> auth
                         .loginPage("/login")
                         .loginProcessingUrl("/loginProc")
-                        //.defaultSuccessUrl("") // 로그인 성공 후 메인페이지로 이동
+                        .defaultSuccessUrl("/") // 로그인 성공 후 메인페이지로 이동
                         .permitAll()
                 );
 
