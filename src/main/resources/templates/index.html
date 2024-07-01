@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>index 페이지</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="your-custom-styles.css" rel="stylesheet">
+</head>
+
+
+<body>
+<!--
+// v0 by Vercel.
+// https://v0.dev/t/xVMbSlf0nVt
+-->
+
+<!-- 메뉴바 -->
+<nav class="w-full bg-black text-white w-screen mx-auto">
+    <div class="container mx-auto px-6 py-3 flex justify-between items-center" style="">
+
+        <div class="flex justify-between items-center">
+            <div >
+                <a href=""  class="dark:text-white text-2xl font-bold md:text-3xl hover:text-gray-700 dark:hover:text-gray-300">
+                    <span class="text-purple-500">Search</span>web
+                </a>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <div class="relative" style="margin-left:1.5rem;">
+                <span class="absolute inset-y-0 left-3 flex items-center pl-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-gray-500">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                </span>
+                    <input  style="color:black;" class="flex h-10 w-full border border-input px-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 focus:outline-none focus:bg-white dark:focus:bg-gray-900" placeholder="Search" type="search">
+                </div>
+            </div>
+        </div>
+
+        <!-- 메뉴바 링크 -->
+        <nav class="hidden md:flex space-x-10 ml-auto">
+            <!--<a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="#">Home</a>-->
+            <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" th:href="@{/myPage}">myPage</a>
+            <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="/login">로그인</a>
+            <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="/logout">로그아웃</a>
+            <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="/join">회원가입</a>
+        </nav>
+
+        <!-- 햄버거 버튼 -->
+        <div class="flex md:hidden">
+            <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6">
+                    <line x1="4" x2="20" y1="12" y2="12"></line>
+                    <line x1="4" x2="20" y1="6" y2="6"></line>
+                    <line x1="4" x2="20" y1="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+</nav>
+
+
+
+<!-- 사용자 인증 상태 확인 -->
+<!-- 로그인 사용자가 없을 때 처리 -->
+<div sec:authorize="isAnonymous()" >
+    <h1>로그인이 필요합니다.</h1>
+</div>
+
+<!-- 로그인 사용자가 있을 때 처리 -->
+<div sec:authorize="isAuthenticated()">
+    <h1 th:text="'환영합니다, ' + ${#authentication.name} + '님'"></h1>
+    <h1 th:text="'환영합니다, ' + ${#authentication.principal.userId} + '님'"></h1>
+</div>
+
+
+
+
+<div class="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
+
+    <!-- 메인 -->
+    <main class="flex-1">
+        <section class="w-full py-12 md:py-24 lg:py-32 flex justify-center items-center">
+            <div class="container px-4 md:px-6">
+                <div class="flex flex-col items-center space-y-4 text-center">
+                    <div class="space-y-2">
+                        <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">Acme Inc</h1>
+                        <p class="mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                            당신의 웹 허브툴을 위한 모바일 및 혁신적인 솔루션
+                        </p>
+                    </div>
+                    <div class="space-x-4">
+                        <a
+                                class="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
+                                href="#"
+                        >
+                            Get Started
+                        </a>
+                        <a
+                                class="inline-flex h-9 items-center justify-center rounded-md border border-gray-200 border-gray-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-800 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus-visible:ring-gray-300"
+                                href="#"
+                        >
+                            Contact Sales
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+        <section class="w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800 flex justify-center items-center">
+            <div class="container px-4 md:px-6">
+                <div class="flex flex-col items-center justify-center space-y-4 text-center">
+                    <div class="space-y-2">
+                        <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Features</h2>
+                        <p class="mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                            Beautifully designed components that you can copy and paste into your apps. Accessible. Customizable.
+                            Open Source.
+                        </p>
+                    </div>
+                    <div class="space-x-4">
+                        <a
+                                class="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
+                                href="#"
+                        >
+                            Contact Sales
+                        </a>
+                        <a
+                                class="inline-flex h-9 items-center justify-center rounded-md border border-gray-200 border-gray-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-800 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus-visible:ring-gray-300"
+                                href="#"
+                        >
+                            Tour the Platform
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+
+        <section class="w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800 flex justify-center items-center">
+            <div class="container px-4 md:px-6">
+                <div class="flex flex-col items-center justify-center space-y-4 text-center">
+                    <div class="space-y-2">
+                        <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Pricing</h2>
+                        <p class="mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                            Simple, transparent pricing. No hidden fees.
+                        </p>
+                    </div>
+                    <div class="space-x-4">
+                        <a
+                                class="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
+                                href="#"
+                        >
+                            Contact Sales
+                        </a>
+                        <a
+                                class="inline-flex h-9 items-center justify-center rounded-md border border-gray-200 border-gray-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-800 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus-visible:ring-gray-300"
+                                href="#"
+                        >
+                            Tour the Platform
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+
+   <!-- 푸터 -->
+    <footer class="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6">
+        <div class="flex-1">
+            <nav class="flex gap-4 sm:gap-6">
+                <a class="text-sm hover:underline underline-offset-4" href="#">
+                    Terms of Service
+                </a>
+                <a class="text-sm hover:underline underline-offset-4" href="#">
+                    Privacy Policy
+                </a>
+            </nav>
+        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400">© 2024 Acme Inc. All rights reserved.</p>
+    </footer>
+</div>
+
+
+</body>
+</html>
