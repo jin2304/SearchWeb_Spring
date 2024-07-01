@@ -73,7 +73,7 @@
 <!-- 로그인 사용자가 있을 때 처리 -->
 <div sec:authorize="isAuthenticated()">
     <h1 th:text="'환영합니다, ' + ${#authentication.name} + '님'"></h1>
-    <h1 th:text="'환영합니다, ' + ${#authentication.principal.userId} + '님'"></h1>
+    <h1 th:text="'환영합니다, ' + ${#authentication.principal.memberId} + '님'"></h1>
 </div>
 
 
