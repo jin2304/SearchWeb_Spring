@@ -2,22 +2,49 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>회원가입</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
 </head>
+
+
 <body>
 
+<div class="flex justify-center items-center h-screen bg-gray-100">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-3xl font-bold mb-6 text-gray-900">회원가입</h1>
 
+        <!-- 회원가입 폼 -->
+        <form class="space-y-4" action="/joinProc" th:action="@{/joinProc}" method="post" name="joinForm">
+            <div>
+                <label class="text-sm font-medium leading-none block mb-1 text-gray-700" for="username">아이디</label>
+                <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400
+                focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" name="username" id="username" placeholder="아이디" />
+            </div>
+            <div>
+                <label class="text-sm font-medium leading-none block mb-1 text-gray-700" for="password">비밀번호</label>
+                <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400
+                focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="password" name="password" id="password" placeholder="비밀번호" />
+            </div>
+            <div>
+                <label class="text-sm font-medium leading-none block mb-1 text-gray-700" for="confirm-password">비밀번호 확인</label>
+                <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400
+                focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="password" name="confirm-password" id="confirm-password" placeholder="비밀번호 확인" />
+            </div>
 
+            <!-- 약관 동의 -->
+            <div class="flex items-center">
+                <input class="mr-2" type="checkbox" id="terms" />
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="terms">
+                    약관에 동의합니다 <a class="underline" href="#">이용약관</a>
+                </label>
+            </div>
 
-<p th:text="hello">haha</p>
-<form action="/joinProc" th:action="@{/joinProc}" method="post" name="joinForm">
-    <input type="text" name="username" placeholder="Username"/>
-    <input type="password" name="password" placeholder="Password"/>
-    <input type="submit" value="Join"/>
-</form>
-
-
+            <button class="inline-flex items-center justify-center w-full h-10 px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" type="submit">
+                회원가입
+            </button>
+        </form>
+    </div>
+</div>
 
 </body>
 </html>
