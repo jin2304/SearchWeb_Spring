@@ -49,7 +49,7 @@ public class SecurityConfig {
         http
                 .logout((auth)->auth
                         .logoutUrl("/logout")
-                        //.logoutSuccessUrl("")// 로그아웃 성공 후 메인페이지로 이동
+                        .logoutSuccessUrl("/")// 로그아웃 성공 후 메인페이지로 이동
                 );
 
 
