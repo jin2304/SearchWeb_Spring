@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+    </style>
+
+</head>
+<body>
+
+<!-- 메뉴바 fragment -->
+<nav th:fragment="copy" class="fixed top-0 left-0 right-0 w-full bg-black text-white z-50">
+<!--<nav th:fragment="copy" class="w-full bg-black text-white w-screen mx-auto">-->
+
+    <div class="container mx-auto px-6 py-3 flex justify-between items-center" style="">
+
+        <div class="flex justify-between items-center">
+            <div >
+                <a href="/"  class="dark:text-white text-2xl font-bold md:text-3xl hover:text-gray-700 dark:hover:text-gray-300">
+                    <span class="text-purple-500">Search</span>web
+                </a>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <div class="relative" style="margin-left:1.5rem;">
+                <span class="absolute inset-y-0 left-3 flex items-center pl-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-gray-500">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                </span>
+                    <input  style="color:black;" class="flex h-10 w-full border border-input px-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 focus:outline-none focus:bg-white dark:focus:bg-gray-900" placeholder="Search" type="search">
+                </div>
+            </div>
+        </div>
+
+        <!-- 메뉴바 링크 -->
+        <nav class="hidden md:flex space-x-10 ml-auto">
+            <!--<a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="#">Home</a>-->
+            <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" th:href="@{/myPage}">myPage</a>
+            <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="/login">로그인</a>
+            <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="/logout">로그아웃</a>
+            <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="/join">회원가입</a>
+        </nav>
+
+        <!-- 햄버거 버튼 -->
+        <div class="flex md:hidden">
+            <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6">
+                    <line x1="4" x2="20" y1="12" y2="12"></line>
+                    <line x1="4" x2="20" y1="6" y2="6"></line>
+                    <line x1="4" x2="20" y1="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+</nav>
+
+
+</body>
+</html>
