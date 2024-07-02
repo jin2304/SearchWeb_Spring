@@ -36,7 +36,7 @@ public class MemberController {
     @PostMapping("/joinProc")
     public String joinProcess(MemberDto member) {
         memberService.joinProcess(member);
-        return "redirect:/";
+        return "redirect:/login";
     }
 
 
