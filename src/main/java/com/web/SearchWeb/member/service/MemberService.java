@@ -13,4 +13,7 @@ public interface MemberService {
 
     //로그인 아이디로 찾기
     public Member findByUserName(String username);
+
+    //비밀번호 확인
+    public boolean isPasswordMatching(MemberDto memberDto);
 }

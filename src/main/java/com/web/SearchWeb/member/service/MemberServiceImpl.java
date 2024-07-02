@@ -27,8 +27,9 @@ public class MemberServiceImpl implements MemberService{
      *  회원가입
      */
     public void joinProcess(MemberDto member) {
+        // 비밀번호 암호화 및 사용자 저장 로직
         member.setPassword(bCryptPasswordEncoder.encode(member.getPassword()));
-        member.setRole("ROLE_ADMIN");
+        member.setRole("ROLE_USER");
         memberDao.joinProcess(member);
     }
 
@@ -49,5 +50,10 @@ public class MemberServiceImpl implements MemberService{
     }
 
 
-
+    /**
+     *  비밀번호 확인
+     */
+    public boolean isPasswordMatching(MemberDto memberDto) {
+        return memberDto.getPassword().equals(memberDto.getConfirmPassword());
+    }
 }
