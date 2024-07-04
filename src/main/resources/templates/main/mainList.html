@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Searchweb</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="your-custom-styles.css" rel="stylesheet">
+</head>
+<body>
+
+
+<!-- 메뉴바 fragment 사용 -->
+<nav th:replace="~{fragment/navbar :: copy}"></nav>
+
+<!--
+// v0 by Vercel.
+// https://v0.dev/t/LZF12cpgYcS
+-->
+
+    <div class="flex flex-col flex-1 overflow-hidden">
+        <!-- 메인 컨덴트 -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
+            <div class="container mx-auto px-40 py-16">
+
+                <!-- 웹사이트 요소 -->
+                <div class="grid gap-4 mb-8 md:grid-cols-4 xl:grid-cols-4 mx-auto" style="max-width: 90%;">
+
+                    <div th:each="l:${list}" class="w-full max-w-sm rounded-lg border-2 border-gray-250 bg-card text-card-foreground shadow-sm" data-v0-t="card"  style="height: 160px;">
+                        <a th:href="${l.url}" target="_blank">
+                        <div class="p-6 flex flex-row items-center justify-between pb-2 space-y-0">
+                            <!-- 웹사이트 이미지 -->
+                            <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-10 h-10"> <!-- 이미지 크기 조정 -->
+                            <!-- 웹사이트 이름 -->
+                            <h1 class="whitespace-nowrap tracking-tight text-sm font-bold" th:text="${l.name}">website Name</h1>
+                        </div>
+
+                        <div class="p-6 pt-4">
+                            <!-- 웹사이트 설명 -->
+                            <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${l.description}" style="font-size: 0.66rem;">Website Description Website Description</p>
+                            <!-- 웹사이트 카테고리 -->
+                           <!-- <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${l.category}" style="font-size: 0.66rem;">Category</p>-->
+                        </div>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+
+    </div>
+</div>
+
+
+</body>
+</html>
