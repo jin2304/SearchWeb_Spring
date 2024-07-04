@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .loginProcessingUrl("/loginProc")
                         .defaultSuccessUrl("/") // 로그인 성공 후 메인페이지로 이동
+                        .failureHandler(customAuthenticationFailureHandler()) // 커스텀 실패 핸들러 추가
                         .permitAll()
                 );
 
@@ -77,6 +78,11 @@ public class SecurityConfig {
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CustomAuthenticationFailureHandler customAuthenticationFailureHandler() {
+        return new CustomAuthenticationFailureHandler();
     }
 
 }

@@ -34,6 +34,11 @@
                 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="password" name="password" id="password" placeholder="비밀번호"  required />
             </div>
 
+            <!-- 로그인 에러 메세지 -->
+            <div th:if="${param.error}" class="text-red-500 text-sm">
+                <p th:text="${session.error}">아이디 또는 비밀번호가 잘못되었습니다.</p>
+            </div>
+
             <button class="inline-flex items-center justify-center w-full h-10 px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" type="submit">
                 로그인
             </button>
