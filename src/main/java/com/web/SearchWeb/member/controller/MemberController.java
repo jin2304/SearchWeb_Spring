@@ -14,6 +14,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ *
+ *  코드 작성자: 서진영(jin2304)
+ *  코드 설명 :회원가입 및 로그인 기능을 담당하는 컨트롤러
+ *  코드 주요 기능: 회원가입, 로그인
+ *  코드 작성일: 2024.06.30 ~ 2024.07.04
+ *
+ */
 
 @Controller
 public class MemberController {
