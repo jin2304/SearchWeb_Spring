@@ -43,7 +43,7 @@ public class BookmarkServiceImpl implements BookmarkService {
      */
     @Override
     public int insertBookmark(BookmarkDto bookmark) {
-        return 0;
+        return bookmarkDao.insertBookmark(bookmark);
     }
 
 
@@ -52,6 +52,6 @@ public class BookmarkServiceImpl implements BookmarkService {
      */
     @Override
     public int deleteBookmark(BookmarkDto bookmark) {
-        return 0;
+        return bookmarkDao.deleteBookmark(bookmark);
     }
 }

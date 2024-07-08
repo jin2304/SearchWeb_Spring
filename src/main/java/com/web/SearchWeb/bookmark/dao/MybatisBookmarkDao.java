@@ -44,7 +44,7 @@ public class MybatisBookmarkDao implements BookmarkDao {
      */
     @Override
     public int insertBookmark(BookmarkDto bookmark) {
-        return 0;
+        return mapper.insertBookmark(bookmark);
     }
 
 
@@ -53,6 +53,6 @@ public class MybatisBookmarkDao implements BookmarkDao {
      */
     @Override
     public int deleteBookmark(BookmarkDto bookmark) {
-        return 0;
+        return mapper.deleteBookmark(bookmark);
     }
 }

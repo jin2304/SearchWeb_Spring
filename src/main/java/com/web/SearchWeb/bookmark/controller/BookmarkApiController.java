@@ -20,7 +20,7 @@ import java.util.List;
 /*@RequestMapping("/mainList")*/
 public class BookmarkApiController {
 
-    private BookmarkService bookmarkService;
+    private final BookmarkService bookmarkService;
 
     @Autowired
     public BookmarkApiController(BookmarkService bookmarkService) {
@@ -77,4 +77,40 @@ public class BookmarkApiController {
         //return ResponseEntity.ok(1);
     }
 
+
+    /**
+     * 웹사이트 북마크 추가
+     **/
+    @PostMapping(value ="/mainList/bookmark/{websiteId}", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<Integer> insertBookmark(@PathVariable final int websiteId){
+
+        //사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        int MemberId = userDetails.getMemberId();
+
+        BookmarkDto bookmark = new BookmarkDto(MemberId, websiteId);
+        int result = bookmarkService.insertBookmark(bookmark);
+
+        return ResponseEntity.ok(result);
+    }
+
+
+    /**
+     * 웹사이트 북마크 삭제
+     **/
+    //@ResponseBody x
+    @DeleteMapping(value = "/mainList/bookmark/{websiteId}", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<Integer> deleteBookmark(@PathVariable final int websiteId) {
+
+        //사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        int MemberId = userDetails.getMemberId();
+
+        BookmarkDto bookmark = new BookmarkDto(MemberId, websiteId);
+        int result = bookmarkService.deleteBookmark(bookmark);
+
+        return ResponseEntity.ok(result);
+    }
 }

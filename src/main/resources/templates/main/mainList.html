@@ -262,6 +262,70 @@
                 });
             });
         }
+
+
+
+
+        /**
+         *  북마크 추가/제거(비동기)
+         */
+        async function Bookmark(websiteId) {
+            // 사용자가 북마크 했는지 안 했는지 체크
+            const uri = "/mainList/bookmark/check/" + websiteId; // 서버에 해당 아이템이 북마크되어 있는지 확인하는 요청
+            const response = await callBookmarkApi_sync(uri, 'GET');
+            console.log('첫번째 response: ' + response);
+
+
+
+            // 북마크 하지 않았다면 북마크 추가, 이미 북마크 했다면 북마크 삭제
+            if (response == 0) {
+                // 북마크 추가
+                const uri = "/mainList/bookmark/" + websiteId;
+                const response = callBookmarkApi(uri, 'POST');
+                console.log('추가 response: ' + response);
+
+                // 북마크 추가 성공 시 아이콘 색상 및 모양 변경
+                const bookmarkIcon = document.querySelector(`[data-website-id="${websiteId}"] .bi-bookmark`);
+                bookmarkIcon.innerHTML = '<path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2"/>'; //북마크 SVG 이미지 변경
+                bookmarkIcon.style.display = 'block'; //북마크되면 계속 보이게 상태 유지
+                bookmarkIcon.style.fill = '#FFD700';
+
+                // 마우스 hover, 북마크 모양 유지
+                const storeItem = document.querySelector(`[data-website-id="${websiteId}"]`);
+                storeItem.addEventListener('mouseenter', function() {
+                    bookmarkIcon.style.display = 'block';
+                });
+
+                // 마우스가 떠났을 때, 북마크 모양 유지 (북마크되면 계속 보이게 상태 유지)
+                storeItem.addEventListener('mouseleave', function() {
+                    bookmarkIcon.style.display = 'block';
+                });
+
+            } else {
+                // 북마크 삭제
+                const uri = "/mainList/bookmark/" + websiteId;
+                const response = callBookmarkApi(uri, 'DELETE');
+                console.log('삭제 response: ' + response);
+
+                // 북마크 제거 성공 시 아이콘 색상 및 모양 변경
+                const bookmarkIcon = document.querySelector(`[data-website-id="${websiteId}"] .bi-bookmark`);
+                bookmarkIcon.innerHTML = '<path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>'; //북마크 SVG 이미지 변경
+                bookmarkIcon.style.fill = 'currentColor';
+
+                // 마우스 hover, 북마크 추가 모양 표시
+                const storeItem = document.querySelector(`[data-website-id="${websiteId}"]`);
+                storeItem.addEventListener('mouseenter', function() {
+                    const bookmarkIcon = storeItem.querySelector('.bi-bookmark');
+                    bookmarkIcon.style.display = 'block';
+                });
+
+                // 마우스가 떠났을 때, 북마크 모양 숨김
+                storeItem.addEventListener('mouseleave', function() {
+                    const bookmarkIcon = storeItem.querySelector('.bi-bookmark');
+                    bookmarkIcon.style.display = 'none';
+                });
+            }
+        }
 </script>
 
 

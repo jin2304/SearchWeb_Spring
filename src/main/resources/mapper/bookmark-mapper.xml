@@ -22,6 +22,26 @@
         from bookmark
           WHERE member_memberId=#{member_memberId};
     </select>
+
+
+    <!-- 북마크 추가 -->
+    <insert id="insertBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkCheckDto">
+        insert
+        into
+        bookmark(member_memberId, website_websiteId)
+        values(#{member_memberId}, #{website_websiteId});
+    </insert>
+
+
+    <!-- 북마크 삭제 -->
+    <delete id="deleteBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkCheckDto">
+        delete
+        from bookmark
+        WHERE member_memberId=#{member_memberId}
+         AND website_websiteId=#{website_websiteId};
+    </delete>
+
+
 </mapper>
 
 
