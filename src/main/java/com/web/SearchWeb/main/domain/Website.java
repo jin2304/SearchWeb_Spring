@@ -10,7 +10,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class Website {
-    private int id;
+    private int websiteId;
     private String name;
     private String korean_name;
     private String description;

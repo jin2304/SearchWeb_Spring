@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.web.SearchWeb.bookmark.dao.BookmarkDao"> <!--Dao 이름-->
+
+    <!-- 북마크 확인 -->
+    <select id="checkBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkCheckDto">
+        select COUNT(*)
+        from bookmark
+        WHERE member_memberId=#{memberId}
+         AND website_websiteId=#{websiteId}
+    </select>
+
+
+    <!-- 북마크 조회 -->
+    <select id="selectBookmarkList" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
+        select *
+        from bookmark
+          WHERE member_memberId=#{member_memberId};
+    </select>
+</mapper>
+
+
+
