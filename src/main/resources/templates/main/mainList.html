@@ -105,9 +105,9 @@
 
 
     <!-- 인증된 사용자를 위한 추가적인 컨텐츠를 포함시킵니다. -->
-    <script>
+    <script th:inline="javascript">
         window.onload = function() {
-            const memberId = [[${#authentication.principal.memberId}]];
+            window.memberId = [[${#authentication.principal.memberId}]];
             console.log(memberId);
             findAllBookmark(memberId);
         };
@@ -271,7 +271,7 @@
          */
         async function Bookmark(websiteId) {
             // 사용자가 북마크 했는지 안 했는지 체크
-            const uri = "/mainList/bookmark/check/" + websiteId; // 서버에 해당 아이템이 북마크되어 있는지 확인하는 요청
+            const uri = "/mainList/bookmark/status/" + websiteId; // 서버에 해당 아이템이 북마크되어 있는지 확인하는 요청
             const response = await callBookmarkApi_sync(uri, 'GET');
             console.log('첫번째 response: ' + response);
 
@@ -280,7 +280,7 @@
             // 북마크 하지 않았다면 북마크 추가, 이미 북마크 했다면 북마크 삭제
             if (response == 0) {
                 // 북마크 추가
-                const uri = "/mainList/bookmark/" + websiteId;
+                const uri = "/mainList/" + memberId + "/bookmark/" + websiteId;
                 const response = callBookmarkApi(uri, 'POST');
                 console.log('추가 response: ' + response);
 
@@ -303,7 +303,7 @@
 
             } else {
                 // 북마크 삭제
-                const uri = "/mainList/bookmark/" + websiteId;
+                const uri = "/mainList/" + memberId + "/bookmark/" + websiteId;
                 const response = callBookmarkApi(uri, 'DELETE');
                 console.log('삭제 response: ' + response);
 
