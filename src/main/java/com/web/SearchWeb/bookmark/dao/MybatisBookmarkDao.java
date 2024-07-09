@@ -3,6 +3,7 @@ package com.web.SearchWeb.bookmark.dao;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
+import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -54,5 +55,14 @@ public class MybatisBookmarkDao implements BookmarkDao {
     @Override
     public int deleteBookmark(BookmarkDto bookmark) {
         return mapper.deleteBookmark(bookmark);
+    }
+
+
+    /**
+     *  북마크-웹사이트 조회
+     */
+    @Override
+    public List<BookmarkWebsite> selectBookmarkWebsite(int memberId) {
+        return mapper.selectBookmarkWebsite(memberId);
     }
 }

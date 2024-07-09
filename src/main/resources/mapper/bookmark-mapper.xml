@@ -42,6 +42,14 @@
     </delete>
 
 
+    <!-- 북마크-웹사이트 조회 -->
+    <select id="selectBookmarkWebsite" resultType="com.web.SearchWeb.bookmark.domain.BookmarkWebsite">
+        select b.member_memberId, w.*
+         FROM bookmark b
+         JOIN website w
+         ON b.website_websiteId = w.websiteId
+         where member_memberId=#{member_memberId};
+    </select>
 </mapper>
 
 

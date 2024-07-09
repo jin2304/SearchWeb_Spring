@@ -4,6 +4,7 @@ import com.web.SearchWeb.bookmark.dao.BookmarkDao;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
+import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,5 +54,14 @@ public class BookmarkServiceImpl implements BookmarkService {
     @Override
     public int deleteBookmark(BookmarkDto bookmark) {
         return bookmarkDao.deleteBookmark(bookmark);
+    }
+
+
+    /**
+     *  북마크-웹사이트 조회
+     */
+    @Override
+    public List<BookmarkWebsite> selectBookmarkWebsite(int memberId) {
+        return bookmarkDao.selectBookmarkWebsite(memberId);
     }
 }
