@@ -2,7 +2,6 @@ package com.web.SearchWeb.bookmark.controller;
 
 
 import com.web.SearchWeb.bookmark.domain.Bookmark;
-import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.member.dto.CustomUserDetails;
@@ -49,8 +48,8 @@ public class BookmarkApiController {
         int MemberId = userDetails.getMemberId();
 
         // 해당 유저가 해당 가게를 북마크했는지 여부를 서비스에서 확인하여 반환
-        BookmarkCheckDto bookmarkCheckDto = new BookmarkCheckDto(MemberId, websiteId);
-        int result = bookmarkService.checkBookmark(bookmarkCheckDto);
+        BookmarkDto bookmark = new BookmarkDto(MemberId, websiteId);
+        int result = bookmarkService.checkBookmark(bookmark);
 
         return ResponseEntity.ok(result);
     }

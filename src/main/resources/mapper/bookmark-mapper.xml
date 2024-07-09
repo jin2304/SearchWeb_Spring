@@ -8,11 +8,11 @@
 <mapper namespace="com.web.SearchWeb.bookmark.dao.BookmarkDao"> <!--Dao 이름-->
 
     <!-- 북마크 확인 -->
-    <select id="checkBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkCheckDto">
+    <select id="checkBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto">
         select COUNT(*)
         from bookmark
-        WHERE member_memberId=#{memberId}
-         AND website_websiteId=#{websiteId}
+        WHERE member_memberId=#{member_memberId}
+         AND website_websiteId=#{website_websiteId}
     </select>
 
 
@@ -25,7 +25,7 @@
 
 
     <!-- 북마크 추가 -->
-    <insert id="insertBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkCheckDto">
+    <insert id="insertBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto">
         insert
         into
         bookmark(member_memberId, website_websiteId)
@@ -34,7 +34,7 @@
 
 
     <!-- 북마크 삭제 -->
-    <delete id="deleteBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkCheckDto">
+    <delete id="deleteBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto">
         delete
         from bookmark
         WHERE member_memberId=#{member_memberId}
