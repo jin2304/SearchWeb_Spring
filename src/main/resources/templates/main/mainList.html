@@ -92,27 +92,15 @@
 <aside th:replace="~{fragment/sidebar :: copy}"></aside>
 
 
-<!--  사용자 인증 상태 확인  -->
-<div sec:authorize="isAnonymous()">
-    <h1>로그인이 필요합니다.</h1>
-    <!-- 여기에 로그인 폼 또는 다른 인증 관련 링크를 포함시킵니다. -->
-</div>
-
-<div sec:authorize="isAuthenticated()" style="margin-left: 300px;">
-    <h1 th:text="'환영합니다, ' + ${#authentication.name} + '님'"></h1>
-    <h1 th:text="'환영합니다, ' + ${#authentication.principal.memberId} + '님'"></h1>
-    <!--<h1 th:text="'환영합니다, ' + ${#authentication.principal.username} + '님'"></h1>-->
-
-
-    <!-- 인증된 사용자를 위한 추가적인 컨텐츠를 포함시킵니다. -->
+<!-- 로그인된 경우 북마크 전체 조회 -->
+<span sec:authorize="isAuthenticated()">
     <script th:inline="javascript">
         window.onload = function() {
             window.memberId = [[${#authentication.principal.memberId}]];
-            console.log(memberId);
             findAllBookmark(memberId);
         };
     </script>
-</div>
+</span>
 
 <!--
 // v0 by Vercel.
