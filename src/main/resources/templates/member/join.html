@@ -36,6 +36,13 @@
                 <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="text-red-500 text-xs italic"></div>
             </div>
 
+            <div>
+                <label class="text-sm font-medium leading-none block mb-1 text-gray-700" for="confirmPassword">닉네임</label>
+                <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400
+                focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" th:field="*{nickname}" id="nickname" placeholder="닉네임" required />
+                <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" class="text-red-500 text-xs italic"></div>
+            </div>
+
             <div class="flex items-center">
                 <input class="mr-2" type="checkbox" id="terms" />
                 <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="terms">

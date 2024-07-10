@@ -10,8 +10,8 @@
     <!-- 회원가입 -->
     <insert id="joinProcess" parameterType="com.web.SearchWeb.member.dto.MemberDto">
         insert into
-            member (username, password, role)
-            VALUES(#{username}, #{password}, #{role})
+            member (username, password, nickname, role)
+            VALUES(#{username}, #{password}, #{nickname}, #{role})
     </insert>
 
 
