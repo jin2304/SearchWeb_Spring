@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Searchweb</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="your-custom-styles.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+<!-- 메뉴바 fragment 사용 -->
+<nav th:replace="~{fragment/navbar :: copy}"></nav>
+
+<!-- 사이드바 fragment 사용 -->
+<aside th:replace="~{fragment/sidebar :: copy}"></aside>
+
+<!-- 메인 컨덴트 -->
+<main class="p-6 space-y-8 bg-gray-100 md:px-16 lg:px-32 xl:px-40" style="margin-left: 223px;">
+
+    <!-- 사용자 프로필 정보 -->
+    <div class="w-full py-6">
+        <div class="container flex flex-col items-center gap-6 px-4 text-center md:flex-row md:gap-8 md:px-6 lg:gap-12" style="max-width: 800px; margin: auto;">
+            <!-- 사용자 이미지 -->
+            <div class="flex-shrink-0">
+                <img src="https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMzAzMjZfMjUx%2FMDAxNjc5ODM0MzkxNzg5.SomK3qflKEf0ugQ9HqeikVETiazukyq1aNgj767ZXMMg.d9xeVYIkSi5cL39Zv658_wFaZAWBjQSiApP9Dap3wdgg.PNG.npay1%2F20230326%25A3%25DF213901%25A3%25DF832.png&type=sc960_832" width="120" height="120" alt="Profile Picture" class="rounded-full" style="aspect-ratio: 1 / 1; object-fit: cover;" />
+            </div>
+
+            <!-- 사용자 정보 -->
+            <div class="space-y-3 text-left w-full">
+                <div class="space-y-1">
+                    <h2 class="text-xl font-bold tracking-tighter sm:text-2xl" th:text="${#authentication.name}">About Me</h2>
+                </div>
+                <div class="space-y-3">
+                    <dl class="grid grid-cols-2 gap-1 text-xs dark:text-gray-400">
+<!--                        <div class="font-medium">Name</div>
+                        <div class="text-right" th:text="${#authentication.name}">Jane Doe</div>-->
+                        <div class="font-medium">Email</div>
+                        <div class="text-right">jane@example.com</div>
+                        <div class="font-medium">Location</div>
+                        <div class="text-right">New York, NY</div>
+                        <div class="font-medium">Website</div>
+                        <div class="text-right">janedoe.com</div>
+                    </dl>
+                    <p class="text-gray-500 dark:text-gray-400">Passionate about web development and creating beautiful, user-friendly websites.</p>
+                </div>
+
+                <!-- 사용자 해시태그 -->
+                <div class="flex flex-wrap gap-1">
+                    <div class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-600 text-white hover:bg-purple-700" data-v0-t="badge">Lifestyle</div>
+                    <div class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-600 text-white hover:bg-purple-700" data-v0-t="badge">Music</div>
+                    <div class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-600 text-white hover:bg-purple-700" data-v0-t="badge">Travel</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- 웹사이트 요소 -->
+    <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
+        <div class="container mx-auto px-40 py-16">
+            <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 mx-auto">
+                <div th:each="l:${bookmarkWebsites}" class="relative flex flex-col w-full max-w-[200px] max-h-[100px] rounded-lg bg-white border-2 border-gray-250 bg-card text-card-foreground shadow-sm overflow-hidden group">
+                    <a th:href="${l.url}" target="_blank" class="flex flex-1 items-center p-4">
+                        <!-- 웹사이트 이미지 -->
+                        <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-8 h-8 mr-4">
+                        <div class="flex flex-col">
+                            <!-- 웹사이트 이름 -->
+                            <h1 class="text-sm font-bold truncate" th:text="${l.name}">Website Name</h1>
+                        </div>
+                    </a>
+                    <!-- 웹사이트 설명 (hover시 보임) -->
+                    <a th:href="${l.url}" target="_blank" class="absolute inset-0 flex items-center p-4 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-8 h-8 mr-4">
+                        <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${l.description}" style="font-size: 0.66rem;">Website Description</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 웹사이트 요소 -->
+<!--    <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
+        <div class="container mx-auto px-40 py-16">
+            <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 mx-auto">
+                <div th:each="l:${bookmarkWebsites}" class="flex flex-col w-full max-w-[200px] max-h-[100px] rounded-lg bg-white border-2 border-gray-250 bg-card text-card-foreground shadow-sm overflow-hidden">
+                    <a th:href="${l.url}" target="_blank" class="flex flex-1 items-center p-4">
+                        &lt;!&ndash; 웹사이트 이미지 &ndash;&gt;
+                        <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-8 h-8 mr-4">
+                        <div class="flex flex-col">
+                            &lt;!&ndash; 웹사이트 이름 &ndash;&gt;
+                            <h1 class="text-sm font-bold truncate" th:text="${l.name}">Website Name</h1>
+                            &lt;!&ndash; 웹사이트 설명 &ndash;&gt;
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate" th:text="${l.description}" style="font-size: 0.66rem;">Website Description</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>-->
+
+
+
+
+</main>
+
+</body>
+</html>
