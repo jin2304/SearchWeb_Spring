@@ -5,7 +5,12 @@
 
 
 <mapper namespace="com.web.SearchWeb.main.dao.MainDao">
-    <select id="getList" resultType="com.web.SearchWeb.main.domain.Website">
+    <select id="getListByCategory" resultType="com.web.SearchWeb.main.domain.Website">
         select * from website
+        <where>
+            <if test="category != 'All'">
+                category = #{category}
+            </if>
+        </where>
     </select>
 </mapper>

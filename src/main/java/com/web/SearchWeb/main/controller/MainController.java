@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -26,10 +27,8 @@ public class MainController {
      *  메인 페이지
      */
     @GetMapping("/mainList")
-    public String mainList(Model model){
-        List<Website> list = mainService.getList();
-        System.out.println("list = " + list);
-
+    public String mainList(@RequestParam(value = "category", defaultValue = "All") String category, Model model){
+        List<Website> list = mainService.getListByCategory(category);
         model.addAttribute("list", list);
         return "main/mainList";
     }
