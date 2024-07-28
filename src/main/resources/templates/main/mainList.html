@@ -79,18 +79,17 @@
         .rounded-lg:hover .button-container svg{
             display: block;
         }
-
-
+    .active-category {
+        background-color: #8B5CF6;
+        color: #ffffff;
+    }
 </style>
-<body>
-
+<body class="bg-gray-100">
 <!-- 메뉴바 fragment 사용 -->
 <nav th:replace="~{fragment/navbar :: copy}"></nav>
 
-
 <!-- 사이드바 fragment 사용 -->
 <aside th:replace="~{fragment/sidebar :: copy}"></aside>
-
 
 <!-- 로그인된 경우 북마크 전체 조회 -->
 <span sec:authorize="isAuthenticated()">
@@ -111,40 +110,72 @@
 <main class="flex flex-col flex-1 overflow-hidden bg-gray-100"  style="margin-left: 223px;">
     <div class="flex-1 overflow-x-hidden overflow-y-auto">
 
-        <!-- 웹사이트 요소 -->
-        <div class="container mx-auto px-40 sm:px-0 md:px-0 xl:px-64 py-16">
+        <!-- 카테고리 바 -->
+        <div class="container mx-auto px-40 sm:px-0 md:px-0 xl:px-64 py-16 " style="padding-top: 20px;">
+            <div class="flex items-center justify-between py-4 ">
+                <div class="flex items-center gap-2 p-2 bg-white shadow-lg rounded-xl">
+                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=All">All</a>
+                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Development">Development</a>
+                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Design">Design</a>
+                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=AI">AI</a>
+                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Icon">Icon</a>
+                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=PPT">PPT</a>
+                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Font">Font</a>
+                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Util">Util</a>
+                </div>
+
+
+                <!-- 검색 결과 개수 표시 -->
+                <div class="text-sm text-gray-600 flex items-center justify-center mt-4">
+                <span th:if="${resultCount}">
+                    <span class="bg-gray-200 rounded-full px-4 py-1 font-semibold text-gray-700">
+                        검색 결과: <span class="font-bold text-base" th:text="${resultCount}">0</span>개
+                    </span>
+                </span>
+                </div>
+
+
+            <!-- 검색 결과 없을 때 메시지 표시 -->
+            <div th:if="${resultCount != null && resultCount == 0}" class="flex items-center justify-center mt-32">
+                <div class="text-center bg-white p-8 rounded-xl shadow-md border border-gray-100">
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="w-16 h-16 flex items-center justify-center rounded-full bg-gray-200">
+                            <span class="text-4xl text-gray-400">!</span>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-semibold text-gray-600 mb-2">
+                        "<span th:text="${query}"></span>"에 대한 검색 결과가 없습니다.
+                    </div>
+                    <div class="text-gray-500 text-sm mt-4">
+                        다시 검색해주세요.
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- 검색 결과 있을 때 메시지 표시 -->
+            <!-- 웹사이트 요소 -->
             <div class="grid gap-4 mb-8 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 mx-auto" style="max-width: 100%;">
-
-                <div th:each="l:${list}"  th:data-website-id="${l.websiteId}" class="w-full max-w-sm rounded-lg bg-white border-2 border-gray-250 bg-card text-card-foreground shadow-sm transform transition-transform duration-300 hover:scale-105" data-v0-t="card"  style="height: 160px;">
-
+                <div th:each="l : ${list}" th:data-website-id="${l.websiteId}" class="w-full max-w-sm rounded-lg bg-white border-2 border-gray-250 bg-card text-card-foreground shadow-sm transform transition-transform duration-300 hover:scale-105" data-v0-t="card" style="height: 160px;">
                     <!-- 북마크(즐겨찾기) -->
                     <div class="button-container" style="display: flex; justify-content: flex-end; position: absolute; top: 5px; right: 5px;">
-                        <button class="bookmark-button" type="button"  th:onclick="|Bookmark(${l.websiteId})|">
-                            <!--북마크 안되었을때 이미지-->
+                        <button class="bookmark-button" type="button" th:onclick="|Bookmark(${l.websiteId})|">
+                            <!-- 북마크 안되었을 때 이미지 -->
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-bookmark" viewBox="0 0 16 16" style="">
                                 <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
                             </svg>
-                            <!--북마크 되었을때 이미지-->
-                            <!--<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#FFD700" class="bi bi-bookmark-fill" viewBox="0 0 16 16" style="position: absolute; top: 0; right: 0; z-index: 1;">
-                              <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8
-                            </svg>-->
                         </button>
                     </div>
-
-
                     <a th:href="${l.url}" target="_blank">
                         <div class="p-6 flex flex-row items-center justify-between pb-2 space-y-0">
                             <!-- 웹사이트 이미지 -->
                             <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-10 h-10"> <!-- 이미지 크기 조정 -->
                             <!-- 웹사이트 이름 -->
-                            <h1 class="whitespace-nowrap tracking-tight text-sm font-bold" th:text="${l.name}">website Name</h1>
+                            <h1 class="whitespace-nowrap tracking-tight text-sm font-bold" th:text="${l.name}">Website Name</h1>
                         </div>
-
                         <div class="p-6 pt-4">
                             <!-- 웹사이트 설명 -->
-                            <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${l.description}" style="font-size: 0.66rem;">Website Description Website Description</p>
-                            <!-- 웹사이트 카테고리 -->
-                            <!-- <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${l.category}" style="font-size: 0.66rem;">Category</p>-->
+                            <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${l.description}" style="font-size: 0.66rem;">Website Description</p>
                         </div>
                     </a>
                 </div>

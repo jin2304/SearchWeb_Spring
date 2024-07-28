@@ -23,6 +23,11 @@ public class MybatisMainDao implements MainDao {
     }
 
     @Override
+    public List<Website> getListByQuery(String query) {
+        return mapper.getListByQuery(query);
+    }
+
+    @Override
     public Website getDetail() {
         return null;
     }

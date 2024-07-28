@@ -13,4 +13,24 @@
             </if>
         </where>
     </select>
+
+
+    <select id="getListByQuery" resultType="com.web.SearchWeb.main.domain.Website">
+        SELECT * FROM website
+        WHERE
+        LOWER(name) LIKE CONCAT('%', LOWER(#{query}), '%')
+        OR
+        LOWER(description) LIKE CONCAT('%', LOWER(#{query}), '%')
+        ORDER BY
+        CASE WHEN LOWER(name) LIKE CONCAT('%', LOWER(#{query}), '%') THEN 1
+        ELSE 2  END;
+
+        <!--SELECT * FROM website
+        WHERE
+        name LIKE CONCAT('%', UPPER(#{query}), '%')
+        OR
+        name LIKE CONCAT('%', LOWER(#{query}), '%');-->
+
+        <!--WHERE LOWER(name) LIKE CONCAT('%', LOWER(#{query}), '%')-->
+    </select>
 </mapper>

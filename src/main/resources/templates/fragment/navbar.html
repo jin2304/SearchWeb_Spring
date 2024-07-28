@@ -18,7 +18,7 @@
 
         <div class="flex justify-between items-center">
             <div >
-                <a href="/"  class="dark:text-white text-2xl font-bold md:text-3xl hover:text-gray-700 dark:hover:text-gray-300">
+                <a href="/mainList"  class="dark:text-white text-2xl font-bold md:text-3xl hover:text-gray-700 dark:hover:text-gray-300">
                     <span class="text-purple-500">Search</span>web
                 </a>
             </div>
@@ -31,7 +31,18 @@
                         <path d="m21 21-4.3-4.3"></path>
                     </svg>
                 </span>
-                    <input  style="color:black;" class="flex h-10 w-full border border-input px-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 focus:outline-none focus:bg-white dark:focus:bg-gray-900" placeholder="Search" type="search">
+
+                    <!-- 검색바 -->
+                    <form action="/mainList" method="get" class="relative w-full">
+                        <input name="query" class="flex h-10 w-full border border-gray-300 px-3 text-sm placeholder-gray-500 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg pr-10 bg-gray-100 dark:bg-gray-800 dark:text-white dark:focus:bg-gray-900" placeholder="Search" type="search">
+                        <button type="submit" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.3-4.3"></path>
+                            </svg>
+                        </button>
+                    </form>
+
                 </div>
             </div>
         </div>

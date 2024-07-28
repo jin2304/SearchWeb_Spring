@@ -19,10 +19,19 @@ public class MainServiceImpl implements MainService {
 
 
     /**
-     *  카테고리별 웹사이트 목록조회
+     *  카테고리별 웹사이트 목록 조회
      */
     public List<Website> getListByCategory(String category) {
         return mainDao.getListByCategory(category);
+    }
+
+
+    /**
+     *  검색어 기반으로 웹사이트 목록 조회
+     */
+    @Override
+    public List<Website> getListByQuery(String query) {
+        return  mainDao.getListByQuery(query);
     }
 
 
