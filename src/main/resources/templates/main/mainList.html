@@ -134,6 +134,29 @@
                 </span>
                 </div>
 
+        </div>
+
+            <script>
+                // 카테고리에 맞게 버튼 색깔 활성화
+                document.addEventListener('DOMContentLoaded', function() {
+                    const params = new URLSearchParams(window.location.search);
+                    const category = params.get('category') || 'All'; // query parameter가 없으면 'All'로 설정
+                    const buttons = document.querySelectorAll('.category-btn'); // 카테고리에 맞는 버튼에 active-category 클래스를 추가
+
+                    buttons.forEach(button => {
+                        const href = button.getAttribute('href');
+                        if ((href.includes('?category=' + category))) {
+                            button.classList.add('active-category', 'bg-indigo-500', 'text-white');
+                            button.classList.remove('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
+                        } else {
+                            button.classList.remove('active-category', 'bg-indigo-500', 'text-white');
+                            button.classList.add('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
+                        }
+                    });
+                });
+            </script>
+
+
 
             <!-- 검색 결과 없을 때 메시지 표시 -->
             <div th:if="${resultCount != null && resultCount == 0}" class="flex items-center justify-center mt-32">
