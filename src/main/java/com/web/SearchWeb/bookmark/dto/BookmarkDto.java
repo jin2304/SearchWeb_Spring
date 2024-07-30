@@ -12,4 +12,7 @@ import lombok.ToString;
 public class BookmarkDto {
     private int member_memberId;
     private int website_websiteId;
+    private String name;
+    private String description;
+    private String url;
 }
