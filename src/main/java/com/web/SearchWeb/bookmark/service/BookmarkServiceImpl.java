@@ -2,6 +2,7 @@ package com.web.SearchWeb.bookmark.service;
 
 import com.web.SearchWeb.bookmark.dao.BookmarkDao;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
+import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ public class BookmarkServiceImpl implements BookmarkService {
      *  북마크 확인
      */
     @Override
-    public int checkBookmark(BookmarkDto bookmark) {
+    public int checkBookmark(BookmarkCheckDto bookmark) {
         return bookmarkDao.checkBookmark(bookmark);
     }
 
@@ -48,10 +49,18 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
+     *  북마크 추가 (사용자 직접 추가)
+     */
+    @Override
+    public int insertBookmarkForUser(BookmarkDto bookmarkDto) {
+        return bookmarkDao.insertBookmarkForUser(bookmarkDto);
+    }
+
+    /**
      *  북마크 삭제
      */
     @Override
-    public int deleteBookmark(BookmarkDto bookmark) {
+    public int deleteBookmark(BookmarkCheckDto bookmark) {
         return bookmarkDao.deleteBookmark(bookmark);
     }
 

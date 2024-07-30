@@ -2,8 +2,11 @@ package com.web.SearchWeb.bookmark.controller;
 
 
 import com.web.SearchWeb.bookmark.domain.Bookmark;
+import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
+import com.web.SearchWeb.main.domain.Website;
+import com.web.SearchWeb.main.service.MainService;
 import com.web.SearchWeb.member.dto.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,17 +18,28 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+/**
+ *
+ *  코드 작성자: 서진영(jin2304)
+ *  코드 설명 :CommentApiController는 맛집의 댓글과 관련된 기능을 담당하며, Rest API방식으로 설계했음.
+ *  코드 주요 기능: 댓글 등록, 댓글 조회, 댓글 삭제, 댓글 수정
+ *  코드 작성일: 2024.07.07 ~ 2024.07.31
+ *
+ */
+
 @RestController
 @RequestMapping("/mainList")
 public class BookmarkApiController {
 
     private final BookmarkService bookmarkService;
+    private final MainService mainService;
 
     @Autowired
-    public BookmarkApiController(BookmarkService bookmarkService) {
+    public BookmarkApiController(BookmarkService bookmarkService, MainService mainService) {
         this.bookmarkService = bookmarkService;
+        this.mainService = mainService;
     }
-
 
     /**
      *  북마크 확인
@@ -48,7 +62,7 @@ public class BookmarkApiController {
         int MemberId = userDetails.getMemberId();
 
         // 해당 유저가 해당 가게를 북마크했는지 여부를 서비스에서 확인하여 반환
-        BookmarkDto bookmark = new BookmarkDto(MemberId, websiteId);
+        BookmarkCheckDto bookmark = new BookmarkCheckDto(MemberId, websiteId);
         int result = bookmarkService.checkBookmark(bookmark);
 
         return ResponseEntity.ok(result);
@@ -69,7 +83,13 @@ public class BookmarkApiController {
      **/
     @PostMapping(value ="/{memberId}/bookmark/{websiteId}")
     public ResponseEntity<Integer> insertBookmark(@PathVariable final int memberId, @PathVariable final int websiteId){
-        int result = bookmarkService.insertBookmark(new BookmarkDto(memberId, websiteId));
+
+        Website website = mainService.selectWebsite(websiteId);
+        String name = website.getName();
+        String description = website.getDescription();
+        String url = website.getUrl();
+
+        int result = bookmarkService.insertBookmark(new BookmarkDto(memberId, websiteId, name, description, url));
         return ResponseEntity.ok(result);
     }
 
@@ -79,7 +99,7 @@ public class BookmarkApiController {
      **/
     @DeleteMapping(value = "/{memberId}/bookmark/{websiteId}")
     public ResponseEntity<Integer> deleteBookmark(@PathVariable final int memberId, @PathVariable final int websiteId) {
-        int result = bookmarkService.deleteBookmark(new BookmarkDto(memberId, websiteId));
+        int result = bookmarkService.deleteBookmark(new BookmarkCheckDto(memberId, websiteId));
         return ResponseEntity.ok(result);
     }
 }
