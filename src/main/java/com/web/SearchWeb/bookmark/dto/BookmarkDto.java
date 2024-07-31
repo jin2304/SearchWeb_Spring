@@ -15,4 +15,5 @@ public class BookmarkDto {
     private String name;
     private String description;
     private String url;
+    private String tag;
 }

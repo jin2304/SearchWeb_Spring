@@ -89,7 +89,7 @@ public class BookmarkApiController {
         String description = website.getDescription();
         String url = website.getUrl();
 
-        int result = bookmarkService.insertBookmark(new BookmarkDto(memberId, websiteId, name, description, url));
+        int result = bookmarkService.insertBookmark(new BookmarkDto(memberId, websiteId, name, description, url, null));
         return ResponseEntity.ok(result);
     }
 

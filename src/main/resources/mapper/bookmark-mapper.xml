@@ -37,8 +37,8 @@
     <insert id="insertBookmarkForUser" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto" >
         insert
         into
-        bookmark(member_memberId, name, description, url)
-        values(#{member_memberId},#{name}, #{description}, #{url});
+        bookmark(member_memberId, name, description, url, tag)
+        values(#{member_memberId},#{name}, #{description}, #{url}, #{tag});
     </insert>
 
 
