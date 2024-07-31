@@ -32,6 +32,15 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
+     *  북마크 태그 조회
+     */
+    @Override
+    public List<Bookmark> selectBookmarkListByTag(int memberId, String tag) {
+        return mapper.selectBookmarkListByTag(memberId, tag);
+    }
+
+
+    /**
      *  북마크 확인
      */
     @Override
@@ -73,5 +82,14 @@ public class MybatisBookmarkDao implements BookmarkDao {
     @Override
     public List<BookmarkWebsite> selectBookmarkWebsite(int memberId) {
         return mapper.selectBookmarkWebsite(memberId);
+    }
+
+
+    /**
+     *  사용자 태그 목록 조회
+     */
+    @Override
+    public List<String> selectTags(int memberId) {
+        return mapper.selectTags(memberId);
     }
 }

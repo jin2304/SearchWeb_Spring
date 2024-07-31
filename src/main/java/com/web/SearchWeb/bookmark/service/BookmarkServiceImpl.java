@@ -40,6 +40,15 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
+     *  북마크 태그 조회
+     */
+    @Override
+    public List<Bookmark> selectBookmarkListByTag(int memberId, String tag) {
+        return bookmarkDao.selectBookmarkListByTag(memberId, tag);
+    }
+
+
+    /**
      *  북마크 추가
      */
     @Override
@@ -71,5 +80,14 @@ public class BookmarkServiceImpl implements BookmarkService {
     @Override
     public List<BookmarkWebsite> selectBookmarkWebsite(int memberId) {
         return bookmarkDao.selectBookmarkWebsite(memberId);
+    }
+
+
+    /**
+     *  사용자 태그 목록 조회
+     */
+    @Override
+    public List<String> selectTags(int memberId) {
+        return bookmarkDao.selectTags(memberId);
     }
 }

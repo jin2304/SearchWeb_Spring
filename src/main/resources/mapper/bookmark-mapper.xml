@@ -24,6 +24,17 @@
     </select>
 
 
+    <!-- 북마크 태그 조회 -->
+    <select id="selectBookmarkListByTag" parameterType="map" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
+        select *
+        from bookmark
+        WHERE
+        member_memberId=#{memberId}
+        AND
+        tag = #{tag}
+    </select>
+
+
     <!-- 북마크 추가 -->
     <insert id="insertBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto">
         insert
@@ -58,6 +69,15 @@
          JOIN website w
          ON b.website_websiteId = w.websiteId
          where member_memberId=#{member_memberId};
+    </select>
+
+
+    <!-- 사용자 태그 목록 조회 -->
+    <select id="selectTags" parameterType="int" resultType="string">
+        select DISTINCT tag
+        from bookmark
+        WHERE member_memberId=#{member_memberId}
+        AND tag IS NOT NULL
     </select>
 </mapper>
 
