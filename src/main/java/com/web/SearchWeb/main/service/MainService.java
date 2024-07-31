@@ -5,6 +5,10 @@ import com.web.SearchWeb.main.domain.Website;
 import java.util.List;
 
 public interface MainService {
+
+    //웹사이트 조회
+    Website selectWebsite(int websiteId);
+
     //카테고리별 웹사이트 목록 조회
     List<Website> getListByCategory(String category);
 

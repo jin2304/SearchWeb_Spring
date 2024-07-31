@@ -18,6 +18,11 @@ public class MybatisMainDao implements MainDao {
     }
 
     @Override
+    public Website selectWebsite(int websiteId) {
+        return  mapper.selectWebsite(websiteId);
+    }
+
+    @Override
     public List<Website> getListByCategory(String category) {
         return mapper.getListByCategory(category);
     }

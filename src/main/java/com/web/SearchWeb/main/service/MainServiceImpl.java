@@ -17,6 +17,13 @@ public class MainServiceImpl implements MainService {
         this.mainDao = mainDao;
     }
 
+    /**
+     *  웹사이트 조회
+     */
+    @Override
+    public Website selectWebsite(int websiteId) {
+        return mainDao.selectWebsite(websiteId);
+    }
 
     /**
      *  카테고리별 웹사이트 목록 조회

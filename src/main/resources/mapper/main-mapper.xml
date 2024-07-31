@@ -5,6 +5,12 @@
 
 
 <mapper namespace="com.web.SearchWeb.main.dao.MainDao">
+    <select id="selectWebsite" resultType="com.web.SearchWeb.main.domain.Website">
+        select * from website
+        where websiteId = #{websiteId}
+    </select>
+
+
     <select id="getListByCategory" resultType="com.web.SearchWeb.main.domain.Website">
         select * from website
         <where>
