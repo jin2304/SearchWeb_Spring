@@ -18,7 +18,7 @@
 <aside th:replace="~{fragment/sidebar :: copy}"></aside>
 
 <!-- 메인 컨덴트 -->
-<main class="p-6 space-y-8 bg-gray-100 md:px-16 lg:px-32 xl:px-40" style="margin-left: 223px;">
+<main class="p-6 space-y-8 bg-gray-100 md:px-16 lg:px-32 xl:px-60" style="margin-left: 223px; padding-left: 400px; padding-right: 400px;">
 
     <!-- 사용자 프로필 정보 -->
     <div class="w-full py-6">
@@ -58,55 +58,26 @@
     </div>
 
 
-
-    <!-- 웹사이트 요소 -->
-    <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
-        <div class="container mx-auto px-40 py-16">
-            <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 mx-auto">
+        <!-- 북마크 목록 -->
+        <div class="container mx-auto" style="margin-top: 0;">
+            <div id="bookmarksContainer" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 mx-auto mt-3">
                 <div th:each="l:${bookmarkWebsites}" class="relative flex flex-col w-full max-w-[200px] max-h-[100px] rounded-lg bg-white border-2 border-gray-250 bg-card text-card-foreground shadow-sm overflow-hidden group">
-                    <a th:href="${l.url}" target="_blank" class="flex flex-1 items-center p-4">
+                    <a th:href="${l.url}" target="_blank" class="flex flex-1 items-center p-3">
                         <!-- 웹사이트 이미지 -->
                         <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-8 h-8 mr-4">
                         <div class="flex flex-col">
                             <!-- 웹사이트 이름 -->
-                            <h1 class="text-sm font-bold truncate" th:text="${l.name}">Website Name</h1>
+                            <h1 class="text-xs font-bold truncate" th:text="${l.name}">Website Name</h1>
                         </div>
                     </a>
                     <!-- 웹사이트 설명 (hover시 보임) -->
-                    <a th:href="${l.url}" target="_blank" class="absolute inset-0 flex items-center p-4 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <a th:href="${l.url}" target="_blank" class="absolute inset-0 flex items-center p-3 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-8 h-8 mr-4">
                         <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${l.description}" style="font-size: 0.66rem;">Website Description</p>
                     </a>
                 </div>
             </div>
         </div>
-    </div>
-
-
-    <!-- 웹사이트 요소 -->
-<!--    <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
-        <div class="container mx-auto px-40 py-16">
-            <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 mx-auto">
-                <div th:each="l:${bookmarkWebsites}" class="flex flex-col w-full max-w-[200px] max-h-[100px] rounded-lg bg-white border-2 border-gray-250 bg-card text-card-foreground shadow-sm overflow-hidden">
-                    <a th:href="${l.url}" target="_blank" class="flex flex-1 items-center p-4">
-                        &lt;!&ndash; 웹사이트 이미지 &ndash;&gt;
-                        <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-8 h-8 mr-4">
-                        <div class="flex flex-col">
-                            &lt;!&ndash; 웹사이트 이름 &ndash;&gt;
-                            <h1 class="text-sm font-bold truncate" th:text="${l.name}">Website Name</h1>
-                            &lt;!&ndash; 웹사이트 설명 &ndash;&gt;
-                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate" th:text="${l.description}" style="font-size: 0.66rem;">Website Description</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>-->
-
-
-
-
 </main>
-
 </body>
 </html>
