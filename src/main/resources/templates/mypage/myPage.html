@@ -58,6 +58,107 @@
     </div>
 
 
+    <!-- 북마크 추가 (사용자 직접 추가) 버튼 -->
+        <!-- 검색 바와 정렬 옵션들 -->
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <!-- 검색 바 -->
+                <div class="relative">
+                    <input type="text" placeholder="Search" class="pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <!-- 시간순 정렬 드롭다운 -->
+                <div class="relative">
+                    <button class="inline-flex items-center px-5 py-1.5 border border-gray-300 bg-white rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" onclick="toggleDropdown('timeDropdown')">
+                        <span id="selectedTime">Time</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="absolute mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10" id="timeDropdown">
+                        <div class="py-1">
+                            <a href="#" onclick="selectTime('Newest')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Newest</a>
+                            <a href="#" onclick="selectTime('Oldest')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Oldest</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 태그순 정렬 드롭다운 -->
+                <div class="relative">
+                    <button id="selectedTagButton" class="inline-flex items-center px-5 py-1.5 border border-gray-300 bg-white rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            onclick="toggleDropdown('tagDropdown')">
+                        <span id="selectedTag">All</span> <!-- 선택된 태그 표시 -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="absolute mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10" id="tagDropdown">
+                        <div class="py-1">
+                            <!--<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectTag('All')">All</a>--> <!-- 기본값 All -->
+                            <!-- 사용자 생성 태그를 여기에 동적으로 추가 -->
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 북마크 추가 버튼 -->
+                <button onclick="toggleBookmarkForm()" class="inline-flex items-center px-5 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Bookmark
+                </button>
+            </div>
+        </div>
+
+
+
+
+        <!-- 북마크 추가 팝업 -->
+        <div id="bookmarkFormPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+            <div class="bg-white p-8 rounded-lg shadow-md max-w-lg w-full z-50">
+                <h3 class="text-xl font-semibold mb-4">북마크 추가</h3>
+                <form id="bookmarkForm" class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">
+                            웹사이트 이름 <span class="text-red-500">*</span>
+                        </label>
+                        <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="name" placeholder="웹사이트 이름" required />
+                    </div>
+                    <div>
+                        <label for="url" class="block text-sm font-medium text-gray-700">
+                            URL <span class="text-red-500">*</span>
+                        </label>
+                        <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="url" placeholder="URL" required />
+                    </div>
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">설명</label>
+                        <textarea class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" id="description" placeholder="설명"></textarea>
+                    </div>
+                    <div>
+                        <label for="tag" class="block text-sm font-medium text-gray-700">태그</label>
+                        <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="tag" placeholder="자신만의 태그를 입력하세요" />
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="button" onclick="toggleBookmarkForm()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-700 bg-gray-300 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            취소
+                        </button>
+                        <button type="submit" class="inline-flex items-center px-4 py-2 ml-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            추가
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
         <!-- 북마크 목록 -->
         <div class="container mx-auto" style="margin-top: 0;">
             <div id="bookmarksContainer" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 mx-auto mt-3">
@@ -79,5 +180,189 @@
             </div>
         </div>
 </main>
+
+
+<script th:inline="javascript">
+
+    window.onload = function() {
+        window.memberId = [[${#authentication.principal.memberId}]];
+    };
+
+    // 드롭다운 토글 함수
+    function toggleDropdown(id) {
+        const dropdown = document.getElementById(id);
+        const isHidden = dropdown.classList.contains('hidden'); // 드롭다운이 숨겨져 있는지 확인
+        closeAllDropdowns(); // 모든 드롭다운을 닫음
+        if (isHidden) { // 드롭다운이 숨겨져 있던 상태라면, 숨김 클래스를 제거하여 드롭다운을 표시
+            dropdown.classList.remove('hidden');
+        }
+    }
+
+
+    // 모든 드롭다운 닫기 함수
+    function closeAllDropdowns() {
+        document.querySelectorAll('.relative .z-10').forEach(dropdown => {
+            dropdown.classList.add('hidden');
+        });
+    }
+
+
+    // 다른 부분 클릭 시 드롭다운 닫기
+    document.addEventListener('click', function(event) {
+        const isDropdownButton = event.target.matches('.relative button');
+        if (!isDropdownButton && event.target.closest('.relative') == null) {
+            closeAllDropdowns();
+        }
+    });
+
+
+
+    // 페이지 로드 시 기본 활성화 버튼 설정
+    window.addEventListener('load', function() {
+        loadTags(); // 태그 목록 로드
+        /* loadBookmarks('All', 'Oldest'); // 기본값으로 최신순 정렬된 북마크 로드*/
+    });
+
+
+    // 북마크 추가 폼 토글 함수
+    function toggleBookmarkForm() {
+        document.getElementById('bookmarkFormPopup').classList.toggle('hidden');
+    }
+
+
+    // 북마크 추가(사용자 직접 추가) 이벤트 리스너 추가
+    document.getElementById('bookmarkForm').addEventListener('submit', function(event) {
+        event.preventDefault();  // 폼의 기본 제출 동작을 막습니다.
+
+        // 폼 데이터 가져오기
+        const name = document.getElementById('name').value;
+        const url = document.getElementById('url').value;
+        const description = document.getElementById('description').value;
+        const tag = document.getElementById('tag').value.trim(); // 단일 태그
+        //const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()).slice(0, 3); // 쉼표로 분리하고 최대 3개의 태그를 추출
+
+
+        // 폼 데이터로부터 객체 생성
+        const bookmarkData = {
+            name: name,  // 웹사이트 이름
+            url: url,  // 웹사이트 URL
+            description: description,  // 웹사이트 설명
+            tag: tag  // 단일 태그
+        };
+
+        // AJAX 요청 보내기
+        $.ajax({
+            url: "/myPage/" + memberId + "/bookmark",
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(bookmarkData),  // 자바스크립트 객체를 JSON 문자열로 변환
+            success: function(response) { // 요청이 성공했을 때 실행
+                // 폼을 초기화합니다.
+                document.getElementById('bookmarkForm').reset();
+                // 사용자 전체 북마크, 사용자 태그 조회
+                loadBookmarks();
+                loadTags()
+                // 북마크 추가 팝업을 닫습니다.
+                toggleBookmarkForm();
+                console.error('response:', response);
+
+            },
+            error: function(error) { // 요청이 실패했을 때 실행
+                console.error('Error:', error);
+                alert('북마크를 추가하는 중 오류가 발생했습니다.');
+            }
+        });
+    });
+
+
+    // 드롭다운에서 태그를 선택하는 함수
+    function selectTag(tag) {
+        document.getElementById('selectedTag').innerText = tag; // 선택된 태그 표시
+        closeAllDropdowns(); // 드롭다운 닫기
+        loadBookmarks(tag); // 선택한 태그로 북마크 로드
+    }
+
+
+    //사용자 전체 북마크를 불러와서 UI를 업데이트하는 함수
+    function loadBookmarks(selectedTag = 'All', sort = 'Oldest') {
+        $.ajax({
+            url: "/myPage/" + memberId + "/bookmarks",
+            type: 'GET',
+            data: { tag: selectedTag, //선택한 태그를 서버로 전달
+                sort: sort},      //선택한 정렬 옵션 서버로 전달
+            success: function(response) {
+                // 북마크 컨테이너 초기화
+                const bookmarksContainer = document.getElementById('bookmarksContainer');
+                bookmarksContainer.innerHTML = '';
+                // 불러온 북마크를 UI에 추가
+                response.forEach(addBookmarkToUI);
+            },
+            error: function(error) {
+                console.error('Error:', error);
+                alert('북마크를 불러오는 중 오류가 발생했습니다.');
+            }
+        });
+    }
+
+
+    // 태그 목록을 동적으로 로드하는 함수
+    function loadTags() {
+        $.ajax({
+            url: "/myPage/" + memberId + "/tags",
+            type: 'GET',
+            success: function(response) {
+                const dropdown = document.getElementById('tagDropdown').querySelector('.py-1');
+                dropdown.innerHTML = '<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectTag(\'All\')">All</a>'; // 기존의 태그 목록 초기화
+                response.forEach(tag => {
+                    const tagItem = document.createElement('a');
+                    tagItem.href = '#';
+                    tagItem.className = 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
+                    tagItem.innerText = tag;
+                    tagItem.onclick = () => selectTag(tag);
+                    dropdown.appendChild(tagItem);
+                });
+            },
+            error: function(error) {
+                console.error('Error:', error);
+                alert('태그를 불러오는 중 오류가 발생했습니다.');
+            }
+        });
+    }
+
+
+    // 북마크를 UI에 추가하는 함수
+    function addBookmarkToUI(bookmark) {
+        const { name, url, description } = bookmark;
+
+        const bookmarkElement = document.createElement('div');
+        bookmarkElement.className = 'relative flex flex-col w-full max-w-[200px] max-h-[100px] rounded-lg bg-white border-2 border-gray-250 bg-card text-card-foreground shadow-sm overflow-hidden group';
+
+        bookmarkElement.innerHTML = `
+        <a href="${url}" target="_blank" class="flex flex-1 items-center p-3">
+            <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${url}" alt="" title="" class="w-8 h-8 mr-4">
+            <div class="flex flex-col">
+                <h1 class="text-xs font-bold truncate">${name}</h1>
+            </div>
+        </a>
+        <a href="${url}" target="_blank" class="absolute inset-0 flex items-center p-3 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${url}" alt="" title="" class="w-8 h-8 mr-4">
+            <p class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 0.66rem;">${description}</p>
+        </a>
+    `;
+
+        // 북마크 목록에 새로운 북마크 요소를 추가합니다.
+        document.getElementById('bookmarksContainer').appendChild(bookmarkElement);
+    }
+
+
+    // 시간순 정렬 옵션을 선택하는 함수
+    function selectTime(sort) {
+        console.log("sort: ", sort)
+        document.getElementById('selectedTime').innerText = sort // 선택된 정렬 표시
+        closeAllDropdowns(); // 드롭다운 닫기
+        loadBookmarks(document.getElementById('selectedTag').innerText, sort); // 선택한 태그와 정렬 옵션으로 북마크 로드
+    }
+</script>
+
 </body>
 </html>
