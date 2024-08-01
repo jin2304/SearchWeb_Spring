@@ -63,6 +63,22 @@ public class MyPageController {
     }
     
 
+
+    /**
+     * 웹사이트 북마크 추가 (사용자 직접 추가)
+     */
+    @PostMapping(value ="/myPage/{memberId}/bookmark")
+    public ResponseEntity<BookmarkDto> insertBookmark(@PathVariable final int memberId, @RequestBody BookmarkDto bookmarkdto){
+        String name = bookmarkdto.getName();
+        String description = bookmarkdto.getDescription();
+        String url = bookmarkdto.getUrl();
+        String tag = bookmarkdto.getTag();
+        bookmarkService.insertBookmarkForUser(new BookmarkDto(memberId, 0, name, description, url, tag));
+        return ResponseEntity.ok(bookmarkdto);
+    }
+
+
+
     /**
      *  마이페이지 북마크 목록 조회
      */
