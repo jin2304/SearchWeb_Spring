@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class MybatisBookmarkDao implements BookmarkDao {
@@ -26,8 +27,8 @@ public class MybatisBookmarkDao implements BookmarkDao {
      *  북마크 조회
      */
     @Override
-    public List<Bookmark> selectBookmarkList(int memberId) {
-        return mapper.selectBookmarkList(memberId);
+    public List<Bookmark> selectBookmarkList(int memberId, String sort) {
+        return mapper.selectBookmarkList(memberId, sort);
     }
 
 
@@ -35,8 +36,8 @@ public class MybatisBookmarkDao implements BookmarkDao {
      *  북마크 태그 조회
      */
     @Override
-    public List<Bookmark> selectBookmarkListByTag(int memberId, String tag) {
-        return mapper.selectBookmarkListByTag(memberId, tag);
+    public List<Bookmark> selectBookmarkListByTag(Map<String, Object> params) {
+        return mapper.selectBookmarkListByTag(params);
     }
 
 

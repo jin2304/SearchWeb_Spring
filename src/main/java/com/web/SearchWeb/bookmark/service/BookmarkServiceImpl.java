@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BookmarkServiceImpl implements BookmarkService {
@@ -34,8 +36,8 @@ public class BookmarkServiceImpl implements BookmarkService {
      *  북마크 조회
      */
     @Override
-    public List<Bookmark> selectBookmarkList(int memberId) {
-        return bookmarkDao.selectBookmarkList(memberId);
+    public List<Bookmark> selectBookmarkList(int memberId, String sort) {
+        return bookmarkDao.selectBookmarkList(memberId, sort);
     }
 
 
@@ -43,8 +45,12 @@ public class BookmarkServiceImpl implements BookmarkService {
      *  북마크 태그 조회
      */
     @Override
-    public List<Bookmark> selectBookmarkListByTag(int memberId, String tag) {
-        return bookmarkDao.selectBookmarkListByTag(memberId, tag);
+    public List<Bookmark> selectBookmarkListByTag(int memberId, String tag, String sort) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("member_memberId", memberId);
+        params.put("tag", tag);
+        params.put("sort", sort);
+        return bookmarkDao.selectBookmarkListByTag(params);
     }
 
 

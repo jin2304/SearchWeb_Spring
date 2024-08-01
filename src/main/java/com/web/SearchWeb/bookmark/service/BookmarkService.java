@@ -13,9 +13,9 @@ public interface BookmarkService {
     //북마크 확인
     int checkBookmark(BookmarkCheckDto bookmark);
     //북마크 조회
-    List<Bookmark> selectBookmarkList(int memberId);
+    List<Bookmark> selectBookmarkList(int memberId, String sort);
     //북마크 태그 조회
-    List<Bookmark> selectBookmarkListByTag(int memberId, String tag);
+    List<Bookmark> selectBookmarkListByTag(int memberId, String tag, String sort);
     //북마크 추가
     int insertBookmark(BookmarkDto bookmark);
     //북마크 추가 (사용자 직접 추가)

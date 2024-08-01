@@ -16,22 +16,40 @@
     </select>
 
 
-    <!-- 북마크 조회 -->
-    <select id="selectBookmarkList" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
+    <!-- 북마크 조회(전체) -->
+    <select id="selectBookmarkList" parameterType="map" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
         select *
         from bookmark
-          WHERE member_memberId=#{member_memberId};
+        WHERE member_memberId=#{memberId}
+        ORDER BY
+        <choose>
+            <when test="sort == 'Newest'">
+                modified_date DESC
+            </when>
+            <when test="sort == 'Oldest'">
+                modified_date ASC
+            </when>
+        </choose>
     </select>
 
 
-    <!-- 북마크 태그 조회 -->
+    <!-- 북마크 조회(태그, 시간순) -->
     <select id="selectBookmarkListByTag" parameterType="map" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
         select *
         from bookmark
-        WHERE
-        member_memberId=#{memberId}
-        AND
-        tag = #{tag}
+        WHERE member_memberId=#{member_memberId}
+        <if test="tag != 'All'">
+            AND tag = #{tag}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="sort == 'Oldest'">
+                modified_date ASC
+            </when>
+            <when test="sort == 'Newest'">
+                modified_date DESC
+            </when>
+        </choose>
     </select>
 
 

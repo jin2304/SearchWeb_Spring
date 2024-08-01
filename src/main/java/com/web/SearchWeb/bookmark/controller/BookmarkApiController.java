@@ -74,7 +74,7 @@ public class BookmarkApiController {
      **/
     @GetMapping("/{memberId}/bookmarks")
     public List<Bookmark> selectBookmarkList(@PathVariable final int memberId){
-        return bookmarkService.selectBookmarkList(memberId); //JSON 형태로 객체 리스트 반환
+        return bookmarkService.selectBookmarkList(memberId, "Oldest"); //JSON 형태로 객체 리스트 반환
     }
 
 
