@@ -163,6 +163,24 @@
         <div class="container mx-auto" style="margin-top: 0;">
             <div id="bookmarksContainer" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 mx-auto mt-3">
                 <div th:each="l:${bookmarkWebsites}" class="relative flex flex-col w-full max-w-[200px] max-h-[100px] rounded-lg bg-white border-2 border-gray-250 bg-card text-card-foreground shadow-sm overflow-hidden group">
+                    <!-- 옵션 버튼 -->
+                    <button class="absolute top-0 right-0 pt-2 pr-0 pb-0 pl-0 text-gray-500 hover:text-gray-700 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20" onclick="toggleOptionsMenu(this, event)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h0M12 12h0M12 18h0" />
+                        </svg>
+                    </button>
+
+                    <!-- 옵션 메뉴 -->
+                    <div class="absolute left-full right-0 top-0 ml-1 w-32 rounded-md shadow-lg bg-black text-white ring-1 ring-black ring-opacity-5 z-50 options-menu hidden">
+                        <div class="py-1">
+                            <!-- 편집 -->
+                            <button th:onclick="|editBookmark(${l.bookmarkId})|" class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700">Edit</button>
+                            <!-- 삭제 -->
+                            <button th:onclick="|deleteBookmark(${l.bookmarkId})|" class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700">Delete</button>
+                        </div>
+                    </div>
+
+                    <!-- 웹사이트 링크 -->
                     <a th:href="${l.url}" target="_blank" class="flex flex-1 items-center p-3">
                         <!-- 웹사이트 이미지 -->
                         <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-8 h-8 mr-4">
@@ -362,6 +380,40 @@
         closeAllDropdowns(); // 드롭다운 닫기
         loadBookmarks(document.getElementById('selectedTag').innerText, sort); // 선택한 태그와 정렬 옵션으로 북마크 로드
     }
+
+
+    // 옵션 메뉴 토글 함수
+    function toggleOptionsMenu(button, event) {
+        // 이벤트 버블링 방지
+        event.stopPropagation();
+
+        // button의 부모 요소를 기준으로 옵션 메뉴를 명시적으로 선택
+        const menu = button.parentElement.querySelector('.options-menu');
+        const isHidden = menu.classList.contains('hidden');
+        closeAllOptionsMenus(); // 모든 옵션 메뉴를 닫기
+
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            menu.style.zIndex = '40'; // 메뉴가 정상적으로 보이도록 z-index 설정
+        }
+    }
+
+    // 모든 옵션 메뉴 닫기
+    function closeAllOptionsMenus() {
+        document.querySelectorAll('.options-menu').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    }
+
+
+    // 다른 부분 클릭 시 옵션 메뉴 닫기
+    document.addEventListener('click', function(event) {
+        const isOptionsMenu = event.target.closest('.options-menu');
+        const isButton = event.target.closest('.absolute.top-0.right-0');
+        if (!isOptionsMenu && !isButton) {
+            closeAllOptionsMenus();
+        }
+    });
 </script>
 
 </body>
