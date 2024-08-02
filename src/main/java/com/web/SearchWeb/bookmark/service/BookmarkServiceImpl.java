@@ -33,7 +33,7 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
-     *  북마크 조회
+     *  북마크 목록 조회 (시간)
      */
     @Override
     public List<Bookmark> selectBookmarkList(int memberId, String sort) {
@@ -42,7 +42,7 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
-     *  북마크 태그 조회
+     *  //북마크 목록 조회 (시간, 태그)
      */
     @Override
     public List<Bookmark> selectBookmarkListByTag(int memberId, String tag, String sort) {
