@@ -16,7 +16,7 @@
     </select>
 
 
-    <!-- 북마크 조회(전체) -->
+    <!-- 북마크 목록 조회 (시간) -->
     <select id="selectBookmarkList" parameterType="map" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
         select *
         from bookmark
@@ -33,7 +33,7 @@
     </select>
 
 
-    <!-- 북마크 조회(태그, 시간순) -->
+    <!-- 북마크 목록 조회(시간, 태그) -->
     <select id="selectBookmarkListByTag" parameterType="map" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
         select *
         from bookmark
