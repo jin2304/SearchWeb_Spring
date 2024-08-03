@@ -16,4 +16,5 @@ public class Bookmark {
     private String description;
     private String url;
     private String modified_date;
+    private String tag;
 }

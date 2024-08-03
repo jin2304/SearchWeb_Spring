@@ -11,10 +11,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.awt.print.Book;
 import java.util.List;
 
 @Controller
@@ -105,5 +107,30 @@ public class MyPageController {
     public ResponseEntity<List<String>> getTags(@PathVariable final int memberId) {
         List<String> tags = bookmarkService.selectTags(memberId);
         return ResponseEntity.ok(tags);
+    }
+
+
+    /**
+     *  마이페이지 북마크 단일 조회
+     */
+    @GetMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
+    public ResponseEntity<Bookmark> getBookmark(@PathVariable final int memberId, @PathVariable final int bookmarkId) {
+        Bookmark bookmark = bookmarkService.selectBookmark(memberId, bookmarkId);
+        System.out.println("Bookmark:" + bookmark);
+        return ResponseEntity.ok(bookmark);
+    }
+
+
+    /**
+     *  마이페이지 북마크 수정
+     */
+    @PutMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
+    public ResponseEntity<Integer> updateBookmark(@PathVariable final int memberId,
+                                                  @PathVariable final int bookmarkId,
+                                                  @RequestBody BookmarkDto bookmarkDto) {
+        System.out.println("bookmarkDto" + bookmarkDto);
+        int result = bookmarkService.updateBookmark(bookmarkDto, bookmarkId);
+        System.out.println("result:  " + result);
+        return ResponseEntity.ok(result);
     }
 }

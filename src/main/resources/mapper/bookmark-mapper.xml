@@ -16,6 +16,16 @@
     </select>
 
 
+    <!-- 북마크 단일 조회  -->
+    <select id="selectBookmark" parameterType="map" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
+        select *
+        from bookmark
+        WHERE member_memberId=#{memberId}
+         AND bookmarkId =#{bookmarkId};
+    </select>
+
+
+
     <!-- 북마크 목록 조회 (시간) -->
     <select id="selectBookmarkList" parameterType="map" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
         select *
@@ -69,6 +79,19 @@
         bookmark(member_memberId, name, description, url, tag)
         values(#{member_memberId},#{name}, #{description}, #{url}, #{tag});
     </insert>
+
+
+    <!-- 북마크 수정 -->
+    <update id="updateBookmark" parameterType="map">
+        update bookmark
+        SET
+        name = #{bookmarkDto.name},
+        description = #{bookmarkDto.description},
+        url = #{bookmarkDto.url},
+        tag = #{bookmarkDto.tag}
+        WHERE
+        bookmarkId = #{bookmarkId}
+    </update>
 
 
     <!-- 북마크 삭제 -->

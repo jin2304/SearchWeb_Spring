@@ -51,6 +51,15 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
+     *  북마크 단일 조회
+     */
+    @Override
+    public Bookmark selectBookmark(int memberId, int bookmarkId) {
+        return mapper.selectBookmark(memberId, bookmarkId);
+    }
+
+
+    /**
      *  북마크 추가
      */
     @Override
@@ -65,6 +74,15 @@ public class MybatisBookmarkDao implements BookmarkDao {
     @Override
     public int insertBookmarkForUser(BookmarkDto bookmarkDto) {
         return mapper.insertBookmarkForUser(bookmarkDto);
+    }
+
+
+    /**
+     *  북마크 수정
+     */
+    @Override
+    public int updateBookmark(BookmarkDto bookmarkDto, int bookmarkId) {
+        return mapper.updateBookmark(bookmarkDto, bookmarkId);
     }
 
 

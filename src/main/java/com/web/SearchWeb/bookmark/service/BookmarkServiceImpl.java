@@ -33,6 +33,15 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
+     *  북마크 단일 조회
+     */
+    @Override
+    public Bookmark selectBookmark(int memberId, int bookmarkId) {
+        return bookmarkDao.selectBookmark(memberId, bookmarkId);
+    }
+
+
+    /**
      *  북마크 목록 조회 (시간)
      */
     @Override
@@ -42,7 +51,7 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
-     *  //북마크 목록 조회 (시간, 태그)
+     *  북마크 목록 조회 (시간, 태그)
      */
     @Override
     public List<Bookmark> selectBookmarkListByTag(int memberId, String tag, String sort) {
@@ -70,6 +79,16 @@ public class BookmarkServiceImpl implements BookmarkService {
     public int insertBookmarkForUser(BookmarkDto bookmarkDto) {
         return bookmarkDao.insertBookmarkForUser(bookmarkDto);
     }
+
+
+    /**
+     *  북마크 수정
+     */
+    @Override
+    public int updateBookmark(BookmarkDto bookmarkDto, int bookmarkId) {
+        return bookmarkDao.updateBookmark(bookmarkDto, bookmarkId);
+    }
+
 
     /**
      *  북마크 삭제
