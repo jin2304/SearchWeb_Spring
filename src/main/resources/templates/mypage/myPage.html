@@ -341,9 +341,10 @@
             success: function(response) { // 요청이 성공했을 때 실행
                 // 폼을 초기화합니다.
                 document.getElementById('bookmarkForm').reset();
-                // 사용자 전체 북마크, 사용자 태그 조회
-                loadBookmarks();
-                loadTags()
+                document.getElementById('selectedTag').innerText = tag; // 추가된 태그 활성화
+
+                loadBookmarks(tag);  // 선택된 태그에 따른 사용자 북마크 목록 로드
+                loadTags()           // 사용자 태그 목록 새로 고침
                 // 북마크 추가 팝업을 닫습니다.
                 toggleBookmarkForm();
                 console.error('response:', response);
@@ -365,19 +366,27 @@
     }
 
 
-    //사용자 전체 북마크를 불러와서 UI를 업데이트하는 함수
-    function loadBookmarks(selectedTag = 'All', sort = 'Oldest') {
+    // 사용자 전체 북마크를 불러와서 UI를 업데이트하는 함수
+    function loadBookmarks(selectedTag = 'All', sort = 'Oldest', callback) {
+
         $.ajax({
             url: "/myPage/" + memberId + "/bookmarks",
             type: 'GET',
-            data: { tag: selectedTag, //선택한 태그를 서버로 전달
-                sort: sort},      //선택한 정렬 옵션 서버로 전달
+            data: {
+                tag: selectedTag, // 선택한 태그를 서버로 전달
+                sort: sort        // 선택한 정렬 옵션을 서버로 전달
+            },
             success: function(response) {
                 // 북마크 컨테이너 초기화
                 const bookmarksContainer = document.getElementById('bookmarksContainer');
                 bookmarksContainer.innerHTML = '';
                 // 불러온 북마크를 UI에 추가
                 response.forEach(addBookmarkToUI);
+
+                // 콜백 함수 실행 (필요한 경우)
+                if (callback) {
+                    callback(response); // 콜백 함수 실행, response를 인자로 전달
+                }
             },
             error: function(error) {
                 console.error('Error:', error);
@@ -573,12 +582,27 @@
 
     // 북마크 삭제 기능
     function deleteBookmark(bookmarkId) {
+
+        // 현재 활성화된 태그를 저장
+        const currentTag = document.getElementById('selectedTag').innerText;
+
         $.ajax({
             url: `/myPage/${memberId}/bookmark/${bookmarkId}`,
             type: 'DELETE',
             success: function(response) {
-                loadBookmarks();
-                loadTags();
+                loadTags();  // 사용자 태그 목록 새로 고침
+
+                // 선택된 태그를 기준으로 북마크 목록 로드
+                loadBookmarks(currentTag, "Oldest", function(bookmarks) {
+                    // 북마크 목록이 비어 있는 경우 'All'로 전환
+                    if (bookmarks.length === 0) {
+                        document.getElementById('selectedTag').innerText = 'All';
+                        loadBookmarks('All');
+                    } else {
+                        // 선택된 태그를 업데이트
+                        document.getElementById('selectedTag').innerText = currentTag;
+                    }
+                });
             },
             error: function(error) {
                 console.error('Error:', error);
