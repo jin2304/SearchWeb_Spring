@@ -133,4 +133,16 @@ public class MyPageController {
         System.out.println("result:  " + result);
         return ResponseEntity.ok(result);
     }
+
+
+    /**
+     *  마이페이지 북마크 삭제
+     */
+    @DeleteMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
+    public ResponseEntity<Integer> deleteBookmark(@PathVariable final int memberId, @PathVariable final int bookmarkId) {
+        System.out.println("memberId" + memberId);
+        int result = bookmarkService.deleteBookmarkMyPage(memberId, bookmarkId);
+        System.out.println("result:  " + result);
+        return ResponseEntity.ok(result);
+    }
 }

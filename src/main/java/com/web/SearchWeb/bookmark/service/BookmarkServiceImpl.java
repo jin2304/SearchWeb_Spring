@@ -100,6 +100,15 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
+     *  마이페이지 북마크 삭제
+     */
+    @Override
+    public int deleteBookmarkMyPage(int memberId, int bookmarkId) {
+        return bookmarkDao.deleteBookmarkMyPage(memberId, bookmarkId);
+    }
+
+
+    /**
      *  북마크-웹사이트 조회
      */
     @Override

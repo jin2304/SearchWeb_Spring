@@ -103,6 +103,15 @@
     </delete>
 
 
+    <!-- 마이페이지 북마크 삭제 -->
+    <delete id="deleteBookmarkMyPage" parameterType="map">
+        delete
+        from bookmark
+        WHERE member_memberId=#{memberId}
+         AND bookmarkId = #{bookmarkId};
+    </delete>
+
+
     <!-- 북마크-웹사이트 조회 -->
     <select id="selectBookmarkWebsite" resultType="com.web.SearchWeb.bookmark.domain.BookmarkWebsite">
         select b.member_memberId, w.*
