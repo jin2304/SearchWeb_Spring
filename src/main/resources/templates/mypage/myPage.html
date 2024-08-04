@@ -569,6 +569,23 @@
             }
         });
     });
+
+
+    // 북마크 삭제 기능
+    function deleteBookmark(bookmarkId) {
+        $.ajax({
+            url: `/myPage/${memberId}/bookmark/${bookmarkId}`,
+            type: 'DELETE',
+            success: function(response) {
+                loadBookmarks();
+                loadTags();
+            },
+            error: function(error) {
+                console.error('Error:', error);
+                alert('북마크를 불러오는 중 오류가 발생했습니다.');
+            }
+        });
+    }
 </script>
 
 </body>
