@@ -128,6 +128,7 @@
         from bookmark
         WHERE member_memberId=#{member_memberId}
         AND tag IS NOT NULL
+        And tag != ''
     </select>
 </mapper>
 
