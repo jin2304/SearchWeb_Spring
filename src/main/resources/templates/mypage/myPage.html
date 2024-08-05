@@ -59,7 +59,7 @@
 
 
     <!-- 프로젝트 이름 -->
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-4" style="margin-top: 4rem;">
         <h1 class="text-xl font-bold">My Bookmark List</h1>
     </div>
 
@@ -164,44 +164,67 @@
         </div>
 
 
-        <!-- 북마크 목록 -->
-        <div class="container mx-auto" style="margin-top: 0;">
+
+    <!-- 북마크 목록이 비어 있을 때 보여줄 메시지 -->
+    <div id="emptyBookmarkMessage" class="hidden text-center text-gray-500 mt-32" style="margin-top: 4rem;">
+        <h2 class="text-lg font-semibold">북마크 목록이 비어 있습니다.</h2>
+        <p class="text-sm mt-2">북마크를 직접 추가하거나 새로운 사이트를 탐색해보세요!</p>
+        <a href="/mainList"
+           class="inline-block mt-4 px-5 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            사이트 탐색하기
+        </a>
+    </div>
+
+
+
+
+    <!-- 북마크 목록 -->
+    <div class="container mx-auto" style="margin-top: 0;">
+        <div id="bookmarksContainer" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 mx-auto mt-3">
+            <!-- 북마크가 여기에 랜더링 -->
+        </div>
+    </div>
+
+
+
+    <!-- 북마크 목록 -->
+    <!--    <div class="container mx-auto" style="margin-top: 0;">
             <div id="bookmarksContainer" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 mx-auto mt-3">
                 <div th:each="l:${bookmarkWebsites}" class="relative flex flex-col w-full max-w-[200px] max-h-[150px] rounded-lg bg-white border border-gray-200 shadow overflow-visible group">
-                    <!-- 옵션 버튼 -->
+                    &lt;!&ndash; 옵션 버튼 &ndash;&gt;
                     <button class="absolute top-0 right-0 pt-2 pr-0 pb-0 pl-0 text-gray-500 hover:text-gray-700 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20" onclick="toggleOptionsMenu(this, event)">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h0M12 12h0M12 18h0" />
                         </svg>
                     </button>
 
-                    <!-- 옵션 메뉴 -->
+                    &lt;!&ndash; 옵션 메뉴 &ndash;&gt;
                     <div class="absolute left-full right-0 top-0 ml-1 w-32 rounded-md shadow-lg bg-black text-white ring-1 ring-black ring-opacity-5 z-50 options-menu hidden">
                         <div class="py-1">
-                            <!-- 수정 -->
+                            &lt;!&ndash; 수정 &ndash;&gt;
                             <button th:onclick="|updateBookmark(${l.bookmarkId})|" class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700">Edit</button>
-                            <!-- 삭제 -->
+                            &lt;!&ndash; 삭제 &ndash;&gt;
                             <button th:onclick="|deleteBookmark(${l.bookmarkId})|" class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700">Delete</button>
                         </div>
                     </div>
 
-                    <!-- 웹사이트 링크 -->
+                    &lt;!&ndash; 웹사이트 링크 &ndash;&gt;
                     <a th:href="${l.url}" target="_blank" class="flex flex-1 items-center p-3">
-                        <!-- 웹사이트 이미지 -->
+                        &lt;!&ndash; 웹사이트 이미지 &ndash;&gt;
                         <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-8 h-8 mr-4">
                         <div class="flex flex-col">
-                            <!-- 웹사이트 이름 -->
+                            &lt;!&ndash; 웹사이트 이름 &ndash;&gt;
                             <h1 class="text-xs font-bold truncate" th:text="${l.name}">Website Name</h1>
                         </div>
                     </a>
-                    <!-- 웹사이트 설명 (hover시 보임) -->
+                    &lt;!&ndash; 웹사이트 설명 (hover시 보임) &ndash;&gt;
                     <a th:href="${l.url}" target="_blank" class="bookmark-description absolute inset-0 flex items-center p-3 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
                         <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" title="" class="w-8 h-8 mr-4">
                         <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${l.description}" style="font-size: 0.66rem;">Website Description</p>
                     </a>
                 </div>
             </div>
-        </div>
+        </div>-->
 
 
     <!-- 북마크 수정 팝업 -->
@@ -268,6 +291,7 @@
 
     window.onload = function() {
         window.memberId = [[${#authentication.principal.memberId}]];
+        loadBookmarks("All", "Oldest");
     };
 
     // 드롭다운 토글 함수
@@ -341,12 +365,19 @@
             success: function(response) { // 요청이 성공했을 때 실행
                 // 폼을 초기화합니다.
                 document.getElementById('bookmarkForm').reset();
-                document.getElementById('selectedTag').innerText = tag; // 추가된 태그 활성화
 
-                loadBookmarks(tag);  // 선택된 태그에 따른 사용자 북마크 목록 로드
-                loadTags()           // 사용자 태그 목록 새로 고침
-                // 북마크 추가 팝업을 닫습니다.
-                toggleBookmarkForm();
+                if (tag === "" || tag === null) {
+                    document.getElementById('selectedTag').innerText = 'All';
+                    loadBookmarks('All'); // 모든 북마크 로드
+                }
+
+                if (tag !== "" && tag !== null) {
+                    document.getElementById('selectedTag').innerText = tag; // 추가된 태그 활성화
+                    loadBookmarks(tag);  // 선택된 태그에 따른 사용자 북마크 목록 로드
+                }
+
+                loadTags()               // 사용자 태그 목록 새로 고침
+                toggleBookmarkForm();    // 북마크 추가 팝업 닫음
                 console.error('response:', response);
 
             },
@@ -377,16 +408,27 @@
                 sort: sort        // 선택한 정렬 옵션을 서버로 전달
             },
             success: function(response) {
-                // 북마크 컨테이너 초기화
-                const bookmarksContainer = document.getElementById('bookmarksContainer');
-                bookmarksContainer.innerHTML = '';
-                // 불러온 북마크를 UI에 추가
-                response.forEach(addBookmarkToUI);
-
                 // 콜백 함수 실행 (필요한 경우)
                 if (callback) {
                     callback(response); // 콜백 함수 실행, response를 인자로 전달
+                    return
                 }
+
+                // 북마크 컨테이너 초기화
+                const bookmarksContainer = document.getElementById('bookmarksContainer');
+                bookmarksContainer.innerHTML = '';
+
+
+                // 불러온 북마크가 없는 경우 빈 상태 메시지 표시
+                if (response.length === 0) {
+                    document.getElementById('emptyBookmarkMessage').classList.remove('hidden');
+                } else {
+                    document.getElementById('emptyBookmarkMessage').classList.add('hidden');
+                    // 불러온 북마크를 UI에 추가
+                    response.forEach(addBookmarkToUI);
+                }
+
+
             },
             error: function(error) {
                 console.error('Error:', error);
@@ -429,36 +471,36 @@
         bookmarkElement.className = 'relative flex flex-col w-full max-w-[200px] max-h-[150px] rounded-lg bg-white border border-gray-200 shadow overflow-visible group';
 
         bookmarkElement.innerHTML = `
-    <!-- 옵션 버튼 -->
-    <button class="absolute top-0 right-0 pt-2 pr-0 pb-0 pl-0 text-gray-500 hover:text-gray-700 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20" onclick="toggleOptionsMenu(this, event)">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h0M12 12h0M12 18h0" />
-        </svg>
-    </button>
+        <!-- 옵션 버튼 -->
+        <button class="absolute top-0 right-0 pt-2 pr-0 pb-0 pl-0 text-gray-500 hover:text-gray-700 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20" onclick="toggleOptionsMenu(this, event)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h0M12 12h0M12 18h0" />
+            </svg>
+        </button>
 
-    <!-- 옵션 메뉴 -->
-    <div class="absolute left-full right-0 top-0 ml-1 w-32 rounded-md shadow-lg bg-black text-white ring-1 ring-black ring-opacity-5 z-50 options-menu hidden">
-        <div class="py-1">
-            <button onclick="updateBookmark(${bookmarkId})" class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700">Edit</button>
-            <button onclick="deleteBookmark(${bookmarkId})" class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700">Delete</button>
+        <!-- 옵션 메뉴 -->
+        <div class="absolute left-full right-0 top-0 ml-1 w-32 rounded-md shadow-lg bg-black text-white ring-1 ring-black ring-opacity-5 z-50 options-menu hidden">
+            <div class="py-1">
+                <button onclick="updateBookmark(${bookmarkId})" class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700">Edit</button>
+                <button onclick="deleteBookmark(${bookmarkId})" class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700">Delete</button>
+            </div>
         </div>
-    </div>
 
-    <!-- 기본 링크 -->
-    <a href="${url}" target="_blank" class="flex flex-1 items-center p-3">
-        <!-- 웹사이트 이미지 -->
-        <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${url}" alt="" title="" class="w-8 h-8 mr-4">
-        <div class="flex flex-col">
-            <!-- 웹사이트 이름 -->
-            <h1 class="text-xs font-bold truncate">${name}</h1>
-        </div>
-    </a>
+        <!-- 웹사이트 링크 -->
+        <a href="${url}" target="_blank" class="flex flex-1 items-center p-3">
+            <!-- 웹사이트 이미지 -->
+            <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${url}" alt="" title="" class="w-8 h-8 mr-4">
+            <div class="flex flex-col">
+                <!-- 웹사이트 이름 -->
+                <h1 class="text-xs font-bold truncate">${name}</h1>
+            </div>
+        </a>
 
-    <!-- 웹사이트 설명 (hover시 보임) -->
-    <a href="${url}" target="_blank" class="bookmark-description absolute inset-0 flex items-center p-3 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
-        <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${url}" alt="" title="" class="w-8 h-8 mr-4">
-        <p class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 0.66rem;">${description}</p>
-    </a>
+        <!-- 웹사이트 설명 (hover시 보임) -->
+        <a href="${url}" target="_blank" class="bookmark-description absolute inset-0 flex items-center p-3 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
+            <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${url}" alt="" title="" class="w-8 h-8 mr-4">
+            <p class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 0.66rem;">${description}</p>
+        </a>
     `;
 
         // 북마크 목록에 새로운 북마크 요소를 추가합니다.
@@ -592,15 +634,14 @@
             success: function(response) {
                 loadTags();  // 사용자 태그 목록 새로 고침
 
-                // 선택된 태그를 기준으로 북마크 목록 로드
+                // 삭제한 후, 선택된 태그를 기준으로 북마크 목록 로드
                 loadBookmarks(currentTag, "Oldest", function(bookmarks) {
-                    // 북마크 목록이 비어 있는 경우 'All'로 전환
-                    if (bookmarks.length === 0) {
+                    if (bookmarks.length === 0) { // 현재 태그 북마크 목록이 비어 있는 경우 'All'로 전환
                         document.getElementById('selectedTag').innerText = 'All';
                         loadBookmarks('All');
-                    } else {
-                        // 선택된 태그를 업데이트
+                    } else { // 선택된 태그를 업데이트
                         document.getElementById('selectedTag').innerText = currentTag;
+                        loadBookmarks(currentTag);
                     }
                 });
             },
