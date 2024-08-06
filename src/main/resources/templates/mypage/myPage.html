@@ -67,13 +67,19 @@
         <!-- 검색 바와 정렬 옵션들 -->
         <div class="flex justify-between items-center" style="margin-top: 12px;">
             <div class="flex items-center space-x-4">
+
                 <!-- 검색 바 -->
-                <div class="relative">
-                    <input type="text" placeholder="Search" class="pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400" />
-                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </div>
+                <form id="searchForm" class="relative w-full">
+                    <div class="relative">
+                        <input id="searchQuery" name="query" type="search" placeholder="Search" class="pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400" style="padding-right: 30px;padding-left: 20px;"/>
+                        <button type="submit" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.3-4.3"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
             </div>
 
             <div class="flex items-center space-x-3">
@@ -188,7 +194,7 @@
 
 
     <!-- 북마크 목록 -->
-    <!--    <div class="container mx-auto" style="margin-top: 0;">
+   <!--     <div class="container mx-auto" style="margin-top: 0;">
             <div id="bookmarksContainer" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 mx-auto mt-3">
                 <div th:each="l:${bookmarkWebsites}" class="relative flex flex-col w-full max-w-[200px] max-h-[150px] rounded-lg bg-white border border-gray-200 shadow overflow-visible group">
                     &lt;!&ndash; 옵션 버튼 &ndash;&gt;
@@ -399,13 +405,15 @@
 
     // 사용자 전체 북마크를 불러와서 UI를 업데이트하는 함수
     function loadBookmarks(selectedTag = 'All', sort = 'Oldest', callback) {
+        const query = document.getElementById('searchQuery').value;
 
         $.ajax({
             url: "/myPage/" + memberId + "/bookmarks",
             type: 'GET',
             data: {
                 tag: selectedTag, // 선택한 태그를 서버로 전달
-                sort: sort        // 선택한 정렬 옵션을 서버로 전달
+                sort: sort,        // 선택한 정렬 옵션을 서버로 전달
+                query: query // 검색어를 서버로 전달
             },
             success: function(response) {
                 // 콜백 함수 실행 (필요한 경우)
@@ -651,6 +659,16 @@
             }
         });
     }
+
+
+    // 검색 폼 제출 이벤트 리스너 추가
+    document.getElementById('searchForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const tag = document.getElementById('selectedTag').innerText
+        console.log("tag", tag);
+        loadBookmarks(tag);
+    });
+
 </script>
 
 </body>
