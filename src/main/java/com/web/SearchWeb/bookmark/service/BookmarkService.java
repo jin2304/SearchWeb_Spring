@@ -18,6 +18,8 @@ public interface BookmarkService {
     List<Bookmark> selectBookmarkList(int memberId, String sort);
     //북마크 목록 조회 (시간, 태그)
     List<Bookmark> selectBookmarkListByTag(int memberId, String tag, String sort);
+    //북마크 목록 조회 (검색어)
+    List<Bookmark> selectBookmarkListByQuery(int memberId, String tag, String sort, String query);
     //북마크 추가
     int insertBookmark(BookmarkDto bookmark);
     //북마크 추가 (사용자 직접 추가)

@@ -42,6 +42,15 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
+     *  북마크 목록 조회 (검색어)
+     */
+    @Override
+    public List<Bookmark> selectBookmarkListByQuery(int memberId, String tag, String sort, String query) {
+        return mapper.selectBookmarkListByQuery(memberId, tag, sort, query);
+    }
+
+
+    /**
      *  북마크 확인
      */
     @Override

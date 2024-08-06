@@ -63,6 +63,28 @@
     </select>
 
 
+    <!-- 북마크 목록 조회 (검색어) -->
+    <select id="selectBookmarkListByQuery" parameterType="map" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
+        select *
+        from bookmark
+        WHERE member_memberId=#{memberId}
+        <if test="tag != 'All'">
+            AND tag = #{tag}
+        </if>
+        AND
+        LOWER(name) LIKE CONCAT('%', LOWER(#{query}), '%')
+        ORDER BY
+        <choose>
+            <when test="sort == 'Oldest'">
+                modified_date ASC
+            </when>
+            <when test="sort == 'Newest'">
+                modified_date DESC
+            </when>
+        </choose>
+    </select>
+
+
     <!-- 북마크 추가 -->
     <insert id="insertBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto">
         insert

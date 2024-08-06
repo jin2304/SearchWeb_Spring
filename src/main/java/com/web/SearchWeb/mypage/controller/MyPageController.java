@@ -56,11 +56,8 @@ public class MyPageController {
 
         // 사용자의 ID로 사용자 조회
         Member member = memberService.findByMemberId(memberId);
-        // 사용자 전체 북마크 목록 조회
-        List<Bookmark> bookmarkWebsites =  bookmarkService.selectBookmarkList(memberId, "Oldest");
-
         model.addAttribute("member", member);
-        model.addAttribute("bookmarkWebsites", bookmarkWebsites);
+
         return "mypage/myPage";
     }
     
@@ -86,16 +83,26 @@ public class MyPageController {
      */
     @GetMapping(value ="/myPage/{memberId}/bookmarks")
     public ResponseEntity<List<Bookmark>> getBookmarks(@PathVariable final int memberId,
+                                                       @RequestParam(required = false) String query,
                                                        @RequestParam(defaultValue = "All") String tag,
                                                        @RequestParam(defaultValue = "Oldest") String sort) {
+        System.out.println("query: " + query);
+        System.out.println("tag: " + tag);
+        System.out.println("sort: " + sort);
 
         List<Bookmark> bookmarks;
-        if("All".equals(tag) || tag == null){ // 태그가 All일 때, 북마크 전체조회
+        if ((query == null || query.isEmpty()) && ("All".equals(tag) || tag == null)) {
+            // 1. 전체 북마크 조회 (태그x, 검색어x)
             bookmarks = bookmarkService.selectBookmarkList(memberId, sort);
-        } else{ // 특정 태그로 북마크 조회
-            System.out.println("tag: " + tag + ", sort: " + sort);
+        } else if (query != null && !query.isEmpty()) { //검색어가 있는 경우
+            // 2. 검색어로 북마크 조회 (태그x, 검색어o),
+            // 3. 검색어와 특정 태그로 북마크 조회 (태그o, 검색어o)
+            bookmarks = bookmarkService.selectBookmarkListByQuery(memberId, tag, sort, query);
+        } else {
+            // 4. 특정 태그로 북마크 조회 (태그o, 검색어x)
             bookmarks = bookmarkService.selectBookmarkListByTag(memberId, tag, sort);
         }
+
         return ResponseEntity.ok(bookmarks);
     }
 

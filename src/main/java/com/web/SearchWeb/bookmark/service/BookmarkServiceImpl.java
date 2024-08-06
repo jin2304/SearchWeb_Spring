@@ -64,6 +64,15 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
+     *  북마크 목록 조회 (검색어)
+     */
+    @Override
+    public List<Bookmark> selectBookmarkListByQuery(int memberId, String tag, String sort, String query) {
+        return bookmarkDao.selectBookmarkListByQuery(memberId, tag, sort, query);
+    }
+
+
+    /**
      *  북마크 추가
      */
     @Override
