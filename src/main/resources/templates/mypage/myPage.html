@@ -526,6 +526,9 @@
         const bookmarkElement = document.createElement('div');
         bookmarkElement.className = 'relative flex flex-col w-full max-w-[200px] max-h-[150px] rounded-lg bg-white border border-gray-200 shadow overflow-visible group';
 
+        // 링크를 절대 경로로 처리
+        const absoluteUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+
         bookmarkElement.innerHTML = `
         <!-- 옵션 버튼 -->
         <button class="absolute top-0 right-0 pt-2 pr-0 pb-0 pl-0 text-gray-500 hover:text-gray-700 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20" onclick="toggleOptionsMenu(this, event)">
@@ -553,8 +556,8 @@
         </a>
 
         <!-- 웹사이트 설명 (hover시 보임) -->
-        <a href="${url}" target="_blank" class="bookmark-description absolute inset-0 flex items-center p-3 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
-            <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${url}" alt="" title="" class="w-8 h-8 mr-4">
+        <a href="${absoluteUrl}" target="_blank" class="bookmark-description absolute inset-0 flex items-center p-3 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
+            <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${absoluteUrl}" alt="" title="" class="w-8 h-8 mr-4">
             <p class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 0.66rem;">${description}</p>
         </a>
     `;
