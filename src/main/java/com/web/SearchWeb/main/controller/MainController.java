@@ -39,6 +39,14 @@ public class MainController {
     }
 
 
+    /**
+     *  메인페이지(서비스 소개 페이지)
+     */
+    @GetMapping("/main")
+    public String main(){
+        return "main/main";
+    }
+
 
     /**
      *  카테고리별 웹사이트 목록 조회 및 검색 기능
@@ -59,6 +67,7 @@ public class MainController {
         }
         return "main/mainList";
     }
+
 
 
 
