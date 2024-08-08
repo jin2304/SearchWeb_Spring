@@ -110,10 +110,6 @@ public class MyPageController {
                                                        @RequestParam(required = false) String query,
                                                        @RequestParam(defaultValue = "All") String tag,
                                                        @RequestParam(defaultValue = "Oldest") String sort) {
-        System.out.println("query: " + query);
-        System.out.println("tag: " + tag);
-        System.out.println("sort: " + sort);
-
         List<Bookmark> bookmarks;
         if ((query == null || query.isEmpty()) && ("All".equals(tag) || tag == null)) {
             // 1. 전체 북마크 조회 (태그x, 검색어x)
@@ -147,7 +143,6 @@ public class MyPageController {
     @GetMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
     public ResponseEntity<Bookmark> getBookmark(@PathVariable final int memberId, @PathVariable final int bookmarkId) {
         Bookmark bookmark = bookmarkService.selectBookmark(memberId, bookmarkId);
-        System.out.println("Bookmark:" + bookmark);
         return ResponseEntity.ok(bookmark);
     }
 
@@ -159,9 +154,7 @@ public class MyPageController {
     public ResponseEntity<Integer> updateBookmark(@PathVariable final int memberId,
                                                   @PathVariable final int bookmarkId,
                                                   @RequestBody BookmarkDto bookmarkDto) {
-        System.out.println("bookmarkDto" + bookmarkDto);
         int result = bookmarkService.updateBookmark(bookmarkDto, bookmarkId);
-        System.out.println("result:  " + result);
         return ResponseEntity.ok(result);
     }
 
@@ -171,9 +164,7 @@ public class MyPageController {
      */
     @DeleteMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
     public ResponseEntity<Integer> deleteBookmark(@PathVariable final int memberId, @PathVariable final int bookmarkId) {
-        System.out.println("memberId" + memberId);
         int result = bookmarkService.deleteBookmarkMyPage(memberId, bookmarkId);
-        System.out.println("result:  " + result);
         return ResponseEntity.ok(result);
     }
 }
