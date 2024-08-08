@@ -19,6 +19,21 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+/**
+ * 코드 작성자:
+ *  - 서진영(jin2304)
+ *
+ * 코드 설명:
+ *  - MyPageController는 사용자의 정보 및 사용자가 북마크한 웹사이트를 관리하는 컨트롤러
+ *
+ * 코드 주요 기능:
+ *  - 사용자 정보 조회, 사용자 프로필 수정
+ *  - 마이페이지 북마크 추가(사용자 직접 추가), 북마크 목록 조회, 북마크 단일 조회, 태그 조회, 북마크 수정, 북마크 삭제
+ *
+ * 코드 작성일:
+ *  - 2024.06.10 ~ 2024.08.08
+ */
 @Controller
 public class MyPageController {
 
@@ -73,7 +88,7 @@ public class MyPageController {
 
 
     /**
-     * 웹사이트 북마크 추가 (사용자 직접 추가)
+     *  마이페이지 북마크 추가 (사용자 직접 추가)
      */
     @PostMapping(value ="/myPage/{memberId}/bookmark")
     public ResponseEntity<BookmarkDto> insertBookmark(@PathVariable final int memberId, @RequestBody BookmarkDto bookmarkdto){
