@@ -25,6 +25,18 @@
         select * from member
         where username=#{username}
     </select>
+
+
+    <!-- 회원 수정 -->
+    <update id="updateMember" parameterType="map">
+        update member
+        SET
+        job = #{memberUpdateDto.job},
+        major = #{memberUpdateDto.major},
+        summary = #{memberUpdateDto.summary}
+        WHERE
+        memberId = #{memberId}
+    </update>
 </mapper>
 
 

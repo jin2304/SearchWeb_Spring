@@ -4,6 +4,7 @@ package com.web.SearchWeb.member.service;
 import com.web.SearchWeb.member.dao.MemberDao;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.dto.MemberDto;
+import com.web.SearchWeb.member.dto.MemberUpdateDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -55,5 +56,14 @@ public class MemberServiceImpl implements MemberService{
      */
     public boolean isPasswordMatching(MemberDto memberDto) {
         return memberDto.getPassword().equals(memberDto.getConfirmPassword());
+    }
+
+
+    /**
+     *  회원 수정
+     */
+    @Override
+    public int updateMember(int memberId, MemberUpdateDto memberUpdateDto) {
+        return memberDao.updateMember(memberId, memberUpdateDto);
     }
 }

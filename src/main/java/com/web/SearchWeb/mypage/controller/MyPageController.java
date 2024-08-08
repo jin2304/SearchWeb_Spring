@@ -5,18 +5,18 @@ import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.dto.CustomUserDetails;
+import com.web.SearchWeb.member.dto.MemberUpdateDto;
 import com.web.SearchWeb.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.print.Book;
+
 import java.util.List;
 
 @Controller
@@ -33,7 +33,7 @@ public class MyPageController {
 
 
     /**
-     * 마이페이지
+     * 마이페이지 (사용자 정보 조회)
      */
     @GetMapping("/myPage/{memberId}")
     public String myPage(@PathVariable int memberId, Model model){
@@ -59,6 +59,15 @@ public class MyPageController {
         model.addAttribute("member", member);
 
         return "mypage/myPage";
+    }
+    
+
+    /**
+     *  마이페이지 (사용자 프로필 수정)
+     */
+    @PutMapping("/myPage/{memberId}/profile")
+    public ResponseEntity<Integer> updateProfile(@PathVariable final int memberId, @RequestBody MemberUpdateDto memberUpdateDto) {
+        return ResponseEntity.ok(memberService.updateMember(memberId, memberUpdateDto));
     }
     
 
