@@ -7,6 +7,11 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="your-custom-styles.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        .group:hover #updateProfileButton {
+            display: block !important;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100">
@@ -20,30 +25,30 @@
 <!-- 메인 컨덴트 -->
 <main class="p-6 space-y-8 bg-gray-100 md:px-16 lg:px-32 xl:px-60" style="margin-left: 223px; margin-top: 64px;padding-left: 400px; padding-right: 400px;">
 
-    <!-- 사용자 프로필 정보 -->
-    <div class="w-full py-6 bg-white border border-gray-200 shadow-md rounded-lg">
-        <div class="container flex flex-col items-center gap-4 px-4 text-center md:flex-row md:gap-6  lg:gap-8" style="max-width: 700px; margin: auto;">
+    <!-- 사용자 정보 -->
+    <div class="w-full py-6 bg-white border border-gray-200 shadow-md rounded-lg relative group">
+        <div class="container flex flex-col items-center gap-4 px-4 text-center md:flex-row md:gap-6 lg:gap-8" style="max-width: 700px; margin: auto;">
             <!-- 사용자 이미지 -->
             <div class="flex-shrink-0 text-center">
                 <img src="https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMzAzMjZfMjUx%2FMDAxNjc5ODM0MzkxNzg5.SomK3qflKEf0ugQ9HqeikVETiazukyq1aNgj767ZXMMg.d9xeVYIkSi5cL39Zv658_wFaZAWBjQSiApP9Dap3wdgg.PNG.npay1%2F20230326%25A3%25DF213901%25A3%25DF832.png&type=sc960_832" width="100" height="100" alt="Profile Picture" class="rounded-full mx-auto" style="aspect-ratio: 1 / 1; object-fit: cover;" />
-                <h2 class="text-base font-bold tracking-tight sm:text-lg mt-2" th:text="${#authentication.name}">Jane Doe</h2>
+                <h2 class="text-base font-bold tracking-tight sm:text-lg mt-2" th:text="${member.nickname}">Jane Doe</h2>
             </div>
 
-            <!-- 사용자 정보 -->
-            <div class="space-y-2 text-left w-full text-sm">
+            <!-- 사용자 프로필 정보 -->
+            <div class="space-y-2 text-left w-full text-sm relative">
                 <div class="space-y-2">
                     <dl class="grid grid-cols-2 gap-2 text-sm dark:text-gray-400">
                         <div class="font-medium">Email</div>
                         <div class="text-right">jane@example.com</div>
 
                         <div class="font-medium">Job</div>
-                        <div class="text-right">Backend developer</div>
+                        <div id="userJob" th:text="${member.job}" class="text-right">Backend developer</div>
 
                         <div class="font-medium">Major</div>
-                        <div class="text-right">컴퓨터공학과</div>
+                        <div id="userMajor" th:text="${member.major}" class="text-right">컴퓨터공학과</div>
                     </dl>
-                    <p class="text-xs font-light text-gray-500 dark:text-gray-400 break-words">
-                        사용자 경험을 최우선으로 생각하는 백엔드 개발자입니다. 컴퓨터공학 전공자로서의 전문 지식을 활용하여, 기능적이면서도 아름다운 웹사이트를 만드는 데 주력하고 있습니다
+                    <p id="userSummary" th:text="${member.summary}"  class="text-xs font-light text-gray-500 dark:text-gray-400 break-words">
+                        사용자 경험을 최우선으로 생각하는 백엔드 개발자입니다. 컴퓨터공학 전공자로서의 전문 지식을 활용하여, 기능적이면서도 아름다운 웹사이트를 만드는 데 주력하고 있습니다.
                     </p>
                 </div>
 
@@ -54,8 +59,53 @@
                     <div class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-600 text-white hover:bg-purple-700" data-v0-t="badge">Travel</div>
                 </div>
             </div>
+
+            <!-- 사용자 프로필 수정 버튼 -->
+            <button id="updateProfileButton" onclick="toggleUpdateProfileForm()" class="absolute top-4 right-4 bg-gray-200 text-gray-700 p-2 rounded-full z-30 group-hover:block hover:bg-gray-400 hidden" >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
         </div>
     </div>
+
+
+    <!-- 사용자 프로필 수정 폼 -->
+    <div id="updateProfileForm" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-md max-w-lg w-full z-50">
+            <h3 class="text-xl font-semibold mb-4">프로필 수정</h3>
+            <form id="updateProfileFormContent" class="space-y-4">
+                <div>
+                    <label for="updateJob" class="block text-sm font-medium text-gray-700">
+                        직무
+                    </label>
+                    <input th:value="${member.job}" class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="updateJob" placeholder="직무" required />
+                </div>
+                <div>
+                    <label for="updateMajor" class="block text-sm font-medium text-gray-700">
+                        전공
+                    </label>
+                    <input th:value="${member.major}" class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="updateMajor" placeholder="전공" required />
+                </div>
+                <div>
+                    <label for="updateSummary" class="block text-sm font-medium text-gray-700">소개</label>
+                    <textarea th:text="${member.summary}" class="flex h-20 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" id="updateSummary" placeholder="간단한 소개"></textarea>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="button" onclick="toggleUpdateProfileForm()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-700 bg-gray-300 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        취소
+                    </button>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 ml-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        저장
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
 
 
     <!-- 프로젝트 이름 -->
@@ -669,6 +719,53 @@
         loadBookmarks(tag);
     });
 
+
+
+
+    <!--  사용자 프로필 수정  -->
+    // 프로필 수정 폼 토글 함수
+    function toggleUpdateProfileForm() {
+        document.getElementById('updateProfileForm').classList.toggle('hidden');
+    }
+
+
+    // 프로필 수정 폼 제출 이벤트 리스너
+    document.getElementById('updateProfileFormContent').addEventListener('submit', function(event) {
+        event.preventDefault(); // 폼의 기본 제출 동작 막기
+
+        // 폼 데이터 가져오기
+        const job = document.getElementById('updateJob').value;
+        const major = document.getElementById('updateMajor').value;
+        const summary = document.getElementById('updateSummary').value;
+
+        // 수정된 프로필 데이터 생성
+        const updatedProfileData = {
+            job: job,
+            major: major,
+            summary: summary
+        };
+
+        // AJAX 요청 보내기 (사용자 프로필 수정)
+        $.ajax({
+            url: `/myPage/${memberId}/profile`,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedProfileData), // 객체를 JSON 문자열로 변환
+            success: function(response) {
+                // 업데이트된 프로필 정보를 UI에 반영
+                document.getElementById('userJob').innerText = job;
+                document.getElementById('userMajor').innerText = major;
+                document.getElementById('userSummary').innerText = summary;
+
+                toggleUpdateProfileForm(); // 편집 폼 닫기
+                alert('프로필이 성공적으로 업데이트되었습니다.');
+            },
+            error: function(error) {
+                console.error('Error:', error);
+                alert('프로필을 업데이트하는 중 오류가 발생했습니다.');
+            }
+        });
+    });
 </script>
 
 </body>
