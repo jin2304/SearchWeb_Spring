@@ -223,11 +223,9 @@
 
                 // 모든 웹사이트 아이디 가져오기
                 const websiteItems = document.querySelectorAll('[data-website-id]');
-                console.log("websiteItems", websiteItems);
 
                 // 사용자가 북마크한 웹사이트의 ID 목록 생성
                 const bookmarkedWebsiteIds = response.map(item => item.website_websiteId);
-                console.log("bookmarkedWebsiteIds", bookmarkedWebsiteIds);
 
                 websiteItems.forEach(item => {
                     const websiteId = item.getAttribute('data-website-id');
@@ -262,7 +260,6 @@
                 type: method,
                 dataType: 'json',
                 success: function(response) {
-                    console.log("success");
                     json = response;
                 },
                 error: function(xhr, status, error) { //xhr :XMLHttpRequest(XHR)
@@ -288,7 +285,6 @@
                     dataType: 'json',
                     async: false,
                     success: function(response) {
-                        console.log("success");
                         resolve(response);
                     },
                     error: function(xhr, status, error) { //xhr :XMLHttpRequest(XHR)
@@ -315,7 +311,6 @@
             // 사용자가 북마크 했는지 안 했는지 체크
             const uri = "/mainList/bookmark/status/" + websiteId; // 서버에 해당 아이템이 북마크되어 있는지 확인하는 요청
             const response = await callBookmarkApi_sync(uri, 'GET');
-            console.log('첫번째 response: ' + response);
 
 
 
@@ -324,7 +319,6 @@
                 // 북마크 추가
                 const uri = "/mainList/" + memberId + "/bookmark/" + websiteId;
                 const response = callBookmarkApi(uri, 'POST');
-                console.log('추가 response: ' + response);
 
                 // 북마크 추가 성공 시 아이콘 색상 및 모양 변경
                 const bookmarkIcon = document.querySelector(`[data-website-id="${websiteId}"] .bi-bookmark`);
@@ -347,7 +341,6 @@
                 // 북마크 삭제
                 const uri = "/mainList/" + memberId + "/bookmark/" + websiteId;
                 const response = callBookmarkApi(uri, 'DELETE');
-                console.log('삭제 response: ' + response);
 
                 // 북마크 제거 성공 시 아이콘 색상 및 모양 변경
                 const bookmarkIcon = document.querySelector(`[data-website-id="${websiteId}"] .bi-bookmark`);
