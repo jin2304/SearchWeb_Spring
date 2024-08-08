@@ -434,8 +434,6 @@
 
                 loadTags()               // 사용자 태그 목록 새로 고침
                 toggleBookmarkForm();    // 북마크 추가 팝업 닫음
-                console.error('response:', response);
-
             },
             error: function(error) { // 요청이 실패했을 때 실행
                 console.error('Error:', error);
@@ -568,7 +566,6 @@
 
     // 시간순 정렬 옵션을 선택하는 함수
     function selectTime(sort) {
-        console.log("sort: ", sort)
         document.getElementById('selectedTime').innerText = sort // 선택된 정렬 표시
         closeAllDropdowns(); // 드롭다운 닫기
         loadBookmarks(document.getElementById('selectedTag').innerText, sort); // 선택한 태그와 정렬 옵션으로 북마크 로드
@@ -715,7 +712,6 @@
     document.getElementById('searchForm').addEventListener('submit', function(event) {
         event.preventDefault();
         const tag = document.getElementById('selectedTag').innerText
-        console.log("tag", tag);
         loadBookmarks(tag);
     });
 
