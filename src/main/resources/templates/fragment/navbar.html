@@ -1,17 +1,5 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-
-    <style>
-    </style>
-
-</head>
-<body>
-
 <!-- 메뉴바 fragment -->
-<nav th:fragment="copy" class="fixed top-0 left-0 right-0 w-full bg-black text-white z-50 sticky">
+<nav th:fragment="copy" class="fixed top-0 left-0 right-0 w-full bg-black text-white z-50">
 <!--<nav th:fragment="copy" class="w-full bg-black text-white w-screen mx-auto">-->
 
     <div class="container mx-auto px-6 py-3 flex justify-between items-center" style="">
@@ -34,7 +22,8 @@
 
                     <!-- 검색바 -->
                     <form action="/mainList" method="get" class="relative w-full">
-                        <input name="query" class="flex h-10 w-full border border-gray-300 px-3 text-sm placeholder-gray-500 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg pr-10 bg-gray-100 dark:bg-gray-800 dark:text-white dark:focus:bg-gray-900" placeholder="Search" type="search">
+                        <input name="query" class="flex h-10 w-full border border-gray-300 px-3 text-sm font-bold placeholder-gray-500 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg pr-10 bg-gray-100 dark:bg-gray-800 dark:text-white dark:focus:bg-gray-900"
+                               placeholder="Search" type="search" th:value="${query}">
                         <button type="submit" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
                                 <circle cx="11" cy="11" r="8"></circle>
@@ -48,9 +37,7 @@
         </div>
 
         <!-- 메뉴바 링크 -->
-        <nav class="hidden md:flex space-x-10 ml-auto">
-            <!--<a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="#">Home</a>-->
-            <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" th:href="@{/myPage}">myPage</a>
+        <nav class="hidden md:flex space-x-10 ml-auto text-sm">
             <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="/login">로그인</a>
             <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="/logout">로그아웃</a>
             <a class="dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" href="/join">회원가입</a>
@@ -68,7 +55,3 @@
         </div>
     </div>
 </nav>
-
-
-</body>
-</html>
