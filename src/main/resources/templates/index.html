@@ -1,159 +1,215 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
-    <title>index 페이지</title>
+    <title>Searchweb</title>
+
+    <!-- TailwindCSS CDN 링크 -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="your-custom-styles.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+
 </head>
 
-
-<body>
-<!--
-// v0 by Vercel.
-// https://v0.dev/t/xVMbSlf0nVt
--->
-
-<!-- 메뉴바 fragment 사용 -->
-<nav th:replace="~{fragment/navbar :: copy}"></nav>
+<body class="bg-gray-100">
+<!-- 메뉴바: 화면 상단에 고정 -->
+<nav th:replace="~{fragment/navbar :: copy}" class="fixed top-0 left-0 w-full bg-gray-800 shadow-lg z-50"></nav>
 
 
-<!-- 사이드바 fragment 사용 -->
-<aside th:replace="~{fragment/sidebar :: copy}"></aside>
+<!-- 메인 콘텐츠 -->
+<section class="w-full min-h-screen bg-gradient-to-r from-gray-700 via-gray-900 to-black flex items-center justify-center pl-0">
+
+    <!-- 메인페이지 텍스트 -->
+    <!-- md:pl-48: 사이드바 너비에 맞춘 패딩 설정 -->
+    <div class="container mx-auto px-4 md:px-10 lg:px-16 flex flex-col md:flex-row items-center justify-center">
+        <!--<div class="md:w-1/2  w-550">-->
+        <div class="w-[550px]" style="width: 550px;">
+            <h1 class="text-white text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4">
+                Searchweb
+            </h1>
+            <p class="text-gray-400 text-base md:text-lg mb-6">
+                다양한 웹솔루션을 손쉽게 탐색하고,<br>
+                여러분의 필요에 맞는 정보를 효율적으로 저장하고 관리하세요.
+            </p>
+            <div class="flex space-x-3">
+
+                <a href="/mainList" class="inline-flex items-center justify-center bg-black text-white font-medium rounded-md h-10 px-5 hover:bg-gray-500 transition duration-300">
+                    Get Started
+                </a>
+
+                <!-- 상세보기 섹션의 ID로 이동 -->
+                <a href="#details" class="inline-flex items-center justify-center bg-white text-black font-medium rounded-md h-10 px-5 hover:bg-gray-400 transition duration-300">
+                    Learn More
+                </a>
+
+            </div>
+        </div>
 
 
-<!-- 네비게이션 바의 높이만큼 상단 여백 추가 -->
-<div class="pt-16">
+
+        <!-- 메인페이지 이미지 -->
+        <div class="mt-4 md:mt-0 flex justify-center items-center">
+            <!-- mt-4: 이미지와 텍스트 사이 간격 조정 -->
+            <div class="flex justify-center items-center bg-white rounded-2xl shadow-lg overflow-hidden">
+                <img src="/image/ms-icon-310x310.png" alt="Searchweb Logo">
+            </div>
+        </div>
+    </div>
+</section>
 
 
-<!-- 사용자 인증 상태 확인 -->
-<!-- 로그인 사용자가 없을 때 처리 -->
-<div sec:authorize="isAnonymous()" >
-    <h1>로그인이 필요합니다.</h1>
-</div>
-
-<!-- 로그인 사용자가 있을 때 처리 -->
-<div sec:authorize="isAuthenticated()">
-    <h1 th:text="'환영합니다, ' + ${#authentication.name} + '님'"></h1>
-    <h1 th:text="'환영합니다, ' + ${#authentication.principal.memberId} + '님'"></h1>
-</div>
-
-
-
-
-<div class="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
-
-    <!-- 메인 -->
-    <main class="flex-1">
-        <section class="w-full py-12 md:py-24 lg:py-32 flex justify-center items-center">
-            <div class="container px-4 md:px-6">
-                <div class="flex flex-col items-center space-y-4 text-center">
-                    <div class="space-y-2">
-                        <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">Acme Inc</h1>
-                        <p class="mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                            당신의 웹 허브툴을 위한 모바일 및 혁신적인 솔루션
-                        </p>
-                    </div>
-                    <div class="space-x-4">
-                        <a
-                                class="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
+<!-- 상세 보기 -->
+<div id="details" class="flex flex-col items-center justify-center min-h-screen">
+    <section class="relative w-full bg-[url('/hero-bg.jpg')] bg-cover bg-center bg-no-repeat flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50"></div>
+        <div class="container relative z-10 flex flex-col items-center justify-center gap-6 px-4 py-12 text-center text-black md:px-6 lg:py-24">
+            <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">Search your Website Solution</h1>
+            <p class="max-w-xl text-base text-muted-foreground">
+                Searchweb은 다양한 웹사이트 및 솔루션을 손쉽게 탐색하고 저장할 수 있는 플랫폼입니다.
+                자료를 수집한 후, 효율적으로 관리하여 사용자의 생산성을 극대화하는 데 도움을 줍니다.
+            </p>
+            <!--            <a
+                                class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                 href="#"
                         >
                             Get Started
-                        </a>
-                        <a
-                                class="inline-flex h-9 items-center justify-center rounded-md border border-gray-200 border-gray-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-800 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus-visible:ring-gray-300"
-                                href="#"
-                        >
-                            Contact Sales
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-
-        <section class="w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800 flex justify-center items-center">
-            <div class="container px-4 md:px-6">
-                <div class="flex flex-col items-center justify-center space-y-4 text-center">
-                    <div class="space-y-2">
-                        <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Features</h2>
-                        <p class="mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                            Beautifully designed components that you can copy and paste into your apps. Accessible. Customizable.
-                            Open Source.
-                        </p>
-                    </div>
-                    <div class="space-x-4">
-                        <a
-                                class="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
-                                href="#"
-                        >
-                            Contact Sales
-                        </a>
-                        <a
-                                class="inline-flex h-9 items-center justify-center rounded-md border border-gray-200 border-gray-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-800 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus-visible:ring-gray-300"
-                                href="#"
-                        >
-                            Tour the Platform
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-
-
-        <section class="w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800 flex justify-center items-center">
-            <div class="container px-4 md:px-6">
-                <div class="flex flex-col items-center justify-center space-y-4 text-center">
-                    <div class="space-y-2">
-                        <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Pricing</h2>
-                        <p class="mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                            Simple, transparent pricing. No hidden fees.
-                        </p>
-                    </div>
-                    <div class="space-x-4">
-                        <a
-                                class="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
-                                href="#"
-                        >
-                            Contact Sales
-                        </a>
-                        <a
-                                class="inline-flex h-9 items-center justify-center rounded-md border border-gray-200 border-gray-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-800 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus-visible:ring-gray-300"
-                                href="#"
-                        >
-                            Tour the Platform
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-
-
-   <!-- 푸터 -->
-    <footer class="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6">
-        <div class="flex-1">
-            <nav class="flex gap-4 sm:gap-6">
-                <a class="text-sm hover:underline underline-offset-4" href="#">
-                    Terms of Service
-                </a>
-                <a class="text-sm hover:underline underline-offset-4" href="#">
-                    Privacy Policy
-                </a>
-            </nav>
+                        </a>-->
         </div>
-        <p class="text-xs text-gray-500 dark:text-gray-400">© 2024 Acme Inc. All rights reserved.</p>
-    </footer>
+    </section>
+
+
+    <section class="w-full py-12 md:py-24 lg:py-32 flex items-center justify-center">
+        <div class="container grid grid-cols-1 gap-8 px-4 md:grid-cols-3 md:px-6">
+
+            <div class="flex flex-col items-center gap-4 text-center">
+                <!-- 다양한 웹 솔루션 탐색 -->
+                <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="h-12 w-12 text-primary"
+                >
+                    <!-- 일반적인 돋보기 아이콘 -->
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <h3 class="text-xl font-semibold">다양한 웹솔루션 탐색</h3>
+                <p class="text-muted-foreground">인터넷에 흩어진 다양한 웹솔루션을 손쉽게 탐색하고 필요한 정보를 신속하게 찾아보세요.</p>
+            </div>
+
+            <div class="flex flex-col items-center gap-4 text-center">
+                <!-- 효율적인 자료 관리 -->
+                <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="h-12 w-12 text-primary"
+                >
+                    <!-- 폴더 모양 아이콘 -->
+                    <path d="M4 4h5l2 3h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold">효율적인 자료 관리</h3>
+                <p class="text-muted-foreground">클라우드 기반의 자료 관리를 통해 데이터를 손쉽게 저장하고 최적화하세요.</p>
+            </div>
+
+
+            <div class="flex flex-col items-center gap-4 text-center">
+                <!-- 생산성 극대화 -->
+                <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="h-12 w-12 text-primary"
+                >
+                    <!-- 생산성을 극대화하는 그래프 아이콘 -->
+                    <path d="M3 3v18h18"></path>
+                    <polyline points="9 15 12 12 15 15 21 9"></polyline>
+                </svg>
+                <h3 class="text-xl font-semibold">생산성 극대화</h3>
+                <p class="text-muted-foreground">다양한 웹솔루션을 활용하여 효율성을 극대화하고, 더 많은 성과를 더 적은 시간에 달성하세요.</p>
+            </div>
+
+        </div>
+
+    </section>
 </div>
 
 
+<!-- 푸터 -->
+<!--<footer class="bg-gray-800 p-6 md:py-12 text-white">
+    <div class="container max-w-7xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-8 text-sm">
+        <div class="grid gap-1.5">
+            <h3 class="font-semibold">Resources</h3>
+            <a href="#" class="hover:underline">Blog</a>
+            <a href="#" class="hover:underline">Case Studies</a>
+            <a href="#" class="hover:underline">Support</a>
+            <a href="#" class="hover:underline">FAQs</a>
+        </div>
+        <div class="grid gap-1.5">
+            <h3 class="font-semibold">Legal</h3>
+            <a href="#" class="hover:underline">Privacy Policy</a>
+            <a href="#" class="hover:underline">Terms of Service</a>
+            <a href="#" class="hover:underline">Cookie Policy</a>
+        </div>
+        <div class="grid gap-1.5">
+            <h3 class="font-semibold">Connect</h3>
+            <div class="flex gap-2">
+                <a class="text-muted-foreground hover:text-primary" href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                        <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+                    </svg>
+                </a>
+                <a class="text-muted-foreground hover:text-primary" href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                    </svg>
+                </a>
+                <a class="text-muted-foreground hover:text-primary" href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+                    </svg>
+                </a>
+                <a class="text-muted-foreground hover:text-primary" href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                        <rect width="4" height="12" x="2" y="9"></rect>
+                        <circle cx="4" cy="4" r="2"></circle>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="container max-w-7xl mt-8 text-center text-sm text-gray-400">
+        © 2024 Your Company. All rights reserved.
+    </div>
+</footer>-->
 </body>
+
 </html>
