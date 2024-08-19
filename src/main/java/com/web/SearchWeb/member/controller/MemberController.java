@@ -43,7 +43,7 @@ public class MemberController {
         if (!model.containsAttribute("memberDto")) { // RedirectAttributes를 통해 전달된 "memberDto"가 모델에 포함되어 있는지 확인
             model.addAttribute("memberDto", new MemberDto());
         }
-        return "/member/join";
+        return "member/join";
     }
 
 
@@ -87,7 +87,7 @@ public class MemberController {
      */
     @GetMapping("/login")
     public String login() {
-        return "/member/login";
+        return "member/login";
     }
 
 
