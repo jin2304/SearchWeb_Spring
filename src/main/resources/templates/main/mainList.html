@@ -209,6 +209,11 @@
             </div>
 
 
+            <!-- 검색 결과 개수 표시 -->
+            <div class="search-result" th:if="${resultCount}">
+                검색 결과: <span class="font-bold" th:text="${resultCount}">0</span>개
+            </div>
+
             <!-- 검색 결과 있을 때 메시지 표시 -->
             <!-- 웹사이트 요소 -->
             <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-4">
