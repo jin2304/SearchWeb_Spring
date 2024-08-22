@@ -139,50 +139,55 @@
     <div class="mainContainer mx-auto px-4 py-8" style="padding-left: 100px;padding-right: 100px; padding-top: 10px;">
 
         <!-- 카테고리 바 -->
-        <div class="container mx-auto px-40 sm:px-0 md:px-0 xl:px-64 py-16 " style="padding-top: 20px;">
-            <div class="flex items-center justify-between py-4 ">
-                <div class="flex items-center gap-2 p-2 bg-white shadow-lg rounded-xl">
-                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=All">All</a>
-                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Development">Development</a>
-                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Design">Design</a>
-                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=AI">AI</a>
-                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Icon">Icon</a>
-                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=PPT">PPT</a>
-                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Font">Font</a>
-                    <a class="category-btn px-4 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300" href="?category=Util">Util</a>
-                </div>
+        <div class="mb-4">
+            <div class="mt-8">
+                <div class="flex flex-col sm:flex-row justify-between items-center">
+                    <div class="flex flex-wrap justify-center sm:justify-start gap-2 mb-4 sm:mb-0">
+                        <a href="?category=All" class="category-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <i class="fas fa-globe mr-2"></i> All
+                        </a>
+                        <a href="?category=IT" class="category-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <i class="fas fa-code mr-2"></i> IT
+                        </a>
+                        <a href="?category=Design" class="category-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <i class="fas fa-paint-brush mr-2"></i> Design
+                        </a>
+                        <a href="?category=AI" class="category-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <i class="fas fa-robot mr-2"></i> AI
+                        </a>
+                        <a href="?category=Icon" class="category-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <i class="fas fa-icons mr-2"></i> Icon
+                        </a>
+                        <a href="?category=PPT" class="category-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <i class="fas fa-file-powerpoint mr-2"></i> PPT
+                        </a>
+                        <a href="?category=Font" class="category-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <i class="fas fa-font mr-2"></i> Font
+                        </a>
+                        <a href="?category=Util" class="category-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <i class="fas fa-tools mr-2"></i> Util
+                        </a>
+                    </div>
 
-
-                <!-- 검색 결과 개수 표시 -->
-                <div class="text-sm text-gray-600 flex items-center justify-center mt-4">
-                <span th:if="${resultCount}">
-                    <span class="bg-gray-200 rounded-full px-4 py-1 font-semibold text-gray-700">
-                        검색 결과: <span class="font-bold text-base" th:text="${resultCount}">0</span>개
-                    </span>
-                </span>
+                    <div class="flex items-center space-x-2">
+                        <button class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"></path>
+                            </svg>
+                            인기
+                        </button>
+                        <button class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                            최신
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-            <script>
-                // 카테고리에 맞게 버튼 색깔 활성화
-                document.addEventListener('DOMContentLoaded', function() {
-                    const params = new URLSearchParams(window.location.search);
-                    const category = params.get('category') || 'All'; // query parameter가 없으면 'All'로 설정
-                    const buttons = document.querySelectorAll('.category-btn'); // 카테고리에 맞는 버튼에 active-category 클래스를 추가
 
-                    buttons.forEach(button => {
-                        const href = button.getAttribute('href');
-                        if ((href.includes('?category=' + category))) {
-                            button.classList.add('active-category', 'bg-indigo-500', 'text-white');
-                            button.classList.remove('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
-                        } else {
-                            button.classList.remove('active-category', 'bg-indigo-500', 'text-white');
-                            button.classList.add('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
-                        }
-                    });
-                });
-            </script>
 
 
 
@@ -313,6 +318,26 @@
                 bookmarkIcon.classList.remove('active');
             }
         }
+
+
+    // 카테고리 버튼 활성화 스크립트
+    document.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
+        const category = params.get('category') || 'All';
+        const buttons = document.querySelectorAll('.category-btn');
+
+        buttons.forEach(button => {
+            const href = button.getAttribute('href');
+            if (href.includes('?category=' + category)) {
+
+                button.classList.add('bg-gradient-to-r', 'from-purple-500', 'to-indigo-600', 'text-white');
+                button.classList.remove('bg-gray-100', 'text-gray-700');
+            } else {
+                button.classList.remove('bg-gradient-to-r', 'from-purple-500', 'to-indigo-600', 'text-white');
+                button.classList.add('bg-gray-100', 'text-gray-700');
+            }
+        });
+    });
 </script>
 
 
