@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Searchweb</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="your-custom-styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <style>
         .group:hover #updateProfileButton {
@@ -23,7 +23,7 @@
 <aside th:replace="~{fragment/sidebar :: copy}"></aside>
 
 <!-- 메인 컨덴트 -->
-<main class="p-6 space-y-8 bg-gray-100 md:px-16 lg:px-32 xl:px-60" style="margin-left: 223px; margin-top: 64px;padding-left: 400px; padding-right: 400px;">
+<main class="min-h-screen p-6 space-y-8 bg-gray-100 md:px-16 lg:px-32 xl:px-60" style="margin-left: 223px; margin-top: 64px; padding-left: 400px; padding-right: 400px;">
 
     <!-- 사용자 정보 -->
     <div class="w-full py-6 bg-white border border-gray-200 shadow-md rounded-lg relative group">
@@ -181,43 +181,44 @@
 
 
 
-        <!-- 북마크 추가 팝업 -->
-        <div id="bookmarkFormPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-            <div class="bg-white p-8 rounded-lg shadow-md max-w-lg w-full z-50">
-                <h3 class="text-xl font-semibold mb-4">북마크 추가</h3>
-                <form id="bookmarkForm" class="space-y-4">
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700">
-                            웹사이트 이름 <span class="text-red-500">*</span>
-                        </label>
-                        <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="name" placeholder="웹사이트 이름" required />
-                    </div>
-                    <div>
-                        <label for="url" class="block text-sm font-medium text-gray-700">
-                            URL <span class="text-red-500">*</span>
-                        </label>
-                        <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="url" placeholder="URL" required />
-                    </div>
-                    <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700">설명</label>
-                        <textarea class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" id="description" placeholder="설명"></textarea>
-                    </div>
-                    <div>
-                        <label for="tag" class="block text-sm font-medium text-gray-700">태그</label>
-                        <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="tag" placeholder="자신만의 태그를 입력하세요" />
-                    </div>
-
-                    <div class="flex justify-end">
-                        <button type="button" onclick="toggleBookmarkForm()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-700 bg-gray-300 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                            취소
-                        </button>
-                        <button type="submit" class="inline-flex items-center px-4 py-2 ml-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            추가
-                        </button>
-                    </div>
-                </form>
+    <!-- 북마크 추가 팝업 -->
+    <div id="bookmarkFormPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm hidden z-50" style="margin-left: 223px;">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg transform transition-all duration-300 ease-out">
+            <div class="flex items-center mb-6">
+                <div class="bg-indigo-600 w-12 h-12 flex items-center justify-center rounded-lg">
+                    <i class="fas fa-bookmark text-white text-xl" style="padding-left: 1px;"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-gray-900 ml-4">북마크 추가</h2>
             </div>
+            <form id="bookmarkForm">
+                <div class="space-y-6">
+                    <div>
+                        <label for="name" class="block text-gray-700 font-semibold mb-2">웹사이트 이름 <span class="text-red-500">*</span></label>
+                        <input type="text" id="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" placeholder="웹사이트 이름" required>
+                    </div>
+                    <div>
+                        <label for="url" class="block text-gray-700 font-semibold mb-2">URL <span class="text-red-500">*</span></label>
+                        <input type="url" id="url" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" placeholder="URL" required>
+                    </div>
+                    <div>
+                        <label for="description" class="block text-gray-700 font-semibold mb-2">설명</label>
+                        <textarea id="description" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400 resize-none" rows="4" placeholder="설명"></textarea>
+                    </div>
+                    <div>
+                        <label for="tag" class="block text-gray-700 font-semibold mb-2">태그</label>
+                        <input type="text" id="tag" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" placeholder="자신만의 태그를 입력하세요">
+                    </div>
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button type="button" onclick="toggleBookmarkForm()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-full font-medium shadow-sm hover:bg-gray-400 transition-colors duration-200 ease-out mr-2">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-full font-bold shadow-md hover:bg-indigo-700 transition-colors duration-200 ease-in-out">추가</button>
+                </div>
+            </form>
         </div>
+    </div>
+
+
+
 
 
 
@@ -284,60 +285,58 @@
 
 
     <!-- 북마크 수정 팝업 -->
-    <div id="updateBookmarkPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-        <div class="bg-white p-8 rounded-lg shadow-md max-w-lg w-full z-50 border-2 border-indigo-500">
-            <h3 class="text-xl font-semibold mb-4 text-indigo-500 flex items-center">
-                <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="w-6 h-6 mr-2"
-                >
-                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                    <path d="m15 5 4 4"></path>
-                </svg>
-                북마크 수정
-            </h3>
-            <form id="updateBookmarkForm" class="space-y-4">
+    <div id="updateBookmarkPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm hidden z-50" style="margin-left: 223px;">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg transform transition-all duration-300 ease-out">
+            <div class="flex items-center mb-6">
+                <div class="bg-purple-600 w-12 h-12 flex items-center justify-center rounded-lg">
+                    <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="white"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="w-6 h-6"
+                    >
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                        <path d="m15 5 4 4"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-extrabold text-gray-900 ml-4">북마크 수정</h2>
+            </div>
+            <form id="updateBookmarkForm" class="space-y-6">
                 <input type="hidden" id="updateBookmarkId" /> <!-- 북마크 ID를 저장 -->
                 <div>
-                    <label for="updateName" class="block text-sm font-medium text-gray-700">
+                    <label for="updateName" class="block text-gray-700 font-semibold mb-2">
                         웹사이트 이름 <span class="text-red-500">*</span>
                     </label>
-                    <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="updateName" placeholder="웹사이트 이름" required />
+                    <input class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" type="text" id="updateName" placeholder="웹사이트 이름" required />
                 </div>
                 <div>
-                    <label for="updateUrl" class="block text-sm font-medium text-gray-700">
+                    <label for="updateUrl" class="block text-gray-700 font-semibold mb-2">
                         URL <span class="text-red-500">*</span>
                     </label>
-                    <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="updateUrl" placeholder="URL" required />
+                    <input class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" type="text" id="updateUrl" placeholder="URL" required />
                 </div>
                 <div>
-                    <label for="updateDescription" class="block text-sm font-medium text-gray-700">설명</label>
-                    <textarea class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" id="updateDescription" placeholder="설명"></textarea>
+                    <label for="updateDescription" class="block text-gray-700 font-semibold mb-2">설명</label>
+                    <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400 resize-none" id="updateDescription" rows="4" placeholder="설명"></textarea>
                 </div>
                 <div>
-                    <label for="updateTag" class="block text-sm font-medium text-gray-700">태그</label>
-                    <input class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="updateTag" placeholder="자신만의 태그를 입력하세요" />
+                    <label for="updateTag" class="block text-gray-700 font-semibold mb-2">태그</label>
+                    <input class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" type="text" id="updateTag" placeholder="자신만의 태그를 입력하세요" />
                 </div>
-
-                <div class="flex justify-end">
-                    <button type="button" onclick="toggleUpdateBookmarkForm()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-700 bg-gray-300 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                        취소
-                    </button>
-                    <button type="submit" class="inline-flex items-center px-4 py-2 ml-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        수정
-                    </button>
+                <div class="flex justify-end mt-8">
+                    <button type="button" onclick="toggleUpdateBookmarkForm()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-full font-medium shadow-sm hover:bg-gray-400 transition-colors duration-200 ease-out mr-2">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-full font-bold shadow-md hover:bg-indigo-700 transition-colors duration-200 ease-in-out">수정</button>
                 </div>
             </form>
         </div>
     </div>
+
 
 
 </main>
