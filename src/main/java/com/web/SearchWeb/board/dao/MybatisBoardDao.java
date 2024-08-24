@@ -1,10 +1,12 @@
 package com.web.SearchWeb.board.dao;
 
+import com.web.SearchWeb.board.domain.Board;
 import com.web.SearchWeb.board.dto.BoardDto;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 
 @Repository
 public class MybatisBoardDao implements BoardDao{
@@ -24,5 +26,14 @@ public class MybatisBoardDao implements BoardDao{
     public int insertBoard(int memberId, BoardDto boardDto) {
         return mapper.insertBoard(memberId, boardDto);
     }
+
+
+    /**
+     *  게시글 목록 조회(검색어, 최신순/인기순)
+     */
+    public List<Board> selectBoardList(String query, String sort) {
+        return mapper.selectBoardList(query, sort);
+    }
+
 }
 

@@ -12,4 +12,31 @@
         INSERT INTO board(member_memberId, nickname, job, major, url, title, description, hashtags)
         VALUES (#{memberId}, #{boardDto.nickname}, #{boardDto.job}, #{boardDto.major}, #{boardDto.url}, #{boardDto.title}, #{boardDto.description}, #{boardDto.hashtags});
     </insert>
+
+
+    <!-- 게시글 조회(검색어, 최신순/인기순)  -->
+    <select id="selectBoardList" parameterType="map" resultType="com.web.SearchWeb.board.domain.Board">
+        SELECT * FROM board
+        <where>
+            <!-- 검색어가 있는 경우 -->
+            <if test="query != null and query != ''">
+                (title LIKE CONCAT('%', #{query}, '%')
+                OR
+                description LIKE CONCAT('%', #{query}, '%'))
+            </if>
+        </where>
+        <!-- 정렬 조건 -->
+        <if test="sort != null">
+            <choose>
+                <when test="sort.equalsIgnoreCase('popular')">
+                    ORDER BY likes_count DESC
+                </when>
+                <otherwise>
+                    ORDER BY created_date DESC
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+
 </mapper>
