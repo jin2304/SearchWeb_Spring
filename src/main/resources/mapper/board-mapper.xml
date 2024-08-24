@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.web.SearchWeb.board.dao.BoardDao"> <!--Dao 이름-->
+
+   <!-- 게시글 생성-->
+    <insert id="insertBoard" parameterType="map">
+        INSERT INTO board(member_memberId, nickname, job, major, url, title, description, hashtags)
+        VALUES (#{memberId}, #{boardDto.nickname}, #{boardDto.job}, #{boardDto.major}, #{boardDto.url}, #{boardDto.title}, #{boardDto.description}, #{boardDto.hashtags});
+    </insert>
+</mapper>
