@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Searchweb</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="your-custom-styles.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+
+<!-- 메뉴바 fragment 사용 -->
+<nav th:replace="~{fragment/navbar :: copy}"></nav>
+
+<!-- 사이드바 fragment 사용 -->
+<aside th:replace="~{fragment/sidebar :: copy}"></aside>
+
+<!-- 게시판 목록 -->
+<main class="bg-white rounded-lg shadow-lg p-6 w-full max-w-3xl h-full flex flex-col" style="margin-left: 223px; margin-top: 80px;min-height: 100vh;">
+
+    <!-- 글 작성 섹션 (로그인된 경우) -->
+    <div th:if="${#authorization.expression('isAuthenticated()')}" class="flex items-center border border-gray-300 rounded-full bg-gray-100 p-2 w-full mb-6">
+        <i class="fas fa-pencil-alt text-gray-500 ml-3"></i>
+        <input type="text" placeholder="유용한 웹사이트를 공유하거나, 필요한 웹사이트를 질문해 보세요!"
+               class="flex-grow bg-transparent p-2 focus:outline-none text-gray-600 ml-2" readonly
+               onclick="openSelectPopup()">
+    </div>
+
+    <!-- 글 작성 섹션 (로그인되지 않은 경우) -->
+    <div th:if="${#authorization.expression('!isAuthenticated()')}" class="flex items-center border border-gray-300 rounded-full bg-gray-100 p-2 w-full mb-6">
+        <i class="fas fa-pencil-alt text-gray-500 ml-3"></i>
+        <input type="text" placeholder="유용한 웹사이트를 공유하거나, 필요한 웹사이트를 질문해 보세요!"
+               class="flex-grow bg-transparent p-2 focus:outline-none text-gray-600 ml-2" readonly
+               onclick="window.location.href='/login'">
+    </div>
+
+
+
+    <!-- 카테고리 바 -->
+    <div class="mb-4">
+        <div class="p-4 pb-0">
+            <div class="flex flex-col sm:flex-row justify-between items-center">
+                <div class="flex flex-wrap justify-center sm:justify-start gap-2 mb-4 sm:mb-0">
+                    <button class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full shadow-md transition duration-300 ease-in-out hover:from-purple-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        전체
+                    </button>
+                    <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        웹사이트 공유
+                    </button>
+                    <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        질문
+                    </button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"></path>
+                        </svg>
+                        인기
+                    </button>
+                    <button class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                        </svg>
+                        최신
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 글 작성 선택 팝업 -->
+    <div id="select-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm hidden z-50" style="margin-left: 223px;">
+        <div class="bg-white rounded-lg shadow-xl p-10 w-full max-w-sm transform transition-all duration-300 ease-out">
+            <h2 class="text-xl font-semibold text-gray-800 mb-8 text-center">원하시는 작업을 선택하세요</h2>
+            <div class="flex flex-col space-y-5">
+                <button onclick="openSharePopup()" class="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-400 text-white rounded-lg text-base font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out">
+                    <span>웹사이트 공유</span>
+                    <i class="fas fa-share-alt text-lg"></i>
+                </button>
+                <button onclick="openQuestionPopup()" class="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-indigo-600 to-indigo-400 text-white rounded-lg text-base font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out">
+                    <span>질문</span>
+                    <span class="text-lg font-bold">Q</span>
+                </button>
+            </div>
+            <div class="flex justify-center mt-8">
+                <button onclick="closeSelectPopup()" class="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg font-medium shadow-sm hover:bg-gray-300 transition-colors duration-200 ease-out text-sm">
+                    취소
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 웹사이트 공유 팝업 -->
+    <div id="share-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm hidden z-50" style="margin-left: 223px;">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg transform transition-all duration-300 ease-out">
+            <div class="flex items-center mb-6">
+                <div class="bg-purple-600 w-12 h-12 flex items-center justify-center rounded-lg">
+                    <i class="fas fa-share-alt text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-gray-900 ml-4">웹사이트 공유</h2>
+            </div>
+
+            <form th:if="${#authorization.expression('isAuthenticated()')}" th:action="@{/board/{memberId}/post(memberId=${#authentication.principal.memberId})}" method="post" onsubmit="return confirmSubmission();">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">웹사이트 이름</label>
+                        <input type="text" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800 placeholder-gray-400" placeholder="웹사이트 이름을 입력하세요">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">웹사이트 링크</label>
+                        <input type="url" name="url" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800 placeholder-gray-400" placeholder="https://">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">웹사이트 설명</label>
+                        <textarea name="description" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800 placeholder-gray-400 resize-none" rows="4" placeholder="웹사이트 설명을 입력하세요"></textarea>
+                    </div>
+
+                    <!-- 해시태그 -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">해시태그</label>
+                        <input type="text" class="hashtag-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" placeholder="해시태그를 입력하고 space bar를 누르세요" maxlength="20">
+                        <small class="text-gray-500">최대 5개의 해시태그를 추가할 수 있습니다.</small>
+                        <!-- 해시태그 컨테이너 -->
+                        <div class="hashtags-container flex flex-wrap gap-2 mt-2"></div>
+                        <!-- 해시태그를 하나의 문자열로 저장할 숨겨진 필드 -->
+                        <input type="hidden" class="hidden-hashtags" name="hashtags">
+                    </div>
+
+                </div>
+
+                <div class="flex justify-end mt-8">
+                    <button type="button" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-full font-medium shadow-sm hover:bg-gray-400 transition-colors duration-200 ease-out mr-2" onclick="closeSharePopup()">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-full font-bold shadow-md hover:bg-purple-700 transition-colors duration-200 ease-in-out">공유하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+    <!-- 질문 팝업 -->
+    <div id="question-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm hidden z-50" style="margin-left: 223px;">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg transform transition-all duration-300 ease-out">
+            <div class="flex items-center mb-6">
+                <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <!-- 배경 사각형 -->
+                    <rect x="0" y="0" width="48" height="48" rx="10" ry="10" fill="#4F46E5"/>
+                    <!-- 텍스트 -->
+                    <text x="50%" y="50%" font-size="24" font-family="Arial" fill="white" font-weight="bold" text-anchor="middle" dominant-baseline="central">Q</text>
+                </svg>
+                <h2 class="text-2xl font-extrabold text-gray-900 ml-4">질문하기</h2>
+            </div>
+
+            <form th:if="${#authorization.expression('isAuthenticated()')}" th:action="@{/board/{memberId}/post(memberId=${#authentication.principal.memberId})}" method="post" onsubmit="return confirmSubmission();">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">질문 제목</label>
+                        <input type="text" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" placeholder="질문 제목을 입력하세요">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">질문 내용</label>
+                        <textarea name="description" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400 resize-none" rows="5" placeholder="질문 내용을 입력하세요"></textarea>
+                    </div>
+
+                    <!-- 해시태그 -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">해시태그</label>
+                        <input type="text" class="hashtag-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" placeholder="해시태그를 입력하고 space bar를 누르세요" maxlength="20">
+                        <small class="text-gray-500">최대 5개의 해시태그를 추가할 수 있습니다.</small>
+                        <!-- 해시태그 컨테이너 -->
+                        <div class="hashtags-container flex flex-wrap gap-2 mt-2"></div>
+                        <!-- 해시태그를 하나의 문자열로 저장할 숨겨진 필드 -->
+                        <input type="hidden" class="hidden-hashtags" name="hashtags">
+                    </div>
+
+                </div>
+                <div class="flex justify-end mt-8">
+                    <button type="button" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-full font-medium shadow-sm hover:bg-gray-400 transition-colors duration-200 ease-out mr-2" onclick="closeQuestionPopup()">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-full font-bold shadow-md hover:bg-indigo-700 transition-colors duration-200 ease-in-out">질문하기</button>
+                </div>
+
+
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        const maxHashtags = 5;
+
+        document.querySelectorAll('.hashtag-input').forEach((input, index) => {
+            const container = input.closest('div');
+            const hashtagsContainer = container.querySelector('.hashtags-container');
+            const hiddenHashtagsInput = container.querySelector('.hidden-hashtags');
+            let hashtags = [];
+
+            input.addEventListener('keyup', function(event) {
+                if (event.key === ' ') {
+                    event.preventDefault();  // 스페이스 키로 폼 제출 방지
+                    let hashtagText = input.value.trim();
+
+                    // 입력된 해시태그 문자열을 공백으로 분리하여 배열로 변환
+                    let words = hashtagText.split(/\s+/);
+
+                    // 각 단어를 해시태그로 추가
+                    words.forEach(word => {
+                        if (word.length > 0 && !hashtags.includes(word) && hashtags.length < maxHashtags) {
+                            addHashtag(word, hashtags, hashtagsContainer, input);
+                        }
+                    });
+
+                    updateHiddenInput(hashtags, hiddenHashtagsInput);
+                    input.value = ''; // 입력 필드 비우기
+                }
+            });
+
+            function addHashtag(text, hashtags, container, input) {
+                hashtags.push(text);
+
+                let hashtag = document.createElement('span');
+                hashtag.className = 'relative inline-flex items-center bg-gradient-to-r from-purple-700 to-indigo-400 text-white rounded-full px-3 py-1 text-sm font-semibold cursor-pointer';
+                hashtag.innerHTML = `#${text}`;
+
+                let closeButton = document.createElement('span');
+                closeButton.className = 'absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs cursor-pointer';
+                closeButton.style.lineHeight = '1';
+                closeButton.innerHTML = 'x';
+
+                // X 버튼 클릭 이벤트 추가
+                closeButton.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    removeHashtag(hashtag, text, hashtags, input, hiddenHashtagsInput);
+                });
+
+                hashtag.appendChild(closeButton);
+                container.appendChild(hashtag);
+
+                if (hashtags.length >= maxHashtags) {
+                    input.disabled = true;
+                    input.placeholder = "해시태그 제한에 도달했습니다.";
+                }
+            }
+
+            function removeHashtag(element, text, hashtags, input, hiddenInput) {
+                // 해시태그 배열에서 해당 해시태그 삭제
+                const index = hashtags.indexOf(text);
+                if (index !== -1) {
+                    hashtags.splice(index, 1); // 해당 인덱스의 해시태그 삭제
+                }
+
+                element.remove();
+
+                if (hashtags.length < maxHashtags) {
+                    input.disabled = false;
+                    input.placeholder = "스페이스바를 눌러 해시태그를 추가하세요";
+                }
+
+                updateHiddenInput(hashtags, hiddenInput);
+            }
+
+            function updateHiddenInput(hashtags, hiddenInput) {
+                hiddenInput.value = hashtags.join(' ');  // 해시태그를 공백으로 구분하여 저장
+            }
+        });
+
+
+        function openSelectPopup() {
+            document.getElementById('select-popup').classList.remove('hidden');
+        }
+
+        function closeSelectPopup() {
+            document.getElementById('select-popup').classList.add('hidden');
+        }
+
+        function openSharePopup() {
+            closeSelectPopup();
+            document.getElementById('share-popup').classList.remove('hidden');
+        }
+
+        function closeSharePopup() {
+            document.getElementById('share-popup').classList.add('hidden');
+        }
+
+        function openQuestionPopup() {
+            closeSelectPopup();
+            document.getElementById('question-popup').classList.remove('hidden');
+        }
+
+        function closeQuestionPopup() {
+            document.getElementById('question-popup').classList.add('hidden');
+        }
+
+        function confirmSubmission() {
+            return confirm("게시글을 올리시겠습니까?");
+        }
+    </script>
+
+</main>
+
+
+
+</body>
+</html>
