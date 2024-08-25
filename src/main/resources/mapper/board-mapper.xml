@@ -9,8 +9,8 @@
 
    <!-- 게시글 생성-->
     <insert id="insertBoard" parameterType="map">
-        INSERT INTO board(member_memberId, nickname, job, major, url, title, description, hashtags)
-        VALUES (#{memberId}, #{boardDto.nickname}, #{boardDto.job}, #{boardDto.major}, #{boardDto.url}, #{boardDto.title}, #{boardDto.description}, #{boardDto.hashtags});
+        INSERT INTO board(member_memberId, nickname, job, major, url, title, summary, description, hashtags)
+        VALUES (#{memberId}, #{boardDto.nickname}, #{boardDto.job}, #{boardDto.major}, #{boardDto.url}, #{boardDto.title}, #{boardDto.summary}, #{boardDto.description}, #{boardDto.hashtags});
     </insert>
 
 

@@ -15,6 +15,7 @@ public class Board {
     private String major;
     private String url;
     private String title;
+    private String summary;
     private String description;
     private String hashtags;
     private int likes_count;
