@@ -74,4 +74,19 @@ public class BoardController {
         return "board/board";
     }
 
+
+    /**
+     *  게시글 단일 조회
+     */
+    @GetMapping("/board/{boardId}")
+    public String boardDetail(@PathVariable int boardId, Model model){
+        Map<String, Object> boardData = boardservice.selectBoard(boardId);
+        Board board = (Board) boardData.get("board");
+        String[] hashtagsList = (String[]) boardData.get("hashtagsList");
+
+        model.addAttribute("board", board);
+        model.addAttribute("hashtagsList", hashtagsList);
+        return "board/boardDetail";
+    }
+
 }

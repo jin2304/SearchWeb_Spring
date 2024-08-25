@@ -12,4 +12,7 @@ public interface BoardDao {
 
     //게시글 목록 조회(최신순, 인기순)
     List<Board> selectBoardList(@Param("query") String query, @Param("sort") String sort);
+
+    //게시글 단일 조회
+    Board selectBoard(int boardId);
 }

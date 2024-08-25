@@ -39,4 +39,10 @@
     </select>
 
 
+    <!-- 게시글 단일 조회 -->
+    <select id="selectBoard" resultType="com.web.SearchWeb.board.domain.Board">
+        SELECT * FROM board
+        where boardId = #{boardId}
+    </select>
+
 </mapper>

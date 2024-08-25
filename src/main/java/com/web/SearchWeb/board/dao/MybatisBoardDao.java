@@ -35,5 +35,12 @@ public class MybatisBoardDao implements BoardDao{
         return mapper.selectBoardList(query, sort);
     }
 
+
+    /**
+     *  게시글 단일 조회
+     */
+    public Board selectBoard(int boardId) {
+        return mapper.selectBoard(boardId);
+    }
 }
 

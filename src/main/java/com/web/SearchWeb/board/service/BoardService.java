@@ -57,4 +57,22 @@ public class BoardService {
 
         return result;
     }
+
+
+
+    /**
+     * 게시글 단일 조회
+     */
+    public Map<String, Object> selectBoard(int boardId) {
+        Board board = boardDao.selectBoard(boardId);  // 단일 Board 객체를 가져옵니다.
+
+        // 해시태그를 분리하여 리스트에 추가합니다.
+        String[] hashtagsList = board.getHashtags() != null ? board.getHashtags().split(" ") : new String[0];
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("board", board);
+        result.put("hashtagsList", hashtagsList);
+
+        return result;
+    }
 }
