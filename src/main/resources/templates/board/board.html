@@ -311,10 +311,10 @@
 
 
     <!-- 게시물 -->
-    <div class="space-y-4 w-full overflow-y-auto">
+    <div class="space-y-4 w-full overflow-y-hidden">
 
         <!-- 웹사이트 공유 게시물 -->
-        <div th:each="board, iterStat : ${boards}" class="p-4 pb-8 bg-white shadow">
+        <a th:href="@{/board/{boardId}(boardId=${board.boardId})}" th:each="board, iterStat : ${boards}" class="p-4 pb-8 bg-white shadow">
             <!-- 사용자 프로필 -->
             <div class="flex items-start mb-3">
                 <img src="https://placehold.co/40" alt="User Profile Image" class="rounded-full w-10 h-10 mr-4">
@@ -331,20 +331,20 @@
 
 
             <!-- 공유 프로덕트 -->
-            <div class="relative p-6 bg-gray-100 rounded-lg border border-gray-200">
+            <div class="relative p-6 mb-6 bg-gray-100 rounded-lg border border-gray-200">
 
                 <div class="flex items-center mb-4">
 
                     <!-- 웹사이트 아이콘 -->
-                    <div th:if="${board.url}" class="bg-white rounded-xl flex items-center justify-center">
+                    <div th:if="${board.url}" class="bg-white rounded-xl flex-shrink-0 shadow-md" style="width: 82px; height: 82px;">
                         <img th:src="@{|https://www.google.com/s2/favicons?sz=128&domain_url=${board.url}|}"
                              alt="Website Icon"
-                             class="rounded-lg object-cover" style="width:76px; height:76px;">
+                             class="rounded-lg object-cover" style="width: 100%; height: 100%;">
                     </div>
 
                     <!-- 질문 이미지 -->
-                    <div th:if="${board.url == null}" class="bg-white rounded-xl flex items-center justify-center">
-                        <svg width="58" height="58" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <div th:if="${board.url == null}" class="rounded-xl flex-shrink-0" style="width: 76px; height: 76px;">
+                        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
                             <!-- 배경 원 -->
                             <circle cx="24" cy="24" r="24" fill="#4F46E5"/>
                             <!-- 텍스트 -->
@@ -352,9 +352,10 @@
                         </svg>
                     </div>
 
-                    <div class="ml-4">
+                    <!-- 웹사이트 제목/개요 -->
+                    <div class="ml-4 flex-grow overflow-hidden">
                         <h3 th:text="${board.title}" class="text-gray-700 font-semibold">루트릭스</h3>
-                        <p th:text="${board.description}" class="text-sm text-gray-500">B2B 조경수 견적 솔루션</p>
+                        <p th:text="${board.summary}" class="text-sm text-gray-500 break-words">B2B 조경수 견적 솔루션</p>
                     </div>
                 </div>
 
@@ -393,7 +394,7 @@
 
 
             </div>
-        </div>
+        </a>
     </div>
 </main>
 
