@@ -33,6 +33,87 @@
         </div>
     </div>
 
+
+    <!-- 수정 팝업 -->
+    <div id="edit-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm hidden z-50" style="margin-left:223px;">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl transform transition-all duration-300 ease-out">
+            <div class="flex items-center mb-6">
+                <div class="bg-purple-600 w-12 h-12 flex items-center justify-center rounded-lg">
+                    <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="white"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="w-6 h-6"
+                    >
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                        <path d="m15 5 4 4"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-extrabold text-gray-900 ml-4">게시글 수정</h2>
+            </div>
+
+            <form th:action="@{/board/{boardId}/update(boardId=${board.boardId})}" method="post" onsubmit="return confirmSubmission();">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">웹사이트 이름</label>
+                        <input type="text" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800 placeholder-gray-400" placeholder="웹사이트 이름을 입력하세요" th:value="${board.title}">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">웹사이트 링크</label>
+                        <input type="url" name="url" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800 placeholder-gray-400" placeholder="https://" th:value="${board.url}">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">웹사이트 개요</label>
+                        <input type="text" name="summary" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800 placeholder-gray-400" placeholder="웹사이트 개요를 입력하세요" th:value="${board.summary}">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">웹사이트 설명</label>
+                        <textarea name="description" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800 placeholder-gray-400 resize-none" rows="4" placeholder="웹사이트 설명을 입력하세요" th:text="${board.description}"></textarea>
+                    </div>
+
+                    <!-- 해시태그 -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">해시태그</label>
+                        <input type="text" class="hashtag-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" placeholder="해시태그를 입력하고 space bar를 누르세요" maxlength="20">
+                        <small class="text-gray-500">최대 5개의 해시태그를 추가할 수 있습니다.</small>
+
+                        <!-- 해시태그 컨테이너 -->
+                        <div class="hashtags-container flex flex-wrap gap-2 mt-2">
+                            <!-- 서버에서 넘어온 해시태그를 표시 -->
+                            <span th:each="hashtag : ${hashtagsList}"
+                                  class="relative inline-flex items-center bg-gradient-to-r from-purple-700 to-indigo-400 text-white rounded-full px-3 py-1 text-sm font-semibold cursor-pointer"
+                                  th:data-hashtag="${hashtag}">
+                            <span th:text="'#' + ${hashtag}"></span>
+                            <button type="button"
+                                    class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs cursor-pointer"
+                                    onclick="removeHashtag(this)">
+                                ×
+                            </button>
+                        </span>
+                        </div>
+
+                        <!-- 해시태그를 하나의 문자열로 저장할 숨겨진 필드 -->
+                        <input type="hidden" class="hidden-hashtags" name="hashtags" th:value="${#strings.arrayJoin(hashtagsList, ',')}">
+                    </div>
+
+                </div>
+
+                <div class="flex justify-end mt-8">
+                    <button type="button" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-full font-medium shadow-sm hover:bg-gray-400 transition-colors duration-200 ease-out mr-2" onclick="closeEditPopup()">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-full font-bold shadow-md hover:bg-purple-700 transition-colors duration-200 ease-in-out">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         document.getElementById('dropdownToggle').addEventListener('click', function() {
             const dropdownMenu = document.getElementById('dropdownMenu');
@@ -47,6 +128,85 @@
                 dropdownMenu.classList.add('hidden');
             }
         });
+
+        document.getElementById('editButton').addEventListener('click', function() {
+            const editPopup = document.getElementById('edit-popup');
+            editPopup.classList.remove('hidden');
+
+            // 해시태그 목록 미리 로드
+            updateHiddenHashtags();
+        });
+
+        function closeEditPopup() {
+            const editPopup = document.getElementById('edit-popup');
+            editPopup.classList.add('hidden');
+        }
+
+        // 해시태그 업데이트 함수
+        function updateHiddenHashtags() {
+            const hashtagsContainer = document.querySelector('.hashtags-container');
+            const hiddenHashtagsInput = document.querySelector('.hidden-hashtags');
+            const hashtags = Array.from(hashtagsContainer.children).map(child => child.getAttribute('data-hashtag').trim());  // "#" 제거 후 업데이트
+            hiddenHashtagsInput.value = hashtags.join(' ');  // 해시태그를 공백으로 구분하여 저장
+        }
+
+        // 해시태그 입력 이벤트 처리
+        const hashtagInput = document.querySelector('.hashtag-input');
+        hashtagInput.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault(); // 스페이스 키로 폼 제출 방지
+                const tag = hashtagInput.value.trim();
+                if (tag.length > 0) {
+                    if (!isDuplicate(tag)) {
+                        addHashtag(tag);
+                    } else {
+                        // 중복된 해시태그일 경우 입력 필드 비우기 및 placeholder 설정
+                        hashtagInput.value = '';
+                        hashtagInput.placeholder = "해시태그를 입력하고 space bar를 누르세요";
+                    }
+                }
+                hashtagInput.value = ''; // 입력 필드 비우기
+            }
+        });
+
+        // 해시태그 추가 함수
+        function addHashtag(tag) {
+            const hashtagsContainer = document.querySelector('.hashtags-container');
+
+            if (hashtagsContainer.children.length >= 5) return;
+
+            const hashtagElement = document.createElement('span');
+            hashtagElement.classList.add('relative', 'inline-flex', 'items-center', 'bg-gradient-to-r', 'from-purple-700', 'to-indigo-400', 'text-white', 'rounded-full', 'px-3', 'py-1', 'text-sm', 'font-semibold', 'cursor-pointer');
+            hashtagElement.setAttribute('data-hashtag', tag);
+            hashtagElement.innerText = `#${tag}`;
+
+            const removeButton = document.createElement('button');
+            removeButton.innerText = '×';
+            removeButton.classList.add('absolute', 'top-0', 'right-0', 'transform', 'translate-x-1/2', '-translate-y-1/2', 'bg-red-500', 'text-white', 'rounded-full', 'w-4', 'h-4', 'flex', 'items-center', 'justify-center', 'text-xs', 'cursor-pointer');
+            removeButton.addEventListener('click', () => {
+                hashtagsContainer.removeChild(hashtagElement);
+                updateHiddenHashtags();
+            });
+
+            hashtagElement.appendChild(removeButton);
+            hashtagsContainer.appendChild(hashtagElement);
+
+            updateHiddenHashtags();
+        }
+
+        function isDuplicate(tag) {
+            const hashtagsContainer = document.querySelector('.hashtags-container');
+            const hashtags = Array.from(hashtagsContainer.children).map(child => child.getAttribute('data-hashtag').trim());  // data-hashtag 속성에서 값을 가져옴
+            return hashtags.includes(tag);
+        }
+
+        // 해시태그 삭제 함수 (기존 해시태그도 삭제 가능)
+        function removeHashtag(button) {
+            const hashtagElement = button.parentElement;
+            const hashtagsContainer = document.querySelector('.hashtags-container');
+            hashtagsContainer.removeChild(hashtagElement);
+            updateHiddenHashtags();
+        }
     </script>
 
     <!-- 사용자 프로필 -->
