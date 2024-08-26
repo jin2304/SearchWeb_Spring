@@ -15,4 +15,7 @@ public interface BoardDao {
 
     //게시글 단일 조회
     Board selectBoard(int boardId);
+
+    //게시글 수정
+    int updateBoard(int boardId, BoardDto boardDto);
 }

@@ -45,4 +45,17 @@
         where boardId = #{boardId}
     </select>
 
+
+    <update id="updateBoard" parameterType="Map">
+        update board
+        SET
+        url = #{boardDto.url},
+        title = #{boardDto.title},
+        summary = #{boardDto.summary},
+        description = #{boardDto.description},
+        hashtags = #{boardDto.hashtags}
+        WHERE
+        boardId = #{boardId}
+    </update>
+
 </mapper>

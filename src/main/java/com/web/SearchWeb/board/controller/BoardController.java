@@ -89,4 +89,29 @@ public class BoardController {
         return "board/boardDetail";
     }
 
+
+    /**
+     *  게시글 수정
+     */
+    @PostMapping("/board/{boardId}/update")
+    public String updateBoard(@PathVariable int boardId, BoardDto boardDto, @AuthenticationPrincipal UserDetails userDetails){
+
+        // 현재 로그인한 사용자의 정보 가져오기
+        String username = userDetails.getUsername();
+        Member loggedInMember = memberservice.findByUserName(username);
+
+        // 수정하려는 게시글의 정보 가져오기
+        Map<String, Object> boardData = boardservice.selectBoard(boardId);
+        Board board = (Board) boardData.get("board");
+
+        // 게시글이 존재하지 않거나, 로그인한 사용자가 작성자가 아닌 경우 접근 거부
+        if (board == null || board.getMember_memberId() != loggedInMember.getMemberId()) {
+            return "redirect:/access-denied";
+        }
+
+        boardservice.updateBoard(loggedInMember.getMemberId(), boardId, boardDto);
+
+        return "redirect:/board/{boardId}";
+    }
+
 }

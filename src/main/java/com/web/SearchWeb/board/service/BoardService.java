@@ -75,4 +75,21 @@ public class BoardService {
 
         return result;
     }
+
+
+    /**
+     *  게시글 수정
+     */
+    public int updateBoard(int memberId, int boardId, BoardDto boardDto){
+        System.out.println("memberId" + memberId);
+
+        Member member = memberService.findByMemberId(memberId);
+
+        System.out.println("update member:" + member);
+        boardDto.setNickname(member.getNickname());
+        boardDto.setJob(member.getJob());
+        boardDto.setMajor(member.getMajor());
+        System.out.println("update boardDto:" + boardDto);
+        return boardDao.updateBoard(boardId, boardDto);
+    }
 }
