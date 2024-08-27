@@ -46,6 +46,7 @@
     </select>
 
 
+    <!-- 게시글 수정 -->
     <update id="updateBoard" parameterType="Map">
         update board
         SET
@@ -57,5 +58,4 @@
         WHERE
         boardId = #{boardId}
     </update>
-
 </mapper>
