@@ -28,10 +28,14 @@
             </button>
             <div id="dropdownMenu" class="hidden absolute top-0 left-full ml-3 -mt-3 w-28 bg-white border border-gray-200 rounded-lg shadow-lg">
                 <button id="editButton" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">수정</button>
-                <button class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">삭제</button>
+                <button id="deleteButton" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">삭제</button>
             </div>
         </div>
     </div>
+
+    <!-- 삭제 요청 폼 -->
+    <form id="deleteForm" th:action="@{/board/{boardId}/delete(boardId=${board.boardId})}" method="post" style="display: none;">
+    </form>
 
 
     <!-- 웹사이트 공유 수정 팝업 -->
@@ -296,7 +300,19 @@
             hashtagsContainer.removeChild(hashtagElement);
             updateHiddenHashtags();
         }
+
+
+        // 게시글 삭제 이벤트 추가
+        document.getElementById('deleteButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            const confirmed = confirm("게시글을 정말 삭제하시겠습니까?");
+            if (confirmed) {
+                document.getElementById('deleteForm').submit();
+            }
+        });
     </script>
+
+
     <!-- 사용자 프로필 -->
     <div class="flex items-start mb-3">
         <img src="https://placehold.co/40" alt="User Profile Image" class="rounded-full w-10 h-10 mr-4">
