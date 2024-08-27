@@ -58,4 +58,15 @@
         WHERE
         boardId = #{boardId}
     </update>
+
+
+    <!-- 게시글 삭제 -->
+    <delete id="deleteBoard" parameterType="Map">
+        delete from board
+        where
+        boardId = #{boardId}
+        and
+        member_memberId = #{memberId}
+
+    </delete>
 </mapper>

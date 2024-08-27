@@ -50,5 +50,13 @@ public class MybatisBoardDao implements BoardDao{
     public int updateBoard(int boardId, BoardDto boardDto){
         return mapper.updateBoard(boardId, boardDto);
     }
+
+
+    /**
+     *  게시글 삭제
+     */
+    public int deleteBoard(int memberId, int boardId) {
+        return mapper.deleteBoard(memberId, boardId);
+    }
 }
 

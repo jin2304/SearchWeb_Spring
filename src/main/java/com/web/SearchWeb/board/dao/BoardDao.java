@@ -18,4 +18,7 @@ public interface BoardDao {
 
     //게시글 수정
     int updateBoard(int boardId, BoardDto boardDto);
+
+     //게시글 삭제
+    int deleteBoard(int memberId, int boardId);
 }

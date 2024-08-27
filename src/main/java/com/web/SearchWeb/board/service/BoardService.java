@@ -92,4 +92,12 @@ public class BoardService {
         System.out.println("update boardDto:" + boardDto);
         return boardDao.updateBoard(boardId, boardDto);
     }
+
+
+    /**
+     *  게시글 삭제
+     */
+    public int deleteBoard(int memberId, int boardId) {
+        return boardDao.deleteBoard(memberId, boardId);
+    }
 }
