@@ -3,18 +3,20 @@ package com.web.SearchWeb.board.controller;
 import com.web.SearchWeb.board.domain.Board;
 import com.web.SearchWeb.board.dto.BoardDto;
 import com.web.SearchWeb.board.service.BoardService;
+import com.web.SearchWeb.board.service.LikeBookmarkService;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,11 +26,13 @@ public class BoardController {
 
     private final BoardService boardservice;
     private final MemberService memberservice;
+    private final LikeBookmarkService likebookmarkservice;
 
     @Autowired
-    public BoardController(BoardService boardservice, MemberService memberservice) {
+    public BoardController(BoardService boardservice, MemberService memberservice, LikeBookmarkService likebookmarkservice) {
         this.boardservice = boardservice;
         this.memberservice = memberservice;
+        this.likebookmarkservice = likebookmarkservice;
     }
 
 
@@ -79,13 +83,28 @@ public class BoardController {
      *  게시글 단일 조회
      */
     @GetMapping("/board/{boardId}")
-    public String boardDetail(@PathVariable int boardId, Model model){
+    public String boardDetail(@PathVariable int boardId,@AuthenticationPrincipal UserDetails userDetails, Model model){
         Map<String, Object> boardData = boardservice.selectBoard(boardId);
         Board board = (Board) boardData.get("board");
         String[] hashtagsList = (String[]) boardData.get("hashtagsList");
 
         model.addAttribute("board", board);
         model.addAttribute("hashtagsList", hashtagsList);
+
+
+        int likeCount = likebookmarkservice.getLikeCount(boardId);  // 게시글의 기본 좋아요 수 가져오기
+        model.addAttribute("likeCount", likeCount);
+
+        // 사용자가 로그인된 상태라면, 좋아요 여부를 확인하여 모델에 추가
+        if (userDetails != null) {
+            String username = userDetails.getUsername();
+            Member loggedInMember = memberservice.findByUserName(username);
+
+            boolean isLiked = likebookmarkservice.isLiked(boardId, loggedInMember.getMemberId());
+            model.addAttribute("isLiked", isLiked);
+        }
+
+
         return "board/boardDetail";
     }
 
@@ -138,6 +157,42 @@ public class BoardController {
         boardservice.deleteBoard(loggedInMember.getMemberId(), boardId);
 
         return "redirect:/board";
+    }
+
+
+    /**
+     *  게시글 좋아요
+     */
+    @PostMapping("/board/{boardId}/like")
+    @ResponseBody
+    public Map<String, Object> toggleLike(@PathVariable int boardId, @AuthenticationPrincipal UserDetails userDetails) {
+
+        System.out.println("좋아요 호출: " + boardId);
+
+        //사용자 로그인 확인
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Map<String, Object> response = new HashMap<>();
+
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            //사용자가 로그인되지 않은 경우, 로그인 페이지로 리디렉션
+            System.out.println("로그인 되지 않았습니다");
+            response.put("error", true);
+            response.put("redirectUrl", "/login");
+            return response;
+        }
+
+        // 현재 로그인한 사용자의 정보 가져오기
+        String username = userDetails.getUsername();
+        Member loggedInMember = memberservice.findByUserName(username);
+
+        boolean isLiked = likebookmarkservice.toggleLike(boardId, loggedInMember.getMemberId());
+        int likeCount = likebookmarkservice.getLikeCount(boardId);
+
+        System.out.println("likecount: " + likeCount);
+
+        response.put("isLiked", isLiked);
+        response.put("likeCount", likeCount);
+        return response;
     }
 
 }

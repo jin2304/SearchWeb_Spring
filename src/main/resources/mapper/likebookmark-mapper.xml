@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.web.SearchWeb.board.dao.LikeBookmarkDao"> <!--Dao 이름-->
+
+    <!-- 게시글 좋아요 상태 확인 -->
+    <select id="isLikedByMember" resultType="boolean">
+        select is_Liked FROM likebookmark
+        WHERE
+        board_boardId = #{boardId}
+        AND
+        member_memberId = #{memberId}
+    </select>
+
+
+    <!-- 게시글 좋아요 추가 -->
+    <insert id="likeBoard">
+        insert INTO likebookmark (board_boardId, member_memberId, is_Liked)
+        VALUES (#{boardId}, #{memberId}, TRUE)
+        ON DUPLICATE KEY UPDATE is_Liked = TRUE;
+    </insert>
+
+
+    <!-- 게시글 좋아요 취소 -->
+    <update id="unlikeBoard">
+        update likebookmark
+        SET
+        is_Liked = FALSE
+        WHERE
+        board_boardId = #{boardId}
+        AND
+        member_memberId = #{memberId};
+    </update>
+
+
+    <!-- 게시글 좋아요 수 조회 -->
+    <select id="countLikes">
+        select COUNT(*) FROM likebookmark
+        WHERE
+        board_boardId = #{boardId}
+        AND
+        is_Liked = TRUE;
+    </select>
+
+
+</mapper>
