@@ -415,9 +415,11 @@
     <div class="flex items-center justify-between border-t border-gray-200 pt-6">
         <div class="flex space-x-3">
             <!-- 좋아요 버튼 -->
-            <button class="flex items-center text-gray-700 hover:text-red-500 text-sm transition duration-150">
+            <button id="likeButton" th:data-board-id="${board.boardId}" class="like-button flex items-center text-gray-700 hover:text-red-500 text-sm transition duration-150"
+             th:classappend="${isLiked} ? 'text-red-500' : ''">
                 <i class="fas fa-heart"></i>
-                <span class="ml-1">좋아요 12</span>
+                <span class="ml-1">좋아요</span>
+                <span id="likeCount" th:text="${likeCount}" class="ml-1">12</span>
             </button>
 
             <!-- 댓글 버튼 -->
@@ -433,6 +435,42 @@
             </div>
         </div>
     </div>
+
+
+    <script>
+        $(document).ready(function() {
+            $('#likeButton').click(function() {
+
+                const boardId = $(this).data('board-id');
+
+                $.ajax({
+                    url: '/board/' + boardId + '/like',
+                    type: 'POST',
+                    success: function(data) {
+                        if (data.error) {
+                            // 로그인되지 않은 경우, 로그인 페이지로 리디렉션
+                            window.location.href = data.redirectUrl;
+                        } else {
+                            // 로그인된 경우, 상태에 따라 좋아요 업데이트
+                            if (data.isLiked) {
+                                $('#likeButton').addClass('text-red-500');
+                            } else {
+                                $('#likeButton').removeClass('text-red-500');
+                            }
+
+                            // likeCount 요소의 텍스트를 업데이트
+                            $('#likeCount').text(data.likeCount);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('좋아요 요청 실패:', error);
+                    }
+                });
+            });
+        });
+
+    </script>
+
 
 
     <!-- 댓글 섹션 -->
