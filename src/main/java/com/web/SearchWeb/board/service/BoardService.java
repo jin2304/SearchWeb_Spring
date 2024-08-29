@@ -18,11 +18,13 @@ public class BoardService {
 
     private final BoardDao boardDao;
     private final MemberService memberService;
+    private final LikeBookmarkService likeBookmarkService;
 
     @Autowired
-    public BoardService(BoardDao boardDao, MemberService memberService) {
+    public BoardService(BoardDao boardDao, MemberService memberService, LikeBookmarkService likeBookmarkService) {
         this.boardDao = boardDao;
         this.memberService = memberService;
+        this.likeBookmarkService = likeBookmarkService;
     }
 
 
@@ -47,8 +49,13 @@ public class BoardService {
 
         // 각 Board 객체의 해시태그를 배열로 변환하고, 리스트에 추가
         for (Board board : boards) {
+            //해시태그 추가
             String[] hashtagsArray = board.getHashtags() != null ? board.getHashtags().split(" ") : new String[0];
             hashtagsList.add(hashtagsArray);
+
+            //좋아요 수 추가
+            int likeCount = likeBookmarkService.getLikeCount(board.getBoardId());
+            board.setLikes_count(likeCount);
         }
 
         Map<String, Object> result = new HashMap<>();
