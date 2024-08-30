@@ -9,8 +9,8 @@
 
     <!-- 게시글 댓글 생성 -->
     <insert id="insertComment" parameterType="com.web.SearchWeb.comment.dto.CommentDto">
-        insert INTO comment (board_boardId, member_memberId, content)
-        VALUES (#{board_boardId}, #{member_memberId}, #{content});
+        insert INTO comment (board_boardId, member_memberId, member_nickname, content)
+        VALUES (#{board_boardId}, #{member_memberId}, #{member_nickname}, #{content});
     </insert>
 
 </mapper>

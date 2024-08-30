@@ -1,5 +1,7 @@
 package com.web.SearchWeb.comment.controller;
 
+import com.web.SearchWeb.comment.dao.CommentDao;
+import com.web.SearchWeb.comment.domain.Comment;
 import com.web.SearchWeb.comment.dto.CommentDto;
 import com.web.SearchWeb.comment.service.CommentService;
 import com.web.SearchWeb.member.domain.Member;
@@ -9,10 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -48,7 +51,7 @@ public class CommentApiController {
         Member member = memberService.findByUserName(username);
 
 
-        commentService.insertComment(boardId, member.getMemberId(), commentDto);
+        commentService.insertComment(boardId, member.getMemberId(), member.getNickname(), commentDto);
 
         response.put("success", true);
         return ResponseEntity.ok(response);  // 200 OK 응답

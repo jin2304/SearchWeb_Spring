@@ -10,6 +10,7 @@ import lombok.ToString;
 public class Comment {
     private int board_boardId;
     private int member_memberId;
+    private String member_nickname;
     private String content;
     private String created_date;
 }

@@ -10,5 +10,6 @@ import lombok.ToString;
 public class CommentDto {
     private int board_boardId;
     private int member_memberId;
+    private String member_nickname;
     private String content;
 }
