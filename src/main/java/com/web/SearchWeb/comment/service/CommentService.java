@@ -28,4 +28,12 @@ public class CommentService {
         commentDto.setMember_nickname(nickname);
         return commentdao.insertComment(commentDto);
     }
+
+
+    /**
+     *  게시글 댓글 목록 조회
+     */
+    public List<Comment> selectComments(int boardId){
+        return commentdao.selectComments(boardId);
+    }
 }

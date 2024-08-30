@@ -13,4 +13,12 @@
         VALUES (#{board_boardId}, #{member_memberId}, #{member_nickname}, #{content});
     </insert>
 
+
+    <!-- 게시글 댓글 목록 조회 -->
+    <select id="selectComments" resultType="com.web.SearchWeb.comment.domain.Comment">
+        select *
+        from comment
+        WHERE board_boardId = #{boardId}
+    </select>
+
 </mapper>

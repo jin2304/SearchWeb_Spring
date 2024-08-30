@@ -56,4 +56,15 @@ public class CommentApiController {
         response.put("success", true);
         return ResponseEntity.ok(response);  // 200 OK 응답
     }
+
+
+    /**
+     *  게시글 댓글 목록 조회
+     */
+    @GetMapping("board/{boardId}/comments")
+    public ResponseEntity<List<Comment>> insertComment(@PathVariable int boardId, Model model){
+        List<Comment> comments = commentService.selectComments(boardId);
+        return ResponseEntity.ok(comments);
+    }
+
 }

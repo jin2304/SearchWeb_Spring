@@ -1,12 +1,13 @@
 package com.web.SearchWeb.comment.dao;
 
 
+import com.web.SearchWeb.comment.domain.Comment;
 import com.web.SearchWeb.comment.dto.CommentDto;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-
+import java.util.List;
 
 @Repository
 public class MybatisCommentDao implements CommentDao{
@@ -26,5 +27,13 @@ public class MybatisCommentDao implements CommentDao{
     @Override
     public int insertComment(CommentDto commentDto) {
         return mapper.insertComment(commentDto);
+    }
+
+
+    /**
+     *  게시글 댓글 목록 조회
+     */
+    public List<Comment> selectComments(int boardId){
+        return mapper.selectComments(boardId);
     }
 }
