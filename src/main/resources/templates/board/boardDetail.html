@@ -527,6 +527,52 @@
                 }
             }
         }
+
+
+
+        // 페이지 로드 시, 게시판 댓글 목록 불러오기
+        $(document).ready(function() {
+            const boardId = [[${board.boardId}]];
+            findAllComments(boardId);
+        });
+
+
+
+        /**
+         *  게시글 댓글 목록 조회
+         */
+        async function findAllComments(boardId) {
+            try {
+                const comments = await $.ajax({
+                    url: `/board/${boardId}/comments`,
+                    type: 'GET',
+                    dataType: 'json',
+                });
+
+                const commentsContainer = document.getElementById('commentsContainer');
+                commentsContainer.innerHTML = '';
+                comments.forEach(comment => {
+                    const commentHtml = `
+                <div class="border-b border-gray-200 pb-6 mb-6">
+                    <div class="flex items-start">
+                        <img src="https://placehold.co/40" alt="User Profile Image" class="rounded-full w-10 h-10 mr-4">
+                        <div>
+                            <div class="text-sm text-gray-700 font-semibold">${comment.member_nickname}</div>
+                            <div class="text-sm text-gray-500">${comment.created_date}</div>
+                            <p class="mt-2 text-gray-800">${comment.content}</p>
+                            <div class="flex mt-2 space-x-2">
+                                <button type="button" onclick="openCommentUpdatePopup(${comment.commentId});" class="text-gray-500 hover:text-blue-600">수정</button>
+                                <button type="button" onclick="deleteComment(${comment.commentId});" class="text-gray-500 hover:text-red-600">삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                    commentsContainer.innerHTML += commentHtml;
+                });
+            } catch (error) {
+                console.error("댓글 목록 조회 중 오류 발생:", error);
+            }
+        }
     </script>
 
 
