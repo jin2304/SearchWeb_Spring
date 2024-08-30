@@ -437,6 +437,26 @@
     </div>
 
 
+
+
+    <!-- 댓글 섹션 -->
+    <div class="mt-6">
+        <!-- 댓글 작성 폼 -->
+        <form id="commentForm" th:data-board-id="${board.boardId}">
+            <textarea id="commentContent" name="content" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 resize-none" placeholder="댓글을 입력하세요"></textarea>
+            <div class="flex justify-end mt-4">
+                <button type="button" id="submitButton" th:onclick="|addComment(${board.boardId})|" class="px-4 py-2 bg-indigo-600 text-sm text-white rounded-full font-semibold hover:bg-indigo-700 transition duration-200 ml-2">댓글 작성하기</button>
+            </div>
+        </form>
+
+
+        <!-- 댓글 목록 -->
+        <div id="commentsContainer" class="mt-6">
+            <!-- 댓글 리스트가 여기 표시됩니다 -->
+        </div>
+    </div>
+
+
     <script>
         /**
          *  게시글 좋아요 추가/취소
@@ -472,33 +492,43 @@
             });
         });
 
+
+        /**
+         *  게시글 댓글 생성
+         */
+        async function addComment(boardId) {
+            const content = document.getElementById('commentContent').value;
+
+            if (!content) {
+                alert("댓글 내용을 입력해주세요.");
+                return;
+            }
+
+            try {
+                const response = await $.ajax({
+                    url: `/board/${boardId}/comment`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ content: content }),
+                    dataType: 'json'
+                });
+
+                if (response.success) {
+                    document.getElementById('commentContent').value = "";
+                    findAllComments(boardId); // 댓글 목록 갱신
+                }
+
+            } catch (error) {
+                if (error.status === 401) {
+                    alert("로그인이 필요합니다.");
+                    window.location.href = "/login"; // 로그인 페이지로 리다이렉트
+                } else {
+                    console.error("오류 발생:", error);
+                }
+            }
+        }
     </script>
 
-
-
-    <!-- 댓글 섹션 -->
-    <div class="mt-8">
-        <div class="border-b border-gray-200 pb-6 mb-6">
-            <div class="flex items-start">
-                <img src="https://placehold.co/40" alt="User Profile Image" class="rounded-full w-10 h-10 mr-4">
-                <div>
-                    <div class="text-sm text-gray-700 font-semibold">댓글 작성자</div>
-                    <div class="text-sm text-gray-500">2024년 8월 24일</div>
-                    <p class="mt-2 text-gray-800">댓글 내용</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 댓글 입력 -->
-    <div class="mt-12">
-        <form action="#" method="post">
-            <textarea name="content" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 resize-none" placeholder="댓글을 입력하세요"></textarea>
-            <div class="flex justify-end mt-4">
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-sm text-white rounded-full font-semibold hover:bg-indigo-700 transition duration-200">댓글 작성하기</button>
-            </div>
-        </form>
-    </div>
 
     <!-- 로그인 유도 -->
     <div class="mt-12 text-center">
