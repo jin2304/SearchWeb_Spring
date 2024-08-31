@@ -11,6 +11,8 @@ public class Comment {
     private int board_boardId;
     private int member_memberId;
     private String member_nickname;
+    private String member_job;
+    private String member_major;
     private String content;
     private String created_date;
 }

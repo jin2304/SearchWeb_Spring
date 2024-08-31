@@ -8,9 +8,9 @@
 <mapper namespace="com.web.SearchWeb.comment.dao.CommentDao"> <!--Dao 이름-->
 
     <!-- 게시글 댓글 생성 -->
-    <insert id="insertComment" parameterType="com.web.SearchWeb.comment.dto.CommentDto">
-        insert INTO comment (board_boardId, member_memberId, member_nickname, content)
-        VALUES (#{board_boardId}, #{member_memberId}, #{member_nickname}, #{content});
+    <insert id="insertComment" parameterType="com.web.SearchWeb.comment.domain.Comment">
+        insert INTO comment (board_boardId, member_memberId, member_nickname, member_job, member_major, content)
+        VALUES (#{board_boardId}, #{member_memberId}, #{member_nickname}, #{member_job,}, #{member_major}, #{content});
     </insert>
 
 

@@ -25,8 +25,8 @@ public class MybatisCommentDao implements CommentDao{
      *  게시글 댓글 생성
      */
     @Override
-    public int insertComment(CommentDto commentDto) {
-        return mapper.insertComment(commentDto);
+    public int insertComment(Comment comment) {
+        return mapper.insertComment(comment);
     }
 
 

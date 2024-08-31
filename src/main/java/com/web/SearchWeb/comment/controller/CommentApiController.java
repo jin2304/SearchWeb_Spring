@@ -48,10 +48,7 @@ public class CommentApiController {
                     .body(response); // 401 Unauthorized 응답
         }
         String username = userDetails.getUsername();
-        Member member = memberService.findByUserName(username);
-
-
-        commentService.insertComment(boardId, member.getMemberId(), member.getNickname(), commentDto);
+        commentService.insertComment(boardId, username, commentDto);
 
         response.put("success", true);
         return ResponseEntity.ok(response);  // 200 OK 응답
