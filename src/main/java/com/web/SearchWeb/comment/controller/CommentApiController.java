@@ -59,7 +59,7 @@ public class CommentApiController {
      *  게시글 댓글 목록 조회
      */
     @GetMapping("board/{boardId}/comments")
-    public ResponseEntity<List<Comment>> insertComment(@PathVariable int boardId, Model model){
+    public ResponseEntity<List<Comment>> selectComments(@PathVariable int boardId, Model model){
         List<Comment> comments = commentService.selectComments(boardId);
         return ResponseEntity.ok(comments);
     }
