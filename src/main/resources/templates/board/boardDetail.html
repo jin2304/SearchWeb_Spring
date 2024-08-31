@@ -551,14 +551,21 @@
 
                 const commentsContainer = document.getElementById('commentsContainer');
                 commentsContainer.innerHTML = '';
+
+                //댓글 렌더링
                 comments.forEach(comment => {
                     const commentHtml = `
                 <div class="border-b border-gray-200 pb-6 mb-6">
                     <div class="flex items-start">
                         <img src="https://placehold.co/40" alt="User Profile Image" class="rounded-full w-10 h-10 mr-4">
                         <div>
-                            <div class="text-sm text-gray-700 font-semibold">${comment.member_nickname}</div>
-                            <div class="text-sm text-gray-500">${comment.created_date}</div>
+                            <div class="text-sm text-gray-700 font-semibold">${comment.member_nickname}
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            <span>${comment.member_job}</span>,
+                            <span>${comment.member_major}</span> •
+                            <span>${comment.created_date}</span>
+                        </div>
                             <p class="mt-2 text-gray-800">${comment.content}</p>
                             <div class="flex mt-2 space-x-2">
                                 <button type="button" onclick="openCommentUpdatePopup(${comment.commentId});" class="text-gray-500 hover:text-blue-600">수정</button>
