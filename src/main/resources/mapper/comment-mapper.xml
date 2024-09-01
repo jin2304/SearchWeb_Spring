@@ -45,4 +45,12 @@
     </update>
 
 
+    <!-- 게시글 댓글 삭제 -->
+    <delete id="deleteComment">
+        delete
+        from comment
+        where commentId = #{commentId};
+    </delete>
+
+
 </mapper>

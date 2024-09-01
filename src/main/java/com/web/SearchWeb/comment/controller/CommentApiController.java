@@ -98,4 +98,36 @@ public class CommentApiController {
         return ResponseEntity.ok(response);  // 200 OK 응답
     }
 
+
+    /**
+     *  게시글 댓글 삭제
+     */
+    @DeleteMapping("board/{boardId}/comments/{commentId}")
+    public ResponseEntity<Map<String, Object>> deleteComment(@PathVariable int boardId,
+                                                             @PathVariable int commentId,
+                                                             @AuthenticationPrincipal UserDetails userDetails){
+
+        Map<String, Object> response = new HashMap<>();
+
+        if (userDetails == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(response); // 401 Unauthorized 응답
+        }
+        String username = userDetails.getUsername();
+        Member loggedInMember = memberService.findByUserName(username);
+        Comment comment = commentService.selectComment(commentId);
+
+        if(comment.getMember_memberId() != loggedInMember.getMemberId()){
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(response); // 401 Unauthorized 응답
+        }
+
+        commentService.deleteComment(commentId);
+
+        response.put("success", true);
+        return ResponseEntity.ok(response);  // 200 OK 응답
+    }
+
 }

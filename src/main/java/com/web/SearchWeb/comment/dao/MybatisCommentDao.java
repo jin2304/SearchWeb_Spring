@@ -52,4 +52,12 @@ public class MybatisCommentDao implements CommentDao{
     public int updateComment(Comment comment) {
         return mapper.updateComment(comment);
     }
+
+
+    /**
+     *  게시글 댓글 삭제
+     */
+    public int deleteComment(int commentId){
+        return mapper.deleteComment(commentId);
+    }
 }

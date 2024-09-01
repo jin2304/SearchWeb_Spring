@@ -71,4 +71,12 @@ public class CommentService {
         System.out.println("Update Comment: " + comment);
         return commentdao.updateComment(comment);
     }
+
+
+    /**
+     *  게시글 댓글 삭제
+     */
+    public int deleteComment(int commentId){
+        return commentdao.deleteComment(commentId);
+    }
 }

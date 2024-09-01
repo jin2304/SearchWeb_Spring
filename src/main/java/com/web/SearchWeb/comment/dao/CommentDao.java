@@ -16,4 +16,7 @@ public interface CommentDao {
 
     //게시글 댓글 수정
     int updateComment(Comment commentId);
+
+    //게시글 댓글 삭제
+    int deleteComment(int commentId);
 }
