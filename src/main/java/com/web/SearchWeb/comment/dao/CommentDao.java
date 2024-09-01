@@ -19,4 +19,7 @@ public interface CommentDao {
 
     //게시글 댓글 삭제
     int deleteComment(int commentId);
+
+    //게시글 댓글 수 조회
+    int countComments(int boardId);
 }

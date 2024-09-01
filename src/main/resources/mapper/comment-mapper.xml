@@ -53,4 +53,12 @@
     </delete>
 
 
+    <!-- 게시글 댓글 수 조회 -->
+    <select id="countComments">
+        select COUNT(*) FROM comment
+        WHERE
+        board_boardId = #{boardId};
+    </select>
+
+
 </mapper>

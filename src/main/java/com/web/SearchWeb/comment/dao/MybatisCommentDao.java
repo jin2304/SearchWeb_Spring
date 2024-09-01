@@ -60,4 +60,12 @@ public class MybatisCommentDao implements CommentDao{
     public int deleteComment(int commentId){
         return mapper.deleteComment(commentId);
     }
+
+
+    /**
+     *  게시글 댓글 수 조회
+     */
+    public int countComments(int boardId) {
+        return mapper.countComments(boardId);
+    }
 }

@@ -77,4 +77,12 @@ public class CommentService {
     public int deleteComment(int commentId){
         return commentdao.deleteComment(commentId);
     }
+
+
+    /**
+     *  게시글 댓글 수 조회
+     */
+    public int getCommentCount(int boardId) {
+        return commentdao.countComments(boardId);
+    }
 }
