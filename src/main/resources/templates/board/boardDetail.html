@@ -426,7 +426,8 @@
             <!-- 댓글 버튼 -->
             <button class="flex items-center text-gray-700 hover:text-indigo-500 text-sm transition duration-150">
                 <i class="fas fa-comment"></i>
-                <span class="ml-1">댓글 5</span>
+                <span class="ml-1">댓글</span>
+                <span id="commentCount" th:text="${commentCount}" class="ml-1">댓글 5</span>
             </button>
 
             <!-- 북마크 수 -->
@@ -649,7 +650,8 @@
                     commentsContainer.innerHTML += commentHtml;
                 });
 
-
+                // 댓글 수 업데이트
+                updateCommentCount(comments.length);
 
                 // 댓글 드롭다운 메뉴 토글
                 document.querySelectorAll('.dropdownToggle').forEach(button => {
@@ -671,6 +673,14 @@
         }
 
 
+
+        // 댓글 수 업데이트 함수
+        function updateCommentCount(count) {
+            const commentCountElement = document.getElementById('commentCount');
+            if (commentCountElement) {
+                commentCountElement.textContent = ` ${count}`;
+            }
+        }
 
 
         // 댓글 수정 팝업 열기
