@@ -6,6 +6,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta name="loginMemberId" th:if="${#authorization.expression('isAuthenticated()')}" th:content="${#authentication.principal.memberId}">
 </head>
 <body class="bg-gray-100 flex justify-center items-start min-h-screen">
 
@@ -457,6 +458,53 @@
     </div>
 
 
+
+    <!-- 댓글 수정 팝업 -->
+    <div id="commentUpdatePopup" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm" style="margin-left: 223px;">
+        <div class="relative bg-white rounded-xl shadow-2xl p-8 w-full max-w-xl transform transition-all duration-300 ease-out">
+            <!-- 닫기 버튼 -->
+            <button type="button" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none" onclick="closeCommentUpdatePopup();">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- 팝업 제목과 댓글 아이콘 -->
+            <div class="flex items-center mb-6">
+                <div class="bg-indigo-600 w-12 h-12 flex items-center justify-center rounded-lg">
+                    <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7A8.38 8.38 0 0 1 4 11.5a8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9 8.5 8.5 0 0 1 7.6 4.7 8.38 8.38 0 0 1 .9 3.8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 ml-4">댓글 수정</h3>
+            </div>
+
+            <!-- 입력 폼 -->
+            <div class="space-y-6">
+                <div>
+                    <label for="modalWriter" class="block text-lg font-semibold text-gray-700">작성자</label>
+                    <input type="text" id="modalWriter" name="modalWriter" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed" readonly />
+                </div>
+                <div>
+                    <label for="modalContent" class="block text-lg font-semibold text-gray-700">내용</label>
+                    <textarea id="modalContent" name="modalContent" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-800 placeholder-gray-400 resize-none" placeholder="내용을 입력하세요"></textarea>
+                </div>
+            </div>
+
+            <!-- 버튼 세트 -->
+            <div class="mt-8 flex justify-end space-x-4">
+                <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition duration-150 ease-in-out" onclick="closeCommentUpdatePopup();">취소</button>
+                <button type="button" id="commentUpdateBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 ease-in-out">수정</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
     <script>
         /**
          *  게시글 좋아요 추가/취소
@@ -552,34 +600,164 @@
                 const commentsContainer = document.getElementById('commentsContainer');
                 commentsContainer.innerHTML = '';
 
-                //댓글 렌더링
+                // 로그인한 사용자의 ID를 서버에서 가져온 후 변수로 할당
+                const metaTag = document.querySelector('meta[name="loginMemberId"]');
+                const loginMemberId = metaTag ? metaTag.getAttribute('content') : null;
+
+
+
+                // 댓글 렌더링
                 comments.forEach(comment => {
+
+                    console.log("loginMemberId", loginMemberId);
+                    console.log("comment.member_memberId", comment.member_memberId);
+
+
                     const commentHtml = `
-                <div class="border-b border-gray-200 pb-6 mb-6">
+                <div class="border-b border-gray-200 pb-6 mb-6 relative">
                     <div class="flex items-start">
                         <img src="https://placehold.co/40" alt="User Profile Image" class="rounded-full w-10 h-10 mr-4">
                         <div>
+                        <div>
                             <div class="text-sm text-gray-700 font-semibold">${comment.member_nickname}
                         </div>
-                        <div class="text-xs text-gray-500">
-                            <span>${comment.member_job}</span>,
-                            <span>${comment.member_major}</span> •
-                            <span>${comment.created_date}</span>
-                        </div>
-                            <p class="mt-2 text-gray-800">${comment.content}</p>
-                            <div class="flex mt-2 space-x-2">
-                                <button type="button" onclick="openCommentUpdatePopup(${comment.commentId});" class="text-gray-500 hover:text-blue-600">수정</button>
-                                <button type="button" onclick="deleteComment(${comment.commentId});" class="text-gray-500 hover:text-red-600">삭제</button>
+                            <div class="text-xs text-gray-500">
+                                <span>${comment.member_job}</span>,
+                                <span>${comment.member_major}</span> •
+                                <span>${comment.created_date}</span>
                             </div>
+                            <p class="mt-2 text-gray-800">${comment.content}</p>
                         </div>
                     </div>
+
+                    <!-- 댓글 수정/삭제 버튼 -->
+                    ${loginMemberId && loginMemberId == comment.member_memberId ? `
+                    <div class="absolute top-0 right-0">
+                        <div class="relative">
+                            <button class="dropdownToggle text-black focus:outline-none p-2 hover:text-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h0M12 12h0M12 18h0" />
+                                </svg>
+                            </button>
+                            <div class="dropdownMenu hidden absolute top-0 left-full -mt-1 w-28 bg-white border border-gray-200 rounded-lg shadow-lg">
+                                <button onclick="openCommentUpdatePopup(${comment.commentId});" class="CommentEditButton block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">수정</button>
+                                <button class="CommentDeleteButton block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">삭제</button>
+                            </div>
+                        </div>
+                    </div>` : ''}
                 </div>`;
                     commentsContainer.innerHTML += commentHtml;
                 });
+
+
+
+                // 댓글 드롭다운 메뉴 토글
+                document.querySelectorAll('.dropdownToggle').forEach(button => {
+                    button.addEventListener('click', function() {
+                        // 모든 드롭다운 메뉴 숨기기
+                        document.querySelectorAll('.dropdownMenu').forEach(menu => {
+                            menu.classList.add('hidden');
+                        });
+
+                        // 현재 클릭한 댓글 버튼에 해당하는 메뉴만 보이게 함
+                        const dropdownMenu = this.nextElementSibling;
+                        dropdownMenu.classList.toggle('hidden');
+                    });
+                });
+
             } catch (error) {
                 console.error("댓글 목록 조회 중 오류 발생:", error);
             }
         }
+
+
+
+
+        // 댓글 수정 팝업 열기
+        function openCommentUpdatePopup(commentId) {
+
+            const boardId = [[ ${board.boardId} ]];
+
+            $.ajax({
+                url : `/board/${boardId}/comment/${commentId}`,
+                type : 'get',
+                dataType : 'json',
+                async : false,
+                success : function (response) {
+                    document.getElementById('modalWriter').value = response.member_nickname;
+                    document.getElementById('modalContent').value = response.content;
+                    document.getElementById('commentUpdateBtn').setAttribute('onclick', `updateComment(${commentId})`);
+
+                    // 팝업 열기
+                    const popup = document.getElementById('commentUpdatePopup');
+                    popup.classList.remove('hidden');
+                },
+                error : function (request, status, error) {
+                    console.log(error)
+                }
+            })
+        }
+
+
+
+        /**
+         *  게시글 댓글 수정
+         */
+        function updateComment(commentId) {
+
+            const writer = document.getElementById('modalWriter');
+            const content = document.getElementById('modalContent');
+
+            const boardId = [[ ${board.boardId} ]];
+
+            const params = {
+                board_boardId : boardId,
+                content : content.value,
+            }
+
+            $.ajax({
+                url : `/board/${boardId}/comments/${commentId}`,
+                type : 'put',
+                contentType : 'application/json; charset=utf-8',
+                dataType : 'json',
+                data : JSON.stringify(params),  //stringify() :JavaScript 객체나 배열을 JSON 형식의 문자열로 변환
+                async : false,
+                success : function (response) {
+                    if (response.success) {
+                        findAllComments(boardId);
+                        alert('수정되었습니다.');
+                        closeCommentUpdatePopup();
+                    } else {
+                        alert('수정에 실패했습니다.');
+                    }
+                },
+                error : function (request, status, error) {
+                    console.log(error)
+                }
+            })
+        }
+
+
+
+        // 팝업 닫기 함수
+        function closeCommentUpdatePopup() {
+            const popup = document.getElementById('commentUpdatePopup');
+            popup.classList.add('hidden');
+        }
+
+
+
+        // 클릭 시 다른 메뉴 닫기
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdownToggle') && !e.target.closest('.dropdownMenu')) {
+                document.querySelectorAll('.dropdownMenu').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
+
+
+
     </script>
 
 
