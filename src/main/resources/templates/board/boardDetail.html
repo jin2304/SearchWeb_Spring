@@ -641,7 +641,7 @@
                             </button>
                             <div class="dropdownMenu hidden absolute top-0 left-full -mt-1 w-28 bg-white border border-gray-200 rounded-lg shadow-lg">
                                 <button onclick="openCommentUpdatePopup(${comment.commentId});" class="CommentEditButton block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">수정</button>
-                                <button class="CommentDeleteButton block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">삭제</button>
+                                <button onclick="deleteComment(${comment.commentId});" class="CommentDeleteButton block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">삭제</button>
                             </div>
                         </div>
                     </div>` : ''}
@@ -758,6 +758,35 @@
 
 
 
+        /**
+         *  게시글 댓글 삭제
+         */
+        function deleteComment(commentId){
+            if (!confirm('선택한 댓글을 삭제하시겠습니까?')) {
+                return false;
+            }
+
+            const boardId = [[ ${board.boardId} ]];
+
+            $.ajax({
+                url : `/board/${boardId}/comments/${commentId}`,
+                type : 'delete',
+                dataType : 'json',
+                async : false,
+                success : function (response) {
+                    if (response.success) {
+                        findAllComments(boardId);
+                        alert('삭제되었습니다.');
+                    } else {
+                        alert('삭제에 실패했습니다.');
+                    }
+                },
+                error : function (request, status, error) {
+                    console.log(error)
+                }
+            })
+
+        }
     </script>
 
 
