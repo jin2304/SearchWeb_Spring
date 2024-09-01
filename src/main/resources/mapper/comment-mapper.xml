@@ -21,4 +21,28 @@
         WHERE board_boardId = #{boardId}
     </select>
 
+
+    <!-- 게시글 댓글 단일 조회 -->
+    <select id="selectComment" resultType="com.web.SearchWeb.comment.domain.Comment">
+        select *
+        from comment
+        WHERE commentId = #{commentId}
+    </select>
+
+
+    <!-- 게시글 댓글 수정 -->
+    <update id="updateComment" parameterType="com.web.SearchWeb.comment.domain.Comment">
+        update comment
+        set
+        board_boardId = #{board_boardId},
+        member_memberId = #{member_memberId},
+        member_nickname = #{member_nickname},
+        member_job = #{member_job},
+        member_major = #{member_major},
+        content = #{content}
+        WHERE
+        commentId = #{commentId}
+    </update>
+
+
 </mapper>

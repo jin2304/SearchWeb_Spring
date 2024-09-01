@@ -64,4 +64,38 @@ public class CommentApiController {
         return ResponseEntity.ok(comments);
     }
 
+
+    /**
+     *  게시글 댓글 단일 조회
+     */
+    @GetMapping("board/{boardId}/comment/{commentId}")
+    public ResponseEntity<Comment> selectComment(@PathVariable int commentId){
+        Comment comment = commentService.selectComment(commentId);
+        return ResponseEntity.ok(comment);
+    }
+
+
+    /**
+     *  게시글 댓글 수정
+     */
+    @PutMapping("board/{boardId}/comments/{commentId}")
+    public ResponseEntity<Map<String, Object>> updateComment(@PathVariable int boardId,
+                                                             @PathVariable int commentId,
+                                                             @AuthenticationPrincipal UserDetails userDetails,
+                                                             @RequestBody CommentDto commentDto){
+
+        Map<String, Object> response = new HashMap<>();
+
+        if (userDetails == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(response); // 401 Unauthorized 응답
+        }
+        String username = userDetails.getUsername();
+        commentService.updateComment(commentId, boardId, username, commentDto);
+
+        response.put("success", true);
+        return ResponseEntity.ok(response);  // 200 OK 응답
+    }
+
 }

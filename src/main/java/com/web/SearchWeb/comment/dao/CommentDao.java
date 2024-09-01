@@ -10,4 +10,10 @@ public interface CommentDao {
 
     //게시글 댓글 목록 조회
     List<Comment> selectComments(int boardId);
+
+    //게시글 댓글 단일 조회
+   Comment selectComment(int commentId);
+
+    //게시글 댓글 수정
+    int updateComment(Comment commentId);
 }

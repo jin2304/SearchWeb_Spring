@@ -35,7 +35,6 @@ public class CommentService {
         comment.setMember_job(member.getJob());
         comment.setMember_major(member.getMajor());
         comment.setContent(commentDto.getContent());
-        System.out.println("Comment: " + comment);
         return commentdao.insertComment(comment);
     }
 
@@ -45,5 +44,31 @@ public class CommentService {
      */
     public List<Comment> selectComments(int boardId){
         return commentdao.selectComments(boardId);
+    }
+
+
+    /**
+     *  게시글 댓글 단일 조회
+     */
+    public Comment selectComment(int commentId){
+        return commentdao.selectComment(commentId);
+    }
+
+
+    /**
+     *  게시글 댓글 수정
+     */
+    public int updateComment(int commentId, int boardId, String username, CommentDto commentDto){
+        Member member = memberService.findByUserName(username);
+        Comment comment = new Comment();
+        comment.setCommentId(commentId);
+        comment.setBoard_boardId(boardId);
+        comment.setMember_memberId(member.getMemberId());
+        comment.setMember_nickname(member.getNickname());
+        comment.setMember_job(member.getJob());
+        comment.setMember_major(member.getMajor());
+        comment.setContent(commentDto.getContent());
+        System.out.println("Update Comment: " + comment);
+        return commentdao.updateComment(comment);
     }
 }

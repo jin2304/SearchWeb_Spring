@@ -36,4 +36,20 @@ public class MybatisCommentDao implements CommentDao{
     public List<Comment> selectComments(int boardId){
         return mapper.selectComments(boardId);
     }
+
+
+    /**
+     *  게시글 댓글 단일 조회
+     */
+    public Comment selectComment(int commentId){
+        return mapper.selectComment(commentId);
+    }
+
+
+    /**
+     *  게시글 댓글 수정
+     */
+    public int updateComment(Comment comment) {
+        return mapper.updateComment(comment);
+    }
 }
