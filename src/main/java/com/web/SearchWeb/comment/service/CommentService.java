@@ -58,17 +58,15 @@ public class CommentService {
     /**
      *  게시글 댓글 수정
      */
-    public int updateComment(int commentId, int boardId, String username, CommentDto commentDto){
-        Member member = memberService.findByUserName(username);
+    public int updateComment(int commentId, Member member, CommentDto commentDto){
         Comment comment = new Comment();
         comment.setCommentId(commentId);
-        comment.setBoard_boardId(boardId);
+        comment.setBoard_boardId(commentDto.getBoard_boardId());
         comment.setMember_memberId(member.getMemberId());
         comment.setMember_nickname(member.getNickname());
         comment.setMember_job(member.getJob());
         comment.setMember_major(member.getMajor());
         comment.setContent(commentDto.getContent());
-        System.out.println("Update Comment: " + comment);
         return commentdao.updateComment(comment);
     }
 

@@ -92,7 +92,16 @@ public class CommentApiController {
                     .body(response); // 401 Unauthorized 응답
         }
         String username = userDetails.getUsername();
-        commentService.updateComment(commentId, boardId, username, commentDto);
+        Member loggedInMember = memberService.findByUserName(username);
+        Comment comment = commentService.selectComment(commentId);
+
+        if(comment.getMember_memberId() != loggedInMember.getMemberId()){
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(response); // 401 Unauthorized 응답
+        }
+
+        commentService.updateComment(commentId, loggedInMember, commentDto);
 
         response.put("success", true);
         return ResponseEntity.ok(response);  // 200 OK 응답
