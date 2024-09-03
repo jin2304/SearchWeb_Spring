@@ -69,4 +69,15 @@
         member_memberId = #{memberId}
 
     </delete>
+
+
+    <!-- 게시글 북마크 수 수정 -->
+    <update id="updateBookmarkCount" parameterType="map">
+        update board
+        SET
+        bookmarks_count = #{bookmarkCount}
+        WHERE boardId = #{boardId}
+    </update>
+
+
 </mapper>

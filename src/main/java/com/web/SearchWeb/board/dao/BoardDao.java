@@ -21,4 +21,7 @@ public interface BoardDao {
 
      //게시글 삭제
     int deleteBoard(int memberId, int boardId);
+
+    //게시글 북마크 수 수정
+    int updateBookmarkCount(int boardId, int bookmarkCount);
 }

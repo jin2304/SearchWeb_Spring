@@ -231,10 +231,12 @@ public class BoardController {
         if (bookmarkExists == 0) {
             // 북마크가 안 되어 있으면 북마크 추가
             bookmarkService.insertBookmarkForBoard(boardId, memberId, bookmarkDto);
+            boardservice.incrementBookmarkCount(boardId); // 북마크 추가 시 게시글의 북마크 수 증가
             response.put("action", "bookmarked");
         } else {
             // 이미 북마크가 되어 있으면 북마크 해제
             bookmarkService.deleteBookmarkBoard(checkDto);
+            boardservice.decrementBookmarkCount(boardId); // 북마크 해제 시 게시글의 북마크 수 감소
             response.put("action", "unbookmarked");
         }
         return ResponseEntity.ok(response);

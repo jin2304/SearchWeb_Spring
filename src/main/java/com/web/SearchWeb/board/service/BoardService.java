@@ -107,4 +107,32 @@ public class BoardService {
     public int deleteBoard(int memberId, int boardId) {
         return boardDao.deleteBoard(memberId, boardId);
     }
+
+
+    /**
+     *  게시글 북마크 수 증가
+     */
+    public void incrementBookmarkCount(int boardId) {
+        Board board = boardDao.selectBoard(boardId);
+        if (board != null) {
+            board.setBookmarks_count(board.getBookmarks_count() + 1);
+            boardDao.updateBookmarkCount(boardId, board.getBookmarks_count());
+        } else {
+            throw new IllegalArgumentException("Invalid board ID");
+        }
+    }
+
+
+    /**
+     *  게시글 북마크 수 감소
+     */
+    public void decrementBookmarkCount(int boardId) {
+        Board board = boardDao.selectBoard(boardId);
+        if (board != null) {
+            board.setBookmarks_count(board.getBookmarks_count() - 1);
+            boardDao.updateBookmarkCount(boardId, board.getBookmarks_count());
+        } else {
+            throw new IllegalArgumentException("Invalid board ID");
+        }
+    }
 }
