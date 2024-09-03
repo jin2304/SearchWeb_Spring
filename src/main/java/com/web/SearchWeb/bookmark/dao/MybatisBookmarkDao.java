@@ -1,6 +1,7 @@
 package com.web.SearchWeb.bookmark.dao;
 
 import com.web.SearchWeb.bookmark.domain.Bookmark;
+import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
@@ -56,6 +57,15 @@ public class MybatisBookmarkDao implements BookmarkDao {
     @Override
     public int checkBookmark(BookmarkCheckDto bookmark) {
         return mapper.checkBookmark(bookmark);
+    }
+
+
+    /**
+     *  게시판 북마크 확인
+     */
+    @Override
+    public int checkBoardBookmark(BoardBookmarkCheckDto checkDto) {
+        return mapper.checkBoardBookmark(checkDto);
     }
 
 

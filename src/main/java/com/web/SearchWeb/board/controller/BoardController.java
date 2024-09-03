@@ -4,10 +4,15 @@ import com.web.SearchWeb.board.domain.Board;
 import com.web.SearchWeb.board.dto.BoardDto;
 import com.web.SearchWeb.board.service.BoardService;
 import com.web.SearchWeb.board.service.LikeBookmarkService;
+import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
+import com.web.SearchWeb.bookmark.dto.BookmarkDto;
+import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.comment.service.CommentService;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,13 +34,15 @@ public class BoardController {
     private final MemberService memberservice;
     private final LikeBookmarkService likebookmarkservice;
     private final CommentService commentService;
+    private final BookmarkService bookmarkService;
 
     @Autowired
-    public BoardController(BoardService boardservice, MemberService memberservice, LikeBookmarkService likebookmarkservice, CommentService commentService) {
+    public BoardController(BoardService boardservice, MemberService memberservice, LikeBookmarkService likebookmarkservice, CommentService commentService, BookmarkService bookmarkService) {
         this.boardservice = boardservice;
         this.memberservice = memberservice;
         this.likebookmarkservice = likebookmarkservice;
         this.commentService = commentService;
+        this.bookmarkService = bookmarkService;
     }
 
 
@@ -198,6 +205,33 @@ public class BoardController {
         response.put("isLiked", isLiked);
         response.put("likeCount", likeCount);
         return response;
+    }
+
+
+    /**
+     *  북마크 추가 (게시글에서 추가)
+     */
+    @PostMapping(value ="/board/{boardId}/bookmark/{memberId}")
+    public ResponseEntity<BookmarkDto> insertBookmark(@PathVariable final int boardId,
+                                                      @PathVariable final int memberId,
+                                                      @RequestBody BookmarkDto bookmarkdto,
+                                                      @AuthenticationPrincipal UserDetails userDetails){
+
+        // 사용자가 로그인되어 있는지 확인
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 401 Unauthorized 응답
+        }
+
+        // 사용자가 이미 해당 게시글을 북마크했는지 확인
+        BoardBookmarkCheckDto checkDto = new BoardBookmarkCheckDto(memberId, boardId);
+        int bookmarkExists = bookmarkService.checkBoardBookmark(checkDto);
+
+        if (bookmarkExists > 0) {
+            // 이미 북마크가 되어 있으면 북마크 해제
+        } else {
+            // 북마크가 안 되어 있으면 북마크 추가
+        }
+        return ResponseEntity.ok(bookmarkdto);
     }
 
 }

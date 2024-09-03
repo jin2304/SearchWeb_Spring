@@ -2,6 +2,7 @@ package com.web.SearchWeb.bookmark.service;
 
 import com.web.SearchWeb.bookmark.dao.BookmarkDao;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
+import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
@@ -29,6 +30,15 @@ public class BookmarkServiceImpl implements BookmarkService {
     @Override
     public int checkBookmark(BookmarkCheckDto bookmark) {
         return bookmarkDao.checkBookmark(bookmark);
+    }
+
+
+    /**
+     *  게시판 북마크 확인
+     */
+    @Override
+    public int checkBoardBookmark(BoardBookmarkCheckDto checkDto) {
+        return bookmarkDao.checkBoardBookmark(checkDto);
     }
 
 

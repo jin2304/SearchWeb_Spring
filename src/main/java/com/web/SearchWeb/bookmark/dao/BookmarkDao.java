@@ -1,6 +1,7 @@
 package com.web.SearchWeb.bookmark.dao;
 
 import com.web.SearchWeb.bookmark.domain.Bookmark;
+import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
@@ -11,6 +12,8 @@ import java.util.Map;
 public interface BookmarkDao {
     //북마크 확인
     int checkBookmark(BookmarkCheckDto bookmark);
+    //게시판 북마크 확인
+    int checkBoardBookmark(BoardBookmarkCheckDto checkDto);
     //북마크 단일 조회
     Bookmark selectBookmark(int memberId, int bookmarkId);
     //북마크 목록 조회 (시간)
