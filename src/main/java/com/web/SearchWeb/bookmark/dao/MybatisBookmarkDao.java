@@ -97,6 +97,15 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
+     *  북마크 추가 (게시판에서 추가)
+     */
+    @Override
+    public int insertBookmarkBoard(BookmarkDto bookmarkDto) {
+        return mapper.insertBookmarkBoard(bookmarkDto);
+    }
+
+
+    /**
      *  북마크 수정
      */
     @Override
@@ -122,6 +131,14 @@ public class MybatisBookmarkDao implements BookmarkDao {
         return mapper.deleteBookmarkMyPage(memberId, bookmarkId);
     }
 
+
+    /**
+     *  게시판 북마크 삭제
+     */
+    @Override
+    public int deleteBookmarkBoard(BoardBookmarkCheckDto bookmark) {
+        return mapper.deleteBookmarkBoard(bookmark);
+    }
 
     /**
      *  북마크-웹사이트 조회

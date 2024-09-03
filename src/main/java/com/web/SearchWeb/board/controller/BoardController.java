@@ -212,10 +212,12 @@ public class BoardController {
      *  북마크 추가 (게시글에서 추가)
      */
     @PostMapping(value ="/board/{boardId}/bookmark/{memberId}")
-    public ResponseEntity<BookmarkDto> insertBookmark(@PathVariable final int boardId,
+    public ResponseEntity<Map<String, Object>> toggleBookmark(
+                                                      @PathVariable final int boardId,
                                                       @PathVariable final int memberId,
-                                                      @RequestBody BookmarkDto bookmarkdto,
+                                                      @RequestBody BookmarkDto bookmarkDto,
                                                       @AuthenticationPrincipal UserDetails userDetails){
+        Map<String, Object> response = new HashMap<>();
 
         // 사용자가 로그인되어 있는지 확인
         if (userDetails == null) {
@@ -226,12 +228,16 @@ public class BoardController {
         BoardBookmarkCheckDto checkDto = new BoardBookmarkCheckDto(memberId, boardId);
         int bookmarkExists = bookmarkService.checkBoardBookmark(checkDto);
 
-        if (bookmarkExists > 0) {
-            // 이미 북마크가 되어 있으면 북마크 해제
-        } else {
+        if (bookmarkExists == 0) {
             // 북마크가 안 되어 있으면 북마크 추가
+            bookmarkService.insertBookmarkForBoard(boardId, memberId, bookmarkDto);
+            response.put("action", "bookmarked");
+        } else {
+            // 이미 북마크가 되어 있으면 북마크 해제
+            bookmarkService.deleteBookmarkBoard(checkDto);
+            response.put("action", "unbookmarked");
         }
-        return ResponseEntity.ok(bookmarkdto);
+        return ResponseEntity.ok(response);
     }
 
 }

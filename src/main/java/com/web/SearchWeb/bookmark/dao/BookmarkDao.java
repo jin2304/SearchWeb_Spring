@@ -26,12 +26,16 @@ public interface BookmarkDao {
     int insertBookmark(BookmarkDto bookmark);
     //북마크 추가 (사용자 직접 추가)
     int insertBookmarkForUser(BookmarkDto bookmarkDto);
+    //북마크 추가 (게시판에서 추가)
+    int insertBookmarkBoard(BookmarkDto bookmarkDto);
     //북마크 수정
     int updateBookmark(BookmarkDto bookmarkDto, int bookmarkId);
     //북마크 삭제
     int deleteBookmark(BookmarkCheckDto bookmark);
     //마이페이지 북마크 삭제
     int deleteBookmarkMyPage(int memberId,int bookmarkId);
+    //게시판 북마크 삭제
+    int deleteBookmarkBoard(BoardBookmarkCheckDto bookmark);
     //북마크-웹사이트 조회
     List<BookmarkWebsite> selectBookmarkWebsite(int memberId);
     //사용자 태그 목록 조회

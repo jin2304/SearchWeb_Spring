@@ -17,7 +17,7 @@ import java.util.Map;
 @Service
 public class BookmarkServiceImpl implements BookmarkService {
 
-    private BookmarkDao bookmarkDao;
+    private final BookmarkDao bookmarkDao;
 
     @Autowired
     public BookmarkServiceImpl(BookmarkDao bookmarkDao) {
@@ -101,6 +101,18 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
+     *  북마크 추가 (게시판에서 추가)
+     */
+    @Override
+    public int insertBookmarkForBoard(int boardId, int memberId, BookmarkDto bookmarkDto) {
+        bookmarkDto.setBoard_boardId(boardId);
+        bookmarkDto.setMember_memberId(memberId);
+        System.out.println("bookmarkDto:::" + bookmarkDto);
+        return bookmarkDao.insertBookmarkBoard(bookmarkDto);
+    }
+
+
+    /**
      *  북마크 수정
      */
     @Override
@@ -125,6 +137,16 @@ public class BookmarkServiceImpl implements BookmarkService {
     public int deleteBookmarkMyPage(int memberId, int bookmarkId) {
         return bookmarkDao.deleteBookmarkMyPage(memberId, bookmarkId);
     }
+
+
+    /**
+     *  게시판 북마크 삭제
+     */
+    @Override
+    public int deleteBookmarkBoard(BoardBookmarkCheckDto bookmark) {
+        return bookmarkDao.deleteBookmarkBoard(bookmark);
+    }
+
 
 
     /**

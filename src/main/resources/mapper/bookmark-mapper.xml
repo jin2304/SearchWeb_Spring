@@ -112,6 +112,15 @@
     </insert>
 
 
+    <!-- 북마크 추가 (게시판에서 추가) -->
+    <insert id="insertBookmarkBoard" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto" >
+        insert
+        into
+        bookmark(member_memberId, board_boardId, name, description, url, tag)
+        values(#{member_memberId},#{board_boardId}, #{name}, #{description}, #{url}, #{tag});
+    </insert>
+
+
     <!-- 북마크 수정 -->
     <update id="updateBookmark" parameterType="map">
         update bookmark
@@ -140,6 +149,15 @@
         from bookmark
         WHERE member_memberId=#{memberId}
          AND bookmarkId = #{bookmarkId};
+    </delete>
+
+
+    <!-- 게시판 북마크 삭제 -->
+    <delete id="deleteBookmarkBoard" parameterType="com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto">
+        delete
+        from bookmark
+        WHERE member_memberId=#{memberId}
+        AND board_boardId=#{boardId}
     </delete>
 
 
