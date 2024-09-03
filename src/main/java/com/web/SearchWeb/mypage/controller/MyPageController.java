@@ -96,7 +96,7 @@ public class MyPageController {
         String description = bookmarkdto.getDescription();
         String url = bookmarkdto.getUrl();
         String tag = bookmarkdto.getTag();
-        bookmarkService.insertBookmarkForUser(new BookmarkDto(memberId, 0, name, description, url, tag));
+        bookmarkService.insertBookmarkForUser(new BookmarkDto(memberId, 0, 0, name, description, url, tag));
         return ResponseEntity.ok(bookmarkdto);
     }
 
