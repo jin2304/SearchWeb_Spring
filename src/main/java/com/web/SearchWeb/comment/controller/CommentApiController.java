@@ -133,7 +133,7 @@ public class CommentApiController {
                     .body(response); // 401 Unauthorized 응답
         }
 
-        commentService.deleteComment(commentId);
+        commentService.deleteComment(boardId, commentId);
 
         response.put("success", true);
         return ResponseEntity.ok(response);  // 200 OK 응답

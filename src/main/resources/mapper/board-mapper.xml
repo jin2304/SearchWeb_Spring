@@ -104,4 +104,20 @@
     </update>
 
 
+    <!-- 게시글 댓글 수 증가 -->
+    <update id="incrementCommentCount">
+        UPDATE Board
+        SET comments_count = comments_count + 1
+        WHERE boardId = #{boardId}
+    </update>
+
+
+    <!-- 게시글 댓글 수 감소 -->
+    <update id="decrementCommentCount">
+        UPDATE Board
+        SET comments_count = comments_count - 1
+        WHERE boardId = #{boardId}
+    </update>
+
+
 </mapper>

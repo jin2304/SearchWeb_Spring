@@ -7,7 +7,6 @@ import com.web.SearchWeb.board.service.LikeBookmarkService;
 import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
-import com.web.SearchWeb.comment.service.CommentService;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,15 +32,13 @@ public class BoardController {
     private final BoardService boardservice;
     private final MemberService memberservice;
     private final LikeBookmarkService likebookmarkservice;
-    private final CommentService commentService;
     private final BookmarkService bookmarkService;
 
     @Autowired
-    public BoardController(BoardService boardservice, MemberService memberservice, LikeBookmarkService likebookmarkservice, CommentService commentService, BookmarkService bookmarkService) {
+    public BoardController(BoardService boardservice, MemberService memberservice, LikeBookmarkService likebookmarkservice, BookmarkService bookmarkService) {
         this.boardservice = boardservice;
         this.memberservice = memberservice;
         this.likebookmarkservice = likebookmarkservice;
-        this.commentService = commentService;
         this.bookmarkService = bookmarkService;
     }
 
@@ -100,9 +97,6 @@ public class BoardController {
 
         model.addAttribute("board", board);
         model.addAttribute("hashtagsList", hashtagsList);
-
-        int commentCount = commentService.getCommentCount(boardId); // 게시글 댓글 수 가져오기
-        model.addAttribute("commentCount", commentCount);
 
         // 사용자가 로그인된 상태라면, 좋아요 여부를 확인하여 모델에 추가
         if (userDetails != null) {

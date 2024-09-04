@@ -33,4 +33,10 @@ public interface BoardDao {
 
     //게시글 좋아요 감소
     int decrementLikeCount(int boardId);
+
+    //게시글 댓글 수 증가
+    int incrementCommentCount(int boardId);
+
+    //게시글 댓글 수 감소
+    int decrementCommentCount(int boardId);
 }
