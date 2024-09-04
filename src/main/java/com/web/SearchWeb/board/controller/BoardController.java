@@ -232,7 +232,7 @@ public class BoardController {
 
         if (bookmarkExists == 0) {
             // 북마크가 안 되어 있으면 북마크 추가
-            bookmarkService.insertBookmarkForBoard(boardId, memberId, bookmarkDto);
+            bookmarkService.insertBookmarkForBoard(bookmarkDto);
             boardservice.incrementBookmarkCount(boardId); // 북마크 추가 시 게시글의 북마크 수 증가
             response.put("action", "bookmarked");
         } else {

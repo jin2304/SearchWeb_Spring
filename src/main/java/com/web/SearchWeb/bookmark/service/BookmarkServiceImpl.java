@@ -83,7 +83,7 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
-     *  북마크 추가
+     *  북마크 추가 (메인리스트에서 추가)
      */
     @Override
     public int insertBookmark(BookmarkDto bookmark) {
@@ -92,7 +92,7 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
-     *  북마크 추가 (사용자 직접 추가)
+     *  북마크 추가 (마이페이지에서 추가)
      */
     @Override
     public int insertBookmarkForUser(BookmarkDto bookmarkDto) {
@@ -104,10 +104,7 @@ public class BookmarkServiceImpl implements BookmarkService {
      *  북마크 추가 (게시판에서 추가)
      */
     @Override
-    public int insertBookmarkForBoard(int boardId, int memberId, BookmarkDto bookmarkDto) {
-        bookmarkDto.setBoard_boardId(boardId);
-        bookmarkDto.setMember_memberId(memberId);
-        System.out.println("bookmarkDto:::" + bookmarkDto);
+    public int insertBookmarkForBoard(BookmarkDto bookmarkDto) {
         return bookmarkDao.insertBookmarkBoard(bookmarkDto);
     }
 

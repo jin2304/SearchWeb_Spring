@@ -23,12 +23,12 @@ public interface BookmarkService {
     List<Bookmark> selectBookmarkListByTag(int memberId, String tag, String sort);
     //북마크 목록 조회 (검색어)
     List<Bookmark> selectBookmarkListByQuery(int memberId, String tag, String sort, String query);
-    //북마크 추가
+    //북마크 추가 (메인리스트에서 추가)
     int insertBookmark(BookmarkDto bookmark);
-    //북마크 추가 (사용자 직접 추가)
+    //북마크 추가 (마이페이지에서 추가)
     int insertBookmarkForUser(BookmarkDto bookmarkDto);
     //북마크 추가 (게시판에서 추가)
-    int insertBookmarkForBoard(int boardId, int memberId, BookmarkDto bookmarkdto);
+    int insertBookmarkForBoard(BookmarkDto bookmarkdto);
     //북마크 수정
     int updateBookmark(BookmarkDto bookmarkDto, int bookmarkId);
     //북마크 삭제
