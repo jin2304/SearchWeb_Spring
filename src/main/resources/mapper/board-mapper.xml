@@ -80,4 +80,12 @@
     </update>
 
 
+    <!-- 게시글 조회수 증가 -->
+    <update id="incrementViewCount">
+        UPDATE Board
+        SET views_count = views_count + 1
+        WHERE boardId = #{boardId}
+    </update>
+
+
 </mapper>

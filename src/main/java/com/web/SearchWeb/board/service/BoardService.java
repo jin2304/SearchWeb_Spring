@@ -78,6 +78,10 @@ public class BoardService {
      * 게시글 단일 조회
      */
     public Map<String, Object> selectBoard(int boardId) {
+
+        // 조회수 증가
+        boardDao.incrementViewCount(boardId);
+
         Board board = boardDao.selectBoard(boardId);  // 단일 Board 객체를 가져옵니다.
 
         // 해시태그를 분리하여 리스트에 추가합니다.

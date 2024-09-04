@@ -24,4 +24,7 @@ public interface BoardDao {
 
     //게시글 북마크 수 수정
     int updateBookmarkCount(int boardId, int bookmarkCount);
+
+    //게시글 조회수 증가
+    int incrementViewCount(int boardId);
 }

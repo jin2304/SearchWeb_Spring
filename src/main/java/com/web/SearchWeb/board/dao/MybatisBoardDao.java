@@ -67,5 +67,13 @@ public class MybatisBoardDao implements BoardDao{
     public int updateBookmarkCount(int boardId, int bookmarkCount) {
         return mapper.updateBookmarkCount(boardId, bookmarkCount);
     }
+
+
+    /**
+     *  게시글 조회수 증가
+     */
+    public int incrementViewCount(int boardId) {
+        return mapper.incrementViewCount(boardId);
+    }
 }
 
