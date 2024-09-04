@@ -179,6 +179,17 @@
         AND tag IS NOT NULL
         And tag != ''
     </select>
+
+
+    <!-- 게시글 북마크 여부 확인 -->
+    <select id="isBookmarked">
+        select COUNT(*) FROM bookmark
+        WHERE
+        board_boardId = #{boardId}
+        AND
+        member_memberId = #{memberId}
+    </select>
+
 </mapper>
 
 

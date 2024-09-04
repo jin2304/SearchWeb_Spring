@@ -41,4 +41,6 @@ public interface BookmarkService {
     List<BookmarkWebsite> selectBookmarkWebsite(int memberId);
     //사용자 태그 목록 조회
     List<String> selectTags(int memberId);
+    //게시글 북마크 여부 확인
+    int isBookmarked(int boardId, int memberId);
 }

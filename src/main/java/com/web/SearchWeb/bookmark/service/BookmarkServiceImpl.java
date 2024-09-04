@@ -165,4 +165,12 @@ public class BookmarkServiceImpl implements BookmarkService {
     public List<String> selectTags(int memberId) {
         return bookmarkDao.selectTags(memberId);
     }
+
+
+    /**
+     *  게시글 북마크 여부 확인
+     */
+    public int isBookmarked(int boardId, int memberId) {
+        return bookmarkDao.isBookmarked(boardId, memberId);
+    }
 }

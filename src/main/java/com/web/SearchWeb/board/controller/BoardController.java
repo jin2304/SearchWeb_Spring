@@ -113,7 +113,9 @@ public class BoardController {
             Member loggedInMember = memberservice.findByUserName(username);
 
             boolean isLiked = likebookmarkservice.isLiked(boardId, loggedInMember.getMemberId());
+            int isBookmarked = bookmarkService.isBookmarked(boardId, loggedInMember.getMemberId());
             model.addAttribute("isLiked", isLiked);
+            model.addAttribute("isBookmarked", isBookmarked);
         }
 
 

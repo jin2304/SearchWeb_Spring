@@ -156,4 +156,12 @@ public class MybatisBookmarkDao implements BookmarkDao {
     public List<String> selectTags(int memberId) {
         return mapper.selectTags(memberId);
     }
+
+
+    /**
+     *  게시글 북마크 여부 확인
+     */
+    public int isBookmarked(int boardId, int memberId) {
+        return mapper.isBookmarked(boardId, memberId);
+    }
 }
