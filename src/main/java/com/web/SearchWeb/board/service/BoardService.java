@@ -3,6 +3,7 @@ package com.web.SearchWeb.board.service;
 import com.web.SearchWeb.board.dao.BoardDao;
 import com.web.SearchWeb.board.domain.Board;
 import com.web.SearchWeb.board.dto.BoardDto;
+import com.web.SearchWeb.comment.service.CommentService;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +20,14 @@ public class BoardService {
     private final BoardDao boardDao;
     private final MemberService memberService;
     private final LikeBookmarkService likeBookmarkService;
+    private final CommentService commentService;
 
     @Autowired
-    public BoardService(BoardDao boardDao, MemberService memberService, LikeBookmarkService likeBookmarkService) {
+    public BoardService(BoardDao boardDao, MemberService memberService, LikeBookmarkService likeBookmarkService, CommentService commentService) {
         this.boardDao = boardDao;
         this.memberService = memberService;
         this.likeBookmarkService = likeBookmarkService;
+        this.commentService = commentService;
     }
 
 
@@ -56,6 +59,10 @@ public class BoardService {
             //좋아요 수 추가
             int likeCount = likeBookmarkService.getLikeCount(board.getBoardId());
             board.setLikes_count(likeCount);
+
+            //댓글 수 추가
+            int commentCount = commentService.getCommentCount(board.getBoardId());
+            board.setComments_count(commentCount);
         }
 
         Map<String, Object> result = new HashMap<>();
