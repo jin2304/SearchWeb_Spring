@@ -88,7 +88,7 @@ public class MyPageController {
 
 
     /**
-     *  마이페이지 북마크 추가 (마이페이지에서 추가)
+     *  북마크 추가 (마이페이지에서 추가)
      */
     @PostMapping(value ="/myPage/{memberId}/bookmark")
     public ResponseEntity<BookmarkDto> insertBookmark(@PathVariable final int memberId, @RequestBody BookmarkDto bookmarkdto){
