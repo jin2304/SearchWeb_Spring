@@ -79,17 +79,13 @@ public class BookmarkApiController {
 
 
     /**
-     * 웹사이트 북마크 추가
+     *  북마크 추가 (메인리스트에서 추가)
      **/
     @PostMapping(value ="/{memberId}/bookmark/{websiteId}")
-    public ResponseEntity<Integer> insertBookmark(@PathVariable final int memberId, @PathVariable final int websiteId){
-
-        Website website = mainService.selectWebsite(websiteId);
-        String name = website.getName();
-        String description = website.getDescription();
-        String url = website.getUrl();
-
-        int result = bookmarkService.insertBookmark(new BookmarkDto(memberId, websiteId, 0, name, description, url, null));
+    public ResponseEntity<Integer> insertBookmark(@PathVariable final int memberId,
+                                                  @PathVariable final int websiteId,
+                                                  @RequestBody BookmarkDto bookmarkDto){
+        int result = bookmarkService.insertBookmark(bookmarkDto);
         return ResponseEntity.ok(result);
     }
 

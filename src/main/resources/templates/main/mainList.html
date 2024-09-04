@@ -217,7 +217,7 @@
             <!-- 검색 결과 있을 때 메시지 표시 -->
             <!-- 웹사이트 요소 -->
             <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-4">
-                <div th:each="l : ${list}" th:data-website-id="${l.websiteId}" class="website-card relative">
+                <div th:each="l : ${list}" th:data-website-id="${l.websiteId}" th:data-name="${l.name}" th:data-url="${l.url}" th:data-description="${l.description}" class="website-card relative">
                     <div class="website-card-header">
                         <!-- 웹사이트 이미지 -->
                         <img th:src="@{|https://www.google.com/s2/favicons?sz=48&domain_url=${l.url}|}" alt="" class="website-icon">
@@ -277,13 +277,14 @@
 
 
         // 북마크 API 호출(Synchronous, 동기)
-        function callBookmarkApi_sync(uri, method) {
+        function callBookmarkApi_sync(uri, method, bookmarkData) {
             return new Promise((resolve, reject) => {
                 $.ajax({
                     url: uri,
                     type: method,
-                    dataType: 'json',
+                    contentType: 'application/json',
                     async: false,
+                    data: JSON.stringify(bookmarkData),  // 자바스크립트 객체를 JSON 문자열로 변환
                     success: function(response) {
                         resolve(response);
                     },
@@ -313,12 +314,22 @@
             const response = await callBookmarkApi_sync(uri, 'GET');
 
             const bookmarkIcon = document.querySelector(`[data-website-id="${websiteId}"] .bookmark-icon`);
+            const card = document.querySelector(`[data-website-id="${websiteId}"]`);
+
+            const bookmarkData = {
+                member_memberId: memberId,                               // 회원 번호
+                website_websiteId: card.getAttribute('data-website-id'), // 웹사이트 번호
+                name: card.getAttribute('data-name'),                    // 웹사이트 이름
+                url: card.getAttribute('data-url'),                      // 웹사이트 URL
+                description: card.getAttribute('data-description')       // 웹사이트 설명
+            };
+            console.log("bookmarkData" , bookmarkData);
 
             // 북마크 하지 않았다면 북마크 추가, 이미 북마크 했다면 북마크 삭제
             if (response == 0) {
                 // 북마크 추가
                 const uri = "/mainList/" + memberId + "/bookmark/" + websiteId;
-                await callBookmarkApi_sync(uri, 'POST');
+                await callBookmarkApi_sync(uri, 'POST', bookmarkData);
                 bookmarkIcon.classList.add('active');
             } else {
                 // 북마크 삭제
