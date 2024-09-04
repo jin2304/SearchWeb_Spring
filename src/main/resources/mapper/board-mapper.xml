@@ -88,4 +88,20 @@
     </update>
 
 
+    <!-- 게시글 좋아요 증가 -->
+    <update id="incrementLikeCount">
+        UPDATE Board
+        SET likes_count = likes_count + 1
+        WHERE boardId = #{boardId}
+    </update>
+
+
+    <!-- 게시글 좋아요 감소 -->
+    <update id="decrementLikeCount">
+        UPDATE Board
+        SET likes_count = likes_count - 1
+        WHERE boardId = #{boardId}
+    </update>
+
+
 </mapper>

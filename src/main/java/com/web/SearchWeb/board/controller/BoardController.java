@@ -101,10 +101,7 @@ public class BoardController {
         model.addAttribute("board", board);
         model.addAttribute("hashtagsList", hashtagsList);
 
-
-        int likeCount = likebookmarkservice.getLikeCount(boardId);  // 게시글 좋아요 수 가져오기
         int commentCount = commentService.getCommentCount(boardId); // 게시글 댓글 수 가져오기
-        model.addAttribute("likeCount", likeCount);
         model.addAttribute("commentCount", commentCount);
 
         // 사용자가 로그인된 상태라면, 좋아요 여부를 확인하여 모델에 추가
@@ -181,8 +178,6 @@ public class BoardController {
     @ResponseBody
     public Map<String, Object> toggleLike(@PathVariable int boardId, @AuthenticationPrincipal UserDetails userDetails) {
 
-        System.out.println("좋아요 호출: " + boardId);
-
         //사용자 로그인 확인
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Map<String, Object> response = new HashMap<>();
@@ -200,12 +195,7 @@ public class BoardController {
         Member loggedInMember = memberservice.findByUserName(username);
 
         boolean isLiked = likebookmarkservice.toggleLike(boardId, loggedInMember.getMemberId());
-        int likeCount = likebookmarkservice.getLikeCount(boardId);
-
-        System.out.println("likecount: " + likeCount);
-
         response.put("isLiked", isLiked);
-        response.put("likeCount", likeCount);
         return response;
     }
 

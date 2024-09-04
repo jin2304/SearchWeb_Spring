@@ -55,14 +55,6 @@ public class BoardService {
             //해시태그 추가
             String[] hashtagsArray = board.getHashtags() != null ? board.getHashtags().split(" ") : new String[0];
             hashtagsList.add(hashtagsArray);
-
-            //좋아요 수 추가
-            int likeCount = likeBookmarkService.getLikeCount(board.getBoardId());
-            board.setLikes_count(likeCount);
-
-            //댓글 수 추가
-            int commentCount = commentService.getCommentCount(board.getBoardId());
-            board.setComments_count(commentCount);
         }
 
         Map<String, Object> result = new HashMap<>();

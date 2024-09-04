@@ -27,4 +27,10 @@ public interface BoardDao {
 
     //게시글 조회수 증가
     int incrementViewCount(int boardId);
+
+    //게시글 좋아요 증가
+    int incrementLikeCount(int boardId);
+
+    //게시글 좋아요 감소
+    int decrementLikeCount(int boardId);
 }

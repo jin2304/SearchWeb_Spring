@@ -75,5 +75,23 @@ public class MybatisBoardDao implements BoardDao{
     public int incrementViewCount(int boardId) {
         return mapper.incrementViewCount(boardId);
     }
+
+
+    /**
+     *  게시글 좋아요 증가
+     */
+    @Override
+    public int incrementLikeCount(int boardId) {
+        return mapper.incrementLikeCount(boardId);
+    }
+
+
+    /**
+     *  게시글 좋아요 감소
+     */
+    @Override
+    public int decrementLikeCount(int boardId) {
+        return mapper.decrementLikeCount(boardId);
+    }
 }
 
