@@ -822,6 +822,8 @@
                 const bookmarkSummary = boardSummary ? boardSummary : boardDescription;
 
                 const bookmarkData = {
+                    member_memberId: [[ ${board.member_memberId} ]],
+                    board_boardId: [[ ${board.boardId} ]],
                     name: [[ ${board.title} ]],  // 웹사이트 이름
                     url: bookmarkUrl,  // 웹사이트 URL 또는 현재 페이지 URL
                     description: bookmarkSummary  // 웹사이트 설명 또는 게시글 설명
