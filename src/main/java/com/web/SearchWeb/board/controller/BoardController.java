@@ -67,26 +67,28 @@ public class BoardController {
 
 
     /**
-     *  게시글 목록 조회(검색어, 최신순/인기순, 게시글타입 필터링)
+     *  게시글 페이지
      */
     @GetMapping("/board")
-    public String board(@RequestParam(defaultValue = "newest") String sort,
-                        @RequestParam(value = "query", required = false) String query,
-                        @RequestParam(defaultValue = "all") String postType,
-                        Model model){
-
-        Map<String, Object> boardData = boardservice.selectBoardList(sort, query, postType);
-        List<Board> boards = (List<Board>) boardData.get("boards");
-        List<String[]> hashtagsList = (List<String[]>) boardData.get("hashtagsList");
+    public String boardPage() {
+        return "board/board";  // HTML 껍데기만 반환 (JS가 데이터 로딩)
+    }
 
 
-        model.addAttribute("boards", boards);
-        model.addAttribute("hashtagsList", hashtagsList);
-        model.addAttribute("sort", sort);
-        model.addAttribute("postType", postType);
-        model.addAttribute("query", query);
-        model.addAttribute("resultCount", boards.size());
-        return "board/board";
+    /**
+     *  페이징된 게시글 목록 조회
+     *  - 검색어, 최신순/인기순, 게시글타입
+     *  - 스크롤 방식으로 페이징 지원
+     *  - 클라이언트(JS)에서 스크롤 이벤트 발생 시 요청
+     */
+    @ResponseBody
+    @GetMapping("api/boards")
+    public Map<String, Object> getBoards(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "10") int size,
+                                         @RequestParam(defaultValue = "newest") String sort,
+                                         @RequestParam(required = false) String query,
+                                         @RequestParam(defaultValue = "all") String postType) {
+        return boardservice.selectBoardPage(page, size, sort, query, postType);
     }
 
 
