@@ -13,6 +13,12 @@ public interface BoardDao {
     //게시글 목록 조회(최신순, 인기순)
     List<Board> selectBoardList(String query, String sort, String postType);
 
+    // 페이징된 게시글 목록 조회
+    List<Board> selectBoardPage(int offset, int size, String sort, String query, String postType);
+
+    // 게시글 전체 개수 조회 (페이징용)
+    int countBoardList(String query, String postType);
+
     //게시글 목록 조회(회원번호로 조회)
     List<Board> selectBoardListByMemberId(int memberId);
 

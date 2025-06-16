@@ -37,6 +37,23 @@ public class MybatisBoardDao implements BoardDao{
 
 
     /**
+     *  페이징된 게시글 목록 조회
+     */
+    @Override
+    public List<Board> selectBoardPage(int offset, int size, String sort, String query, String postType) {
+        return mapper.selectBoardPage(offset, size, sort, query, postType);
+    }
+
+    /**
+     *  게시글 총 페이지
+     */
+    @Override
+    public int countBoardList(String query, String postType) {
+        return mapper.countBoardList(query, postType);
+    }
+
+
+    /**
      *  게시글 목록 조회(회원번호로 조회)
      */
     public List<Board> selectBoardListByMemberId(int memberId) {

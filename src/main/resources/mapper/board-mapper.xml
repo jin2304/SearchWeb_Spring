@@ -14,8 +14,8 @@
     </insert>
 
 
-    <!-- 게시글 조회(검색어, 최신순/인기순)  -->
-    <select id="selectBoardList" parameterType="map" resultType="com.web.SearchWeb.board.domain.Board">
+    <!-- 페이징 게시글 목록 조회 -->
+    <select id="selectBoardPage" parameterType="map" resultType="com.web.SearchWeb.board.domain.Board">
         SELECT * FROM board
         <where>
             <!-- 검색어가 있는 경우 -->
@@ -26,15 +26,14 @@
             </if>
 
             <!-- 게시글 타입 선택 -->
-            <!-- 웹사이트 공유 필터링 (url이 존재하는 경우만) -->
+            <!-- url이 존재하는 경우 == 웹사이트 공유 게시글-->
             <if test="postType == 'website'">
                 AND url IS NOT NULL
             </if>
-            <!-- 질문 필터링 (url이 존재하지 않는 경우만) -->
+            <!-- url이 존재하지 않는 경우 == 질문 게시글 -->
             <if test="postType == 'question'">
                 AND url IS NULL
             </if>
-
         </where>
         <!-- 정렬 조건 -->
         <if test="sort != null">
@@ -47,6 +46,25 @@
                 </otherwise>
             </choose>
         </if>
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+
+    <!-- 게시글 총 개수 조회 -->
+    <select id="countBoardList" resultType="int">
+        SELECT COUNT(*) FROM board
+        <where>
+            <if test="query != null and query != ''">
+                (title LIKE CONCAT('%', #{query}, '%')
+                OR description LIKE CONCAT('%', #{query}, '%'))
+            </if>
+            <if test="postType == 'website'">
+                AND url IS NOT NULL
+            </if>
+            <if test="postType == 'question'">
+                AND url IS NULL
+            </if>
+        </where>
     </select>
 
 
