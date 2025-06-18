@@ -44,13 +44,14 @@ public class BoardService {
 
 
     /**
-     *  게시글 목록 조회(검색어, 최신순/인기순)
+     *  페이징된 게시글 목록 조회
      */
-    public Map<String, Object> selectBoardList(String sort, String query, String postType) {
-        List<Board> boards = boardDao.selectBoardList(query, sort, postType);
-        List<String[]> hashtagsList = new ArrayList<>();
+    public Map<String, Object> selectBoardPage(int page, int size, String sort, String query, String postType) {
+        int offset = page * size;
+        int totalCount = boardDao.countBoardList(query, postType);
+        List<Board> boards = boardDao.selectBoardPage(offset, size, sort, query, postType);
 
-        // 각 Board 객체의 해시태그를 배열로 변환하고, 리스트에 추가
+        List<String[]> hashtagsList = new ArrayList<>();
         for (Board board : boards) {
             //해시태그 추가
             String[] hashtagsArray = board.getHashtags() != null ? board.getHashtags().split(" ") : new String[0];
@@ -60,7 +61,7 @@ public class BoardService {
         Map<String, Object> result = new HashMap<>();
         result.put("boards", boards);
         result.put("hashtagsList", hashtagsList);
-
+        result.put("hasNext", offset + size < totalCount);
         return result;
     }
 

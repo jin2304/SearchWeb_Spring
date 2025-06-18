@@ -29,10 +29,19 @@ public class MybatisBoardDao implements BoardDao{
 
 
     /**
-     *  게시글 목록 조회(검색어, 최신순/인기순)
+     *  페이징된 게시글 목록 조회
      */
-    public List<Board> selectBoardList(String query, String sort, String postType) {
-        return mapper.selectBoardList(query, sort, postType);
+    @Override
+    public List<Board> selectBoardPage(int offset, int size, String sort, String query, String postType) {
+        return mapper.selectBoardPage(offset, size, sort, query, postType);
+    }
+
+    /**
+     *  게시글 총 페이지
+     */
+    @Override
+    public int countBoardList(String query, String postType) {
+        return mapper.countBoardList(query, postType);
     }
 
 

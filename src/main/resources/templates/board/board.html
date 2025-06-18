@@ -48,48 +48,92 @@
                 <div class="flex flex-wrap justify-center sm:justify-start gap-2 mb-4 sm:mb-0">
 
                     <!-- 전체 게시글 선택 -->
-                    <a th:href="@{'/board?postType=all&sort=' + ${sort}}"
-                       th:classappend="${postType == 'all'} ? 'text-white bg-gradient-to-r from-purple-500 to-indigo-600' : 'text-gray-700 bg-gray-100'"
-                       class="px-4 py-2 text-sm font-medium rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    <button onclick="changePostType('all')" id="postType-all"
+                            class="px-4 py-2 text-sm font-medium rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                         전체
-                    </a>
+                    </button>
 
                     <!-- 웹사이트 공유 게시글 선택 -->
-                    <a th:href="@{'/board?postType=website&sort=' + ${sort}}"
-                       th:classappend="${postType == 'website'} ? 'text-white bg-gradient-to-r from-purple-500 to-indigo-600' : 'text-gray-700 bg-gray-100'"
-                       class="px-4 py-2 text-sm font-medium rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    <button onclick="changePostType('website')" id="postType-website"
+                            class="px-4 py-2 text-sm font-medium rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                         웹사이트 공유
-                    </a>
+                    </button>
 
                     <!-- 질문 게시글 선택 -->
-                    <a th:href="@{'/board?postType=question&sort=' + ${sort}}"
-                       th:classappend="${postType == 'question'} ? 'text-white bg-gradient-to-r from-purple-500 to-indigo-600' : 'text-gray-700 bg-gray-100'"
-                       class="px-4 py-2 text-sm font-medium rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    <button onclick="changePostType('question')" id="postType-question"
+                            class="px-4 py-2 text-sm font-medium rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                         질문
-                    </a>
-
+                    </button>
                 </div>
+
                 <div class="flex items-center space-x-2">
                     <!-- 인기순 버튼 -->
-                    <a th:href="@{'/board?postType=' + ${postType} + '&sort=popular'}"
-                       th:classappend="${sort == 'popular'} ? 'text-white bg-gradient-to-r from-purple-500 to-indigo-600' : 'text-gray-700 bg-gray-100'"
-                       class="flex items-center px-4 py-2 text-sm font-medium rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"></path>
-                        </svg>
-                        인기
-                    </a>
+                    <button onclick="changeSort('popular')" id="sort-popular"
+                            class="flex items-center px-4 py-2 text-sm font-medium rounded-full shadow-md bg-gray-100 text-gray-700">
+                        <i class="fas fa-fire mr-2"></i> 인기
+                    </button>
 
                     <!-- 최신순 버튼 -->
-                    <a th:href="@{'/board?postType=' + ${postType} + '&sort=newest'}"
-                       th:classappend="${sort == 'newest'} ? 'text-white bg-gradient-to-r from-purple-500 to-indigo-600' : 'text-gray-700 bg-gray-100'"
-                       class="flex items-center px-4 py-2 text-sm font-medium rounded-full shadow-md transition duration-300 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                        </svg>
-                        최신
-                    </a>
+                    <button onclick="changeSort('newest')" id="sort-newest"
+                            class="flex items-center px-4 py-2 text-sm font-medium rounded-full shadow-md bg-gray-100 text-gray-700">
+                        <i class="fas fa-clock mr-2"></i> 최신
+                    </button>
                 </div>
+
+                <script>
+                    // 게시글 타입 변경
+                    function changePostType(newType) {
+                        postType = newType;  // 게시글 타입 상태 변경
+                        page = 0;            // 첫 페이지부터 다시 시작
+                        hasNext = true;
+                        document.getElementById("board-container").innerHTML = ""; // 게시글 초기화
+                        updatePostTypeButtonUI(newType);
+                        loadBoards(); // 게시글 다시 로드
+                    }
+
+                    // 게시글 정렬 변경
+                    function changeSort(newSort) {
+                        sort = newSort;     // 정렬 상태 변경
+                        page = 0;
+                        hasNext = true;
+                        document.getElementById("board-container").innerHTML = "";
+                        updateSortButtonUI(newSort);
+                        loadBoards();
+                    }
+
+
+                    // 게시글 타입 버튼 UI 업데이트 함수
+                    function updatePostTypeButtonUI(activeType) {
+                        const postTypes = ['all', 'website', 'question'];
+                        postTypes.forEach(type => {
+                            const btn = document.getElementById(`postType-${type}`);
+                            if (type === activeType) {
+                                btn.classList.remove('text-gray-700', 'bg-gray-100');
+                                btn.classList.add('text-white', 'bg-gradient-to-r', 'from-purple-500', 'to-indigo-600');
+                            } else {
+                                btn.classList.remove('text-white', 'bg-gradient-to-r', 'from-purple-500', 'to-indigo-600');
+                                btn.classList.add('text-gray-700', 'bg-gray-100');
+                            }
+                        });
+                    }
+
+
+                    // 인기순/최신순 버튼 UI 업데이트 함수
+                    function updateSortButtonUI(activeSort) {
+                        const sortTypes = ['popular', 'newest'];
+                        sortTypes.forEach(type => {
+                            const btn = document.getElementById(`sort-${type}`);
+                            if (type === activeSort) {
+                                btn.classList.remove('bg-gray-100', 'text-gray-700');
+                                btn.classList.add('bg-gradient-to-r', 'from-purple-500', 'to-indigo-600', 'text-white');
+                            } else {
+                                btn.classList.remove('bg-gradient-to-r', 'from-purple-500', 'to-indigo-600', 'text-white');
+                                btn.classList.add('bg-gray-100', 'text-gray-700');
+                            }
+                        });
+                    }
+                </script>
+
             </div>
         </div>
     </div>
@@ -362,93 +406,113 @@
 
 
     <!-- 게시물 -->
-    <div class="space-y-4 w-full overflow-y-hidden">
-
-        <!-- 웹사이트 공유 게시물 -->
-        <div th:each="board, iterStat : ${boards}" class="p-4 pb-8 bg-white shadow">
-            <!-- 사용자 프로필 -->
-            <div class="flex items-start mb-3">
-               <!-- <img src="https://placehold.co/40" alt="User Profile Image" class="rounded-full w-10 h-10 mr-4">-->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-10 h-10 mr-2">
-                    <circle cx="50" cy="50" r="45" fill="#e5e7eb" stroke="none"></circle>
-                    <circle cx="50" cy="35" r="15" fill="white" stroke="none"></circle>
-                    <path d="M 25 70 C 25 55, 75 55, 75 70 A 20 15 0 0 1 25 70 Z" fill="white" stroke="none"></path>
-                </svg>
-
-                <div>
-                    <div th:if="${board.url}"         class="text-sm text-gray-700"><span th:text="${board.nickname}" class="font-bold">홍길동</span>님이 <span class="font-bold text-purple-600">웹사이트</span>를 공유했습니다.</div>
-                    <div th:if="${board.url == null}" class="text-sm text-gray-700"><span th:text="${board.nickname}" class="font-bold">홍길동</span>님이 <span class="font-bold text-indigo-500">질문</span>을 남겼습니다.</div>
-                    <div class="text-xs text-gray-500">
-                        <span th:text="${board.job}">Backend developer</span>,
-                        <span th:text="${board.major}">컴퓨터공학</span> •
-                        <span th:text="${board.created_date}">약 2시간 전</span>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- 공유 프로덕트 -->
-            <a th:href="@{/board/{boardId}(boardId=${board.boardId})}" class="relative p-6 mb-6 bg-gray-100 rounded-lg border border-gray-200 block">
-                <div class="flex items-center mb-4">
-
-                    <!-- 웹사이트 아이콘 -->
-                    <div th:if="${board.url}" class="bg-white rounded-xl flex-shrink-0 shadow-md" style="width: 82px; height: 82px;">
-                        <img th:src="@{|https://www.google.com/s2/favicons?sz=128&domain_url=${board.url}|}"
-                             alt="Website Icon"
-                             class="rounded-lg object-cover" style="width: 100%; height: 100%;">
-                    </div>
-
-                    <!-- 질문 이미지 -->
-                    <div th:if="${board.url == null}" class="rounded-xl flex-shrink-0" style="width: 76px; height: 76px;">
-                        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                            <!-- 배경 원 -->
-                            <circle cx="24" cy="24" r="24" fill="#4F46E5"/>
-                            <!-- 텍스트 -->
-                            <text x="50%" y="50%" font-size="24" font-family="Arial" fill="white" font-weight="bold" text-anchor="middle" dominant-baseline="central">Q</text>
-                        </svg>
-                    </div>
-
-                    <!-- 웹사이트 제목/개요 -->
-                    <div class="ml-4 flex-grow overflow-hidden">
-                        <h3 th:text="${board.title}" class="text-gray-700 font-semibold">루트릭스</h3>
-                        <p th:text="${board.summary}" class="text-sm text-gray-500 break-words">B2B 조경수 견적 솔루션</p>
-                    </div>
-                </div>
-
-                <!-- 해시태그 섹션 -->
-                <div class="flex flex-wrap gap-1 mt-2 mb-2">
-                <span th:each="hashtag : ${hashtagsList[iterStat.index]}"
-                      class="inline-block bg-gradient-to-r from-gray-400 to-gray-300 text-white rounded-full px-2 py-0.5 text-xs font-semibold">
-                    <span th:text="'#' + ${hashtag}">#해시태그</span>
-                </span>
-                </div>
-
-                <div class="flex justify-between items-center text-sm text-gray-500">
-                    <div class="flex items-center space-x-3">
-                        <!-- 좋아요 수 -->
-                        <div class="flex items-center space-x-1">
-                            <i class="fas fa-heart"></i><span th:text="${board.likes_count}" class="ml-1">2</span>
-                        </div>
-
-                        <!-- 댓글 수 -->
-                        <div class="flex items-center space-x-1">
-                            <i class="fas fa-comment"></i><span th:text="${board.comments_count}" class="ml-1">0</span>
-                        </div>
-
-                        <!-- 북마크 수 -->
-                        <div class="flex items-center space-x-1">
-                            <i class="fas fa-bookmark"></i><span th:text="${board.bookmarks_count} "class="ml-1">3</span>
-                        </div>
-                    </div>
-
-                    <!-- 조회수 -->
-                    <div class="flex items-center space-x-1">
-                        <i class="fas fa-eye"></i><span th:text="${board.views_count}">10</span>
-                    </div>
-                </div>
-            </a>
-        </div>
+    <div id="board-container" class="space-y-4 w-full overflow-y-hidden">
+     <!-- JS로 게시글 렌더링 영역 -->
     </div>
+
+    <script>
+        let page = 0;
+        const size = 10;
+        let sort = "newest";
+        let query = "";
+        let postType = "all";
+        let loading = false;
+        let hasNext = true;
+
+        // 게시글 목록 초기 상태
+        window.onload = () => {
+            updatePostTypeButtonUI(postType);  // '전체' 버튼 활성화
+            updateSortButtonUI(sort);          // '최신순' 버튼 활성화
+            loadBoards();                      // 게시글 로드
+        };
+
+        window.addEventListener("scroll", () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200 && !loading && hasNext) {
+                loadBoards();
+            }
+        });
+
+        // 페이징된 게시글 목록 조회 (JS 기반)
+        function loadBoards() {
+            loading = true;
+            fetch(`/api/boards?page=${page}&size=${size}&sort=${sort}&query=${query}&postType=${postType}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderBoards(data.boards, data.hashtagsList);
+                    hasNext = data.hasNext;
+                    page++;
+                    loading = false;
+                })
+                .catch(() => loading = false);
+        }
+
+        function renderBoards(boards, hashtagsList) {
+            const container = document.getElementById("board-container");
+            boards.forEach((board, index) => {
+                const hashtags = hashtagsList[index] || [];
+
+                const profileHtml = `
+                <div class="flex items-start mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-10 h-10 mr-2">
+                        <circle cx="50" cy="50" r="45" fill="#e5e7eb"/>
+                        <circle cx="50" cy="35" r="15" fill="white"/>
+                        <path d="M 25 70 C 25 55, 75 55, 75 70 A 20 15 0 0 1 25 70 Z" fill="white"/>
+                    </svg>
+                    <div>
+                        <div class="text-sm text-gray-700">
+                            <span class="font-bold">${board.nickname}</span>님이
+                            <span class="font-bold ${board.url ? 'text-purple-600' : 'text-indigo-500'}">
+                                ${board.url ? '웹사이트' : '질문'}</span>을 남겼습니다.
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            ${board.job}, ${board.major} • ${board.created_date}
+                        </div>
+                    </div>
+                </div>`;
+
+                const contentHtml = `
+                <a href="/board/${board.boardId}" class="relative p-6 mb-6 bg-gray-100 rounded-lg border border-gray-200 block">
+                    <div class="flex items-center mb-4">
+                        ${board.url ? `
+                            <div class="bg-white rounded-xl flex-shrink-0 shadow-md" style="width: 82px; height: 82px;">
+                                <img src="https://www.google.com/s2/favicons?sz=128&domain_url=${board.url}" class="rounded-lg object-cover" style="width: 100%; height: 100%;">
+                            </div>` : `
+                            <div class="rounded-xl flex-shrink-0" style="width: 76px; height: 76px;">
+                                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                                    <circle cx="24" cy="24" r="24" fill="#4F46E5"/>
+                                    <text x="50%" y="50%" font-size="24" font-family="Arial" fill="white" font-weight="bold" text-anchor="middle" dominant-baseline="central">Q</text>
+                                </svg>
+                            </div>`}
+
+                        <div class="ml-4 flex-grow overflow-hidden">
+                            <h3 class="text-gray-700 font-semibold">${board.title}</h3>
+                            <p class="text-sm text-gray-500 break-words">${board.summary || ''}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1 mt-2 mb-2">
+                        ${hashtags.map(tag => `
+                            <span class="inline-block bg-gradient-to-r from-gray-400 to-gray-300 text-white rounded-full px-2 py-0.5 text-xs font-semibold">#${tag}</span>
+                        `).join('')}
+                    </div>
+
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-1"><i class="fas fa-heart"></i><span>${board.likes_count}</span></div>
+                            <div class="flex items-center space-x-1"><i class="fas fa-comment"></i><span>${board.comments_count}</span></div>
+                            <div class="flex items-center space-x-1"><i class="fas fa-bookmark"></i><span>${board.bookmarks_count}</span></div>
+                        </div>
+                        <div class="flex items-center space-x-1"><i class="fas fa-eye"></i><span>${board.views_count}</span></div>
+                    </div>
+                </a>`;
+
+                const card = document.createElement("div");
+                card.className = "p-4 pb-8 bg-white shadow";
+                card.innerHTML = profileHtml + contentHtml;
+                container.appendChild(card);
+            });
+        }
+    </script>
 </main>
 
 
