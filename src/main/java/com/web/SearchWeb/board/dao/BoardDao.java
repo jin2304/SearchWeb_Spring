@@ -2,6 +2,7 @@ package com.web.SearchWeb.board.dao;
 
 import com.web.SearchWeb.board.domain.Board;
 import com.web.SearchWeb.board.dto.BoardDto;
+import org.apache.ibatis.annotations.Param;
 
 
 import java.util.List;
@@ -10,11 +11,12 @@ public interface BoardDao {
     //게시글 생성
     public int insertBoard(int memberId, BoardDto boardDto);
 
-    //게시글 목록 조회(최신순, 인기순)
-    List<Board> selectBoardList(String query, String sort, String postType);
-
     // 페이징된 게시글 목록 조회
-    List<Board> selectBoardPage(int offset, int size, String sort, String query, String postType);
+    List<Board> selectBoardPage(@Param("offset") int offset,
+                                @Param("size")   int size,
+                                @Param("sort")   String sort,
+                                @Param("query")  String query,
+                                @Param("postType") String postType);
 
     // 게시글 전체 개수 조회 (페이징용)
     int countBoardList(String query, String postType);

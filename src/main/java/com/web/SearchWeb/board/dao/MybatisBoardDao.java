@@ -29,14 +29,6 @@ public class MybatisBoardDao implements BoardDao{
 
 
     /**
-     *  게시글 목록 조회(검색어, 최신순/인기순)
-     */
-    public List<Board> selectBoardList(String query, String sort, String postType) {
-        return mapper.selectBoardList(query, sort, postType);
-    }
-
-
-    /**
      *  페이징된 게시글 목록 조회
      */
     @Override
