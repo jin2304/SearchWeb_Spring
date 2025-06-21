@@ -56,7 +56,7 @@ public class BoardController {
 
 
     /**
-     *  게시글 등록
+     *  게시글 생성
      */
     @PostMapping("/board/{memberId}/post")
     public String insertBoard(@PathVariable int memberId, BoardDto boardDto){
@@ -159,7 +159,7 @@ public class BoardController {
             return "redirect:/access-denied";
         }
 
-        boardservice.updateBoard(memberId, boardId, boardDto);
+        boardservice.updateBoard(boardId, boardDto);
 
         return "redirect:/board/{boardId}";
     }
