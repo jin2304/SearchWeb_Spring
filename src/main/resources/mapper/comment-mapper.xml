@@ -34,12 +34,7 @@
     <update id="updateComment" parameterType="com.web.SearchWeb.comment.domain.Comment">
         update comment
         set
-        board_boardId = #{board_boardId},
-        member_memberId = #{member_memberId},
-        member_nickname = #{member_nickname},
-        member_job = #{member_job},
-        member_major = #{member_major},
-        content = #{content}
+        content = #{commentDto.content}
         WHERE
         commentId = #{commentId}
     </update>

@@ -49,8 +49,8 @@ public class MybatisCommentDao implements CommentDao{
     /**
      *  게시글 댓글 수정
      */
-    public int updateComment(Comment comment) {
-        return mapper.updateComment(comment);
+    public int updateComment(int commentId, CommentDto commentDto) {
+        return mapper.updateComment(commentId, commentDto);
     }
 
 

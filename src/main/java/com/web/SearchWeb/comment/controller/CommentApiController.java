@@ -1,10 +1,9 @@
 package com.web.SearchWeb.comment.controller;
 
-import com.web.SearchWeb.comment.dao.CommentDao;
+import com.web.SearchWeb.aop.OwnerCheck;
 import com.web.SearchWeb.comment.domain.Comment;
 import com.web.SearchWeb.comment.dto.CommentDto;
 import com.web.SearchWeb.comment.service.CommentService;
-import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.dto.CustomOAuth2User;
 import com.web.SearchWeb.member.dto.CustomUserDetails;
 import com.web.SearchWeb.member.service.MemberService;
@@ -25,12 +24,10 @@ import java.util.Map;
 public class CommentApiController {
 
     private final CommentService commentService;
-    private final MemberService memberService;
 
     @Autowired
-    public CommentApiController(CommentService commentService, MemberService memberService) {
+    public CommentApiController(CommentService commentService) {
         this.commentService = commentService;
-        this.memberService = memberService;
     }
 
 
@@ -87,6 +84,7 @@ public class CommentApiController {
      *  게시글 댓글 단일 조회
      */
     @GetMapping("board/{boardId}/comment/{commentId}")
+    @OwnerCheck(idParam = "commentId", service = "commentService")
     public ResponseEntity<Comment> selectComment(@PathVariable int commentId){
         Comment comment = commentService.selectComment(commentId);
         return ResponseEntity.ok(comment);
@@ -97,46 +95,12 @@ public class CommentApiController {
      *  게시글 댓글 수정
      */
     @PutMapping("board/{boardId}/comments/{commentId}")
+    @OwnerCheck(idParam = "commentId", service = "commentService")
     public ResponseEntity<Map<String, Object>> updateComment(@PathVariable int boardId,
                                                              @PathVariable int commentId,
-                                                             @AuthenticationPrincipal Object currentUser,
                                                              @RequestBody CommentDto commentDto){
-
         Map<String, Object> response = new HashMap<>();
-
-        // 로그인 되지 않은 경우
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(response); // 401 Unauthorized 응답
-        }
-
-        // 로그인 된 경우
-        String username;
-        if(currentUser instanceof UserDetails) {
-            // 일반 로그인 사용자 처리
-            username = ((CustomUserDetails) currentUser).getUsername();
-        }
-        else if(currentUser instanceof OAuth2User) {
-            // 소셜 로그인 사용자 처리
-            username = ((CustomOAuth2User) currentUser).getUsername();
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(response);  // 403 Forbidden 응답
-        }
-
-        Member loggedInMember = memberService.findByUserName(username);
-        Comment comment = commentService.selectComment(commentId);
-
-        if(comment.getMember_memberId() != loggedInMember.getMemberId()){
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(response); // 403 Forbidden 응답
-        }
-
-        commentService.updateComment(commentId, loggedInMember, commentDto);
-
+        commentService.updateComment(commentId, commentDto);
         response.put("success", true);
         return ResponseEntity.ok(response);  // 200 OK 응답
     }
@@ -146,47 +110,12 @@ public class CommentApiController {
      *  게시글 댓글 삭제
      */
     @DeleteMapping("board/{boardId}/comments/{commentId}")
+    @OwnerCheck(idParam = "commentId", service = "commentService")
     public ResponseEntity<Map<String, Object>> deleteComment(@PathVariable int boardId,
-                                                             @PathVariable int commentId,
-                                                             @AuthenticationPrincipal Object currentUser){
-
+                                                             @PathVariable int commentId){
         Map<String, Object> response = new HashMap<>();
-
-        // 로그인 되지 않은 경우
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(response); // 401 Unauthorized 응답
-        }
-
-        // 로그인 된 경우
-        String username;
-        if(currentUser instanceof UserDetails) {
-            // 일반 로그인 사용자 처리
-            username = ((CustomUserDetails) currentUser).getUsername();
-        }
-        else if(currentUser instanceof OAuth2User) {
-            // 소셜 로그인 사용자 처리
-            username = ((CustomOAuth2User) currentUser).getUsername();
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(response);  // 403 Forbidden 응답
-        }
-
-        Member loggedInMember = memberService.findByUserName(username);
-        Comment comment = commentService.selectComment(commentId);
-
-        if(comment.getMember_memberId() != loggedInMember.getMemberId()){
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(response); // 403 Forbidden 응답
-        }
-
         commentService.deleteComment(boardId, commentId);
-
         response.put("success", true);
         return ResponseEntity.ok(response);  // 200 OK 응답
     }
-
 }

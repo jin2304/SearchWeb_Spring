@@ -1,6 +1,7 @@
 package com.web.SearchWeb.comment.dao;
 
 import com.web.SearchWeb.comment.domain.Comment;
+import com.web.SearchWeb.comment.dto.CommentDto;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public interface CommentDao {
    Comment selectComment(int commentId);
 
     //게시글 댓글 수정
-    int updateComment(Comment commentId);
+    int updateComment(int commentId, CommentDto commentDto);
 
     //게시글 댓글 삭제
     int deleteComment(int commentId);
