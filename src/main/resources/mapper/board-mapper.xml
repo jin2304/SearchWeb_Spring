@@ -9,14 +9,27 @@
 
    <!-- 게시글 생성-->
     <insert id="insertBoard" parameterType="map">
-        INSERT INTO board(member_memberId, nickname, job, major, url, title, summary, description, hashtags)
-        VALUES (#{memberId}, #{boardDto.nickname}, #{boardDto.job}, #{boardDto.major}, #{boardDto.url}, #{boardDto.title}, #{boardDto.summary}, #{boardDto.description}, #{boardDto.hashtags});
+        INSERT INTO board(member_memberId, url, title, summary, description, hashtags)
+        VALUES (#{memberId}, #{boardDto.url}, #{boardDto.title}, #{boardDto.summary}, #{boardDto.description}, #{boardDto.hashtags});
     </insert>
 
 
     <!-- 페이징 게시글 목록 조회 -->
     <select id="selectBoardPage" parameterType="map" resultType="com.web.SearchWeb.board.domain.Board">
-        SELECT * FROM board
+        SELECT
+            b.boardId,
+            b.title,
+            b.description,
+            b.created_date,
+            b.likes_count,
+            b.url,
+            b.member_memberId,
+
+            m.nickname,
+            m.job,
+            m.major
+        FROM board b
+        JOIN member m ON b.member_memberId = m.memberId
         <where>
             <!-- 검색어가 있는 경우 -->
             <if test="query != null and query != ''">
