@@ -1,18 +1,14 @@
 package com.web.SearchWeb.mypage.controller;
 
+import com.web.SearchWeb.aop.OwnerCheck;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.member.domain.Member;
-import com.web.SearchWeb.member.dto.CustomOAuth2User;
-import com.web.SearchWeb.member.dto.CustomUserDetails;
 import com.web.SearchWeb.member.dto.MemberUpdateDto;
 import com.web.SearchWeb.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -52,38 +48,10 @@ public class MyPageController {
      * 마이페이지 (사용자 정보 조회)
      */
     @GetMapping("/myPage/{memberId}")
+    @OwnerCheck(idParam = "memberId", service = "memberService")
     public String myPage(@PathVariable int memberId, Model model){
-        // 현재 사용자의 Authentication 객체 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        // 사용자가 로그인되어 있는지 확인
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            return "redirect:/login"; // 사용자가 로그인되지 않은 경우, 로그인 페이지로 리디렉션
-        }
-
-        // 현재 로그인된 사용자의 정보 가져오기
-        int currentUserId = -1;
-        if (authentication.getPrincipal() instanceof CustomUserDetails) {
-            // 일반 로그인 사용자 처리
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            currentUserId = userDetails.getMemberId();
-
-        } else if (authentication.getPrincipal() instanceof CustomOAuth2User) {
-            // 소셜 로그인 사용자 처리
-            CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
-            currentUserId = oAuth2User.getMemberId();
-        }
-
-
-        // 요청된 memberId와 현재 로그인된 사용자의 ID 비교
-        if (currentUserId != memberId) {
-            return "redirect:/access-denied"; // 접근이 허용되지 않은 경우, 접근 거부 페이지로 리디렉션
-        }
-
-        // 사용자의 ID로 사용자 조회
         Member member = memberService.findByMemberId(memberId);
         model.addAttribute("member", member);
-
         return "mypage/myPage";
     }
     
@@ -92,6 +60,7 @@ public class MyPageController {
      *  마이페이지 (사용자 프로필 수정)
      */
     @PutMapping("/myPage/{memberId}/profile")
+    @OwnerCheck(idParam = "memberId", service = "memberService")
     public ResponseEntity<Integer> updateProfile(@PathVariable final int memberId, @RequestBody MemberUpdateDto memberUpdateDto) {
         return ResponseEntity.ok(memberService.updateMember(memberId, memberUpdateDto));
     }
@@ -102,6 +71,7 @@ public class MyPageController {
      *  북마크 추가 (마이페이지에서 추가)
      */
     @PostMapping(value ="/myPage/{memberId}/bookmark")
+    @OwnerCheck(idParam = "memberId", service = "memberService")
     public ResponseEntity<BookmarkDto> insertBookmark(@PathVariable final int memberId, @RequestBody BookmarkDto bookmarkdto){
         bookmarkService.insertBookmarkForUser(bookmarkdto);
         return ResponseEntity.ok(bookmarkdto);
@@ -113,6 +83,7 @@ public class MyPageController {
      *  마이페이지 북마크 목록 조회
      */
     @GetMapping(value ="/myPage/{memberId}/bookmarks")
+    @OwnerCheck(idParam = "memberId", service = "memberService")
     public ResponseEntity<List<Bookmark>> getBookmarks(@PathVariable final int memberId,
                                                        @RequestParam(required = false) String query,
                                                        @RequestParam(defaultValue = "All") String tag,
@@ -138,6 +109,7 @@ public class MyPageController {
      *  태그 조회
      */
     @GetMapping("/myPage/{memberId}/tags")
+    @OwnerCheck(idParam = "memberId", service = "memberService")
     public ResponseEntity<List<String>> getTags(@PathVariable final int memberId) {
         List<String> tags = bookmarkService.selectTags(memberId);
         return ResponseEntity.ok(tags);
@@ -148,6 +120,7 @@ public class MyPageController {
      *  마이페이지 북마크 단일 조회
      */
     @GetMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
+    @OwnerCheck(idParam = "memberId", service = "memberService")
     public ResponseEntity<Bookmark> getBookmark(@PathVariable final int memberId, @PathVariable final int bookmarkId) {
         Bookmark bookmark = bookmarkService.selectBookmark(memberId, bookmarkId);
         return ResponseEntity.ok(bookmark);
@@ -158,6 +131,7 @@ public class MyPageController {
      *  마이페이지 북마크 수정
      */
     @PutMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
+    @OwnerCheck(idParam = "memberId", service = "memberService")
     public ResponseEntity<Integer> updateBookmark(@PathVariable final int memberId,
                                                   @PathVariable final int bookmarkId,
                                                   @RequestBody BookmarkDto bookmarkDto) {
@@ -170,6 +144,7 @@ public class MyPageController {
      *  마이페이지 북마크 삭제
      */
     @DeleteMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
+    @OwnerCheck(idParam = "memberId", service = "memberService")
     public ResponseEntity<Integer> deleteBookmark(@PathVariable final int memberId, @PathVariable final int bookmarkId) {
         int result = bookmarkService.deleteBookmarkMyPage(memberId, bookmarkId);
         return ResponseEntity.ok(result);

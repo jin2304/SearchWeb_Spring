@@ -94,8 +94,8 @@ public class BoardService {
     /**
      *  게시글 삭제
      */
-    public int deleteBoard(int memberId, int boardId) {
-        return boardDao.deleteBoard(memberId, boardId);
+    public int deleteBoard(int boardId) {
+        return boardDao.deleteBoard(boardId);
     }
 
 
@@ -124,5 +124,13 @@ public class BoardService {
         } else {
             throw new IllegalArgumentException("Invalid board ID");
         }
+    }
+
+
+    // 게시글 소유자(작성자) 조회
+    public int findMemberIdByBoardId(int boardId) {
+        Board board = boardDao.selectBoard(boardId);
+        if (board == null) throw new IllegalArgumentException("게시글이 존재하지 않습니다.");
+        return board.getMember_memberId();
     }
 }

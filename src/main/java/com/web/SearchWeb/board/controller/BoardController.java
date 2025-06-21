@@ -1,5 +1,6 @@
 package com.web.SearchWeb.board.controller;
 
+import com.web.SearchWeb.aop.OwnerCheck;
 import com.web.SearchWeb.board.domain.Board;
 import com.web.SearchWeb.board.dto.BoardDto;
 import com.web.SearchWeb.board.service.BoardService;
@@ -133,34 +134,9 @@ public class BoardController {
      *  게시글 수정
      */
     @PostMapping("/board/{boardId}/update")
-    public String updateBoard(@PathVariable int boardId, BoardDto boardDto, @AuthenticationPrincipal Object currentUser){
-
-
-        // 로그인 된 경우
-        int memberId;
-        if(currentUser instanceof UserDetails) {
-            // 일반 로그인 사용자 처리
-            memberId = ((CustomUserDetails) currentUser).getMemberId();
-        }
-        else if(currentUser instanceof OAuth2User) {
-            // 소셜 로그인 사용자 처리
-            memberId = ((CustomOAuth2User) currentUser).getMemberId();
-        } else {
-            return "redirect:/error";
-        }
-
-
-        // 수정하려는 게시글의 정보 가져오기
-        Map<String, Object> boardData = boardservice.selectBoard(boardId);
-        Board board = (Board) boardData.get("board");
-
-        // 게시글이 존재하지 않거나, 로그인한 사용자가 작성자가 아닌 경우 접근 거부
-        if (board == null || (board.getMember_memberId() != memberId)) {
-            return "redirect:/access-denied";
-        }
-
+    @OwnerCheck(idParam = "boardId", service = "boardService")
+    public String updateBoard(@PathVariable int boardId, BoardDto boardDto){
         boardservice.updateBoard(boardId, boardDto);
-
         return "redirect:/board/{boardId}";
     }
 
@@ -169,33 +145,9 @@ public class BoardController {
      *  게시글 삭제
      */
     @PostMapping("/board/{boardId}/delete")
-    public String deleteBoard(@PathVariable int boardId, @AuthenticationPrincipal Object currentUser) {
-
-        // 로그인 된 경우
-        int memberId;
-        if(currentUser instanceof UserDetails) {
-            // 일반 로그인 사용자 처리
-            memberId = ((CustomUserDetails) currentUser).getMemberId();
-        }
-        else if(currentUser instanceof OAuth2User) {
-            // 소셜 로그인 사용자 처리
-            memberId = ((CustomOAuth2User) currentUser).getMemberId();
-        } else {
-            return "redirect:/error";
-        }
-
-        // 삭제하려는 게시글의 정보 가져오기
-        Map<String, Object> boardData = boardservice.selectBoard(boardId);
-        Board board = (Board) boardData.get("board");
-
-        // 게시글이 존재하지 않거나, 로그인한 사용자가 작성자가 아닌 경우 접근 거부
-        if (board == null || (board.getMember_memberId() != memberId)) {
-            return "redirect:/access-denied";
-        }
-
-        // 게시글 삭제 수행
-        boardservice.deleteBoard(memberId, boardId);
-
+    @OwnerCheck(idParam = "boardId", service = "boardService")
+    public String deleteBoard(@PathVariable int boardId) {
+        boardservice.deleteBoard(boardId);
         return "redirect:/board";
     }
 

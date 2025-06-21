@@ -69,16 +69,8 @@ public class CommentService {
     /**
      *  게시글 댓글 수정
      */
-    public int updateComment(int commentId, Member member, CommentDto commentDto){
-        Comment comment = new Comment();
-        comment.setCommentId(commentId);
-        comment.setBoard_boardId(commentDto.getBoard_boardId());
-        comment.setMember_memberId(member.getMemberId());
-        comment.setMember_nickname(member.getNickname());
-        comment.setMember_job(member.getJob());
-        comment.setMember_major(member.getMajor());
-        comment.setContent(commentDto.getContent());
-        return commentdao.updateComment(comment);
+    public int updateComment(int commentId, CommentDto commentDto){
+        return commentdao.updateComment(commentId, commentDto);
     }
 
 
@@ -101,5 +93,13 @@ public class CommentService {
      */
     public int getCommentCount(int boardId) {
         return commentdao.countComments(boardId);
+    }
+
+
+    // 댓글 소유자(작성자) 조회
+    public int findMemberIdByCommentId(int commentId) {
+        Comment comment = commentdao.selectComment(commentId);
+        if (comment == null) throw new IllegalArgumentException("게시글이 존재하지 않습니다.");
+        return comment.getMember_memberId();
     }
 }

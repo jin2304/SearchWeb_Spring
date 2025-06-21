@@ -125,9 +125,6 @@
         delete from board
         where
         boardId = #{boardId}
-        and
-        member_memberId = #{memberId}
-
     </delete>
 
 
