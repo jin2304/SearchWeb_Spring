@@ -80,8 +80,8 @@ public class MybatisBoardDao implements BoardDao{
     /**
      *  게시글 삭제
      */
-    public int deleteBoard(int memberId, int boardId) {
-        return mapper.deleteBoard(memberId, boardId);
+    public int deleteBoard(int boardId) {
+        return mapper.deleteBoard(boardId);
     }
 
 
