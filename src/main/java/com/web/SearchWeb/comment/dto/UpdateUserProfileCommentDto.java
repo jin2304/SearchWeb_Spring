@@ -1,14 +1,14 @@
 package com.web.SearchWeb.comment.dto;
 
 public record UpdateUserProfileCommentDto(
-        int CommentId,
+        int commentId,
         String nickname,
         String job,
         String major
 ) {
 
-    public static UpdateUserProfileCommentDto of(int CommentId, String nickname, String job, String major) {
-        return new UpdateUserProfileCommentDto(CommentId, nickname, job, major);
+    public static UpdateUserProfileCommentDto of(int commentId, String nickname, String job, String major) {
+        return new UpdateUserProfileCommentDto(commentId, nickname, job, major);
     }
 
 }
