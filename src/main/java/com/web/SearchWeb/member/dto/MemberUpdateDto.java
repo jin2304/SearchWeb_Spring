@@ -9,6 +9,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class MemberUpdateDto {
+    private String nickname;
     private String job;
     private String major;
     private String summary;
