@@ -3,6 +3,7 @@ package com.web.SearchWeb.comment.dao;
 
 import com.web.SearchWeb.comment.domain.Comment;
 import com.web.SearchWeb.comment.dto.CommentDto;
+import com.web.SearchWeb.comment.dto.UpdateUserProfileCommentDto;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -39,6 +40,14 @@ public class MybatisCommentDao implements CommentDao{
 
 
     /**
+     *  회원번호로 게시글 댓글 목록 조회
+     */
+    public List<Comment> selectCommentsByMemberId(int memberId){
+        return mapper.selectCommentsByMemberId(memberId);
+    }
+
+
+    /**
      *  게시글 댓글 단일 조회
      */
     public Comment selectComment(int commentId){
@@ -51,6 +60,14 @@ public class MybatisCommentDao implements CommentDao{
      */
     public int updateComment(int commentId, CommentDto commentDto) {
         return mapper.updateComment(commentId, commentDto);
+    }
+
+
+    /**
+     *  게시글 댓글 사용자 프로필 수정
+     */
+    public int updateCommentUserProfile(UpdateUserProfileCommentDto commentDto) {
+        return mapper.updateCommentUserProfile(commentDto);
     }
 
 
