@@ -83,7 +83,7 @@ jobs:
             if [ "$(docker ps -aq -f name=searchweb)" ]; then docker rm searchweb; fi
 
             docker run -d \
-              --env-file /home/ubuntu/searchweb/.env \
+              --env-file /home/ubuntu/Searchweb/.env \
               -p 8080:8080 \
               --name searchweb \
               ${{ secrets.DOCKERHUB_USERNAME }}/searchweb:latest
