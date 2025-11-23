@@ -74,14 +74,15 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             docker login -u '${{ secrets.DOCKERHUB_USERNAME }}' -p '${{ secrets.DOCKERHUB_TOKEN }}'
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/searchweb:${IMAGE_TAG}
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/searchweb:latest
 
-            if [ "$(docker ps -q -f name=searchweb)" ]; then docker stop searchweb; fi
-            if [ "$(docker ps -aq -f name=searchweb)" ]; then docker rm searchweb; fi
+            # 기존 컨테이너 강제 삭제 (있으면 지우고, 없으면 에러 무시)
+            docker rm -f searchweb 2>/dev/null || true
 
+            # 새 컨테이너 실행
             docker run -d \
               --env-file /home/ubuntu/Searchweb/.env \
               -p 8080:8080 \
