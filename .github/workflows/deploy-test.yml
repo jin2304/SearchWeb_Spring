@@ -84,7 +84,7 @@ jobs:
 
             # 새 컨테이너 실행
             docker run -d \
-              --env SPRING_PROFILES_ACTIVE=dev \
+              --env SPRING_PROFILES_ACTIVE=local \
               --env-file /home/ubuntu/Searchweb/.env \
               -p 8080:8080 \
               --name searchweb \
