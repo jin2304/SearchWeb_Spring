@@ -19,8 +19,6 @@ bin/
 
 
 ### Ignore application.properties ###
-application.properties
-application-*.properties
 .env
 
 
