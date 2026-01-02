@@ -87,31 +87,21 @@ public class MyPageController {
     public ResponseEntity<List<Bookmark>> getBookmarks(@PathVariable final int memberId,
                                                        @RequestParam(required = false) String query,
                                                        @RequestParam(defaultValue = "All") String tag,
+                                                       @RequestParam(required = false) Long folderId,
                                                        @RequestParam(defaultValue = "Oldest") String sort) {
-        List<Bookmark> bookmarks;
-        if ((query == null || query.isEmpty()) && ("All".equals(tag) || tag == null)) {
-            // 1. 전체 북마크 조회 (태그x, 검색어x)
-            bookmarks = bookmarkService.selectBookmarkList(memberId, sort);
-        } else if (query != null && !query.isEmpty()) { //검색어가 있는 경우
-            // 2. 검색어로 북마크 조회 (태그x, 검색어o),
-            // 3. 검색어와 특정 태그로 북마크 조회 (태그o, 검색어o)
-            bookmarks = bookmarkService.selectBookmarkListByQuery(memberId, tag, sort, query);
-        } else {
-            // 4. 특정 태그로 북마크 조회 (태그o, 검색어x)
-            bookmarks = bookmarkService.selectBookmarkListByTag(memberId, tag, sort);
-        }
-
+        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(memberId, tag, sort, query, folderId);
         return ResponseEntity.ok(bookmarks);
     }
 
 
     /**
-     *  태그 조회
+     * 마이페이지 북마크 태그 조회
      */
     @GetMapping("/myPage/{memberId}/tags")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<List<String>> getTags(@PathVariable final int memberId) {
-        List<String> tags = bookmarkService.selectTags(memberId);
+    public ResponseEntity<List<String>> getTags(@PathVariable final int memberId,
+                                                @RequestParam(required = false) Long folderId) {
+        List<String> tags = bookmarkService.selectTags(memberId, folderId);
         return ResponseEntity.ok(tags);
     }
 
