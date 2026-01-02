@@ -5,12 +5,12 @@ import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
+import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public class MybatisBookmarkDao implements BookmarkDao {
@@ -25,29 +25,11 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
-     *  북마크 목록 조회 (시간)
+     *  북마크 목록 조회 
      */
     @Override
-    public List<Bookmark> selectBookmarkList(int memberId, String sort) {
-        return mapper.selectBookmarkList(memberId, sort);
-    }
-
-
-    /**
-     *  //북마크 목록 조회 (시간, 태그)
-     */
-    @Override
-    public List<Bookmark> selectBookmarkListByTag(Map<String, Object> params) {
-        return mapper.selectBookmarkListByTag(params);
-    }
-
-
-    /**
-     *  북마크 목록 조회 (검색어)
-     */
-    @Override
-    public List<Bookmark> selectBookmarkListByQuery(int memberId, String tag, String sort, String query) {
-        return mapper.selectBookmarkListByQuery(memberId, tag, sort, query);
+    public List<Bookmark> selectBookmarkList(BookmarkSearchRequestDto searchRequest) {
+        return mapper.selectBookmarkList(searchRequest);
     }
 
 
@@ -153,8 +135,8 @@ public class MybatisBookmarkDao implements BookmarkDao {
      *  사용자 태그 목록 조회
      */
     @Override
-    public List<String> selectTags(int memberId) {
-        return mapper.selectTags(memberId);
+    public List<String> selectTags(int memberId, Long folderId) {
+        return mapper.selectTags(memberId, folderId);
     }
 
 
