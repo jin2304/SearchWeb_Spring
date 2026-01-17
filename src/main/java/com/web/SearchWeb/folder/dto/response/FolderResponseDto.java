@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,8 +20,8 @@ public class FolderResponseDto {
     private int folderId;
     private String name;
     private String tag;
-    private String created_date;
-    private String modified_date;
+    private LocalDateTime created_date;
+    private LocalDateTime modified_date;
 
     /**
      * Folder Entity -> FolderResponseDto 변환 메서드
@@ -50,4 +51,3 @@ public class FolderResponseDto {
                 .collect(Collectors.toList());
     }
 }
-

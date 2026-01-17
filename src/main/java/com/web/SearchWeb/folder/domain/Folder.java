@@ -1,5 +1,7 @@
 package com.web.SearchWeb.folder.domain;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +18,6 @@ public class Folder {
     private int member_memberId;
     private String name;
     private String tag;
-    private String created_date;
-    private String modified_date;
+    private LocalDateTime created_date;
+    private LocalDateTime modified_date;
 }
