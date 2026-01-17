@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS `member`;
 CREATE TABLE `member` (
   `memberId` int NOT NULL AUTO_INCREMENT,
   `username` varchar(100) NOT NULL,
-  `password` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `nickname` varchar(45) DEFAULT NULL,
   `job` varchar(45) DEFAULT NULL,
   `major` varchar(45) DEFAULT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE `member` (
   `email` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`memberId`),
   KEY `idx_nickname` (`nickname`)
-) ENGINE=InnoDB AUTO_INCREMENT=103 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 -- website 테이블 생성
@@ -39,7 +39,7 @@ DROP TABLE IF EXISTS `board`;
 
 CREATE TABLE `board` (
   `boardId` int NOT NULL AUTO_INCREMENT,
-  `member_memberId` int NOT NULL,
+  `member_memberId` int DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
   `title` varchar(45) NOT NULL,
   `summary` varchar(150) DEFAULT NULL,
@@ -53,8 +53,8 @@ CREATE TABLE `board` (
   PRIMARY KEY (`boardId`),
   KEY `memberId_idx` (`member_memberId`),
   KEY `idx_created_date` (`created_date` DESC),
-  CONSTRAINT `memberId` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`)
-) ENGINE=InnoDB AUTO_INCREMENT=1000009 DEFAULT CHARSET=utf8mb3;
+  CONSTRAINT `memberId` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 -- likes 테이블 생성
@@ -70,8 +70,8 @@ CREATE TABLE `likes` (
   KEY `member_memberId_idx` (`member_memberId`) /*!80000 INVISIBLE */,
   KEY `board_boardId` (`board_boardId`),
   CONSTRAINT `fk_like_board` FOREIGN KEY (`board_boardId`) REFERENCES `board` (`boardId`) ON DELETE CASCADE,
-  CONSTRAINT `fk_like_member` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`)
-) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb3;
+  CONSTRAINT `fk_like_member` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 -- folder 테이블 생성
@@ -111,10 +111,10 @@ CREATE TABLE `bookmark` (
   KEY `fk_bookmark_board_idx` (`board_boardId`),
   KEY `fk_bookmark_folder_idx` (`folder_folderId`),
   CONSTRAINT `fk_bookmark_board` FOREIGN KEY (`board_boardId`) REFERENCES `board` (`boardId`) ON DELETE CASCADE,
-  CONSTRAINT `fk_bookmark_member` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`),
+  CONSTRAINT `fk_bookmark_member` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`) ON DELETE CASCADE,
   CONSTRAINT `fk_bookmark_website1` FOREIGN KEY (`website_websiteId`) REFERENCES `website` (`websiteId`),
   CONSTRAINT `fk_bookmark_folder` FOREIGN KEY (`folder_folderId`) REFERENCES `folder` (`folderId`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=1137 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 -- likebookmark 테이블 생성
@@ -130,9 +130,9 @@ CREATE TABLE `likebookmark` (
   UNIQUE KEY `unique_board_member` (`board_boardId`,`member_memberId`),
   KEY `member_memberId_idx` (`member_memberId`) /*!80000 INVISIBLE */,
   KEY `board_boardId` (`board_boardId`),
-  CONSTRAINT `board_boardId` FOREIGN KEY (`board_boardId`) REFERENCES `board` (`boardId`),
-  CONSTRAINT `member_memberId` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb3;
+  CONSTRAINT `board_boardId` FOREIGN KEY (`board_boardId`) REFERENCES `board` (`boardId`) ON DELETE CASCADE,
+  CONSTRAINT `member_memberId` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 -- comment 테이블 생성
@@ -141,7 +141,7 @@ DROP TABLE IF EXISTS `comment`;
 CREATE TABLE `comment` (
   `commentId` int NOT NULL AUTO_INCREMENT,
   `board_boardId` int NOT NULL,
-  `member_memberId` int NOT NULL,
+  `member_memberId` int DEFAULT NULL,
   `member_nickname` varchar(45) NOT NULL,
   `member_job` varchar(45) DEFAULT NULL,
   `member_major` varchar(45) DEFAULT NULL,
@@ -151,5 +151,5 @@ CREATE TABLE `comment` (
   KEY `board_boardId_idx` (`board_boardId`),
   KEY `member_memberId_idx` (`member_memberId`),
   CONSTRAINT `fk_comment_board` FOREIGN KEY (`board_boardId`) REFERENCES `board` (`boardId`) ON DELETE CASCADE,
-  CONSTRAINT `fk_comment_member` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`)
-) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8mb3;
+  CONSTRAINT `fk_comment_member` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
