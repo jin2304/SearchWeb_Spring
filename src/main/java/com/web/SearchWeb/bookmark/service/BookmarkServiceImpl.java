@@ -6,13 +6,11 @@ import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
+import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class BookmarkServiceImpl implements BookmarkService {
@@ -52,33 +50,18 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
-     *  북마크 목록 조회 (시간)
+     *  북마크 목록 조회
      */
     @Override
-    public List<Bookmark> selectBookmarkList(int memberId, String sort) {
-        return bookmarkDao.selectBookmarkList(memberId, sort);
-    }
-
-
-    /**
-     *  북마크 목록 조회 (시간, 태그)
-     */
-    @Override
-    public List<Bookmark> selectBookmarkListByTag(int memberId, String tag, String sort) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("member_memberId", memberId);
-        params.put("tag", tag);
-        params.put("sort", sort);
-        return bookmarkDao.selectBookmarkListByTag(params);
-    }
-
-
-    /**
-     *  북마크 목록 조회 (검색어)
-     */
-    @Override
-    public List<Bookmark> selectBookmarkListByQuery(int memberId, String tag, String sort, String query) {
-        return bookmarkDao.selectBookmarkListByQuery(memberId, tag, sort, query);
+    public List<Bookmark> selectBookmarkList(int memberId, String tag, String sort, String query, Long folderId) {
+        BookmarkSearchRequestDto searchRequest = BookmarkSearchRequestDto.builder()
+                .memberId(memberId)
+                .tag(tag)
+                .sort(sort)
+                .query(query)
+                .folderId(folderId)
+                .build();
+        return bookmarkDao.selectBookmarkList(searchRequest);
     }
 
 
@@ -159,8 +142,8 @@ public class BookmarkServiceImpl implements BookmarkService {
      *  사용자 태그 목록 조회
      */
     @Override
-    public List<String> selectTags(int memberId) {
-        return bookmarkDao.selectTags(memberId);
+    public List<String> selectTags(int memberId, Long folderId) {
+        return bookmarkDao.selectTags(memberId, folderId);
     }
 
 

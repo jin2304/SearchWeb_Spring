@@ -5,9 +5,9 @@ import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
+import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
 
 import java.util.List;
-import java.util.Map;
 
 public interface BookmarkDao {
     //북마크 확인
@@ -16,12 +16,8 @@ public interface BookmarkDao {
     int checkBoardBookmark(BoardBookmarkCheckDto checkDto);
     //북마크 단일 조회
     Bookmark selectBookmark(int memberId, int bookmarkId);
-    //북마크 목록 조회 (시간)
-    List<Bookmark> selectBookmarkList(int memberId, String sort);
-    //북마크 목록 조회 (시간, 태그)
-    List<Bookmark> selectBookmarkListByTag(Map<String, Object> params);
-    //북마크 목록 조회 (검색어)
-    List<Bookmark> selectBookmarkListByQuery(int memberId, String tag, String sort, String query);
+    //북마크 목록 조회
+    List<Bookmark> selectBookmarkList(BookmarkSearchRequestDto searchRequest);
     //북마크 추가
     int insertBookmark(BookmarkDto bookmark);
     //북마크 추가 (사용자 직접 추가)
@@ -39,7 +35,7 @@ public interface BookmarkDao {
     //북마크-웹사이트 조회
     List<BookmarkWebsite> selectBookmarkWebsite(int memberId);
     //사용자 태그 목록 조회
-    List<String> selectTags(int memberId);
+    List<String> selectTags(int memberId, Long folderId);
     //게시글 북마크 여부 확인
     int isBookmarked(int boardId, int memberId);
 }

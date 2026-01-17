@@ -13,6 +13,7 @@ public class Bookmark {
     private int member_memberId;
     private int website_websiteId;
     private int board_boardId;
+    private int folder_folderId;
     private String name;
     private String description;
     private String url;
