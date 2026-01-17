@@ -49,9 +49,9 @@ public class FolderController {
     @PostMapping("/myPage/{memberId}/folder")
     @OwnerCheck(idParam = "memberId", service = "memberService")
     public ResponseEntity<FolderResponseDto> insertFolder(@PathVariable final int memberId,
-                                                          @RequestBody FolderCreateRequestDto folderCreateRequestDto) {
-        int folderId = folderService.insertFolder(memberId, folderCreateRequestDto);
-        return ResponseEntity.ok(folderService.selectFolder(memberId, folderId));
+            @RequestBody FolderCreateRequestDto folderCreateRequestDto) {
+        FolderResponseDto folder = folderService.insertFolder(memberId, folderCreateRequestDto);
+        return ResponseEntity.ok(folder);
     }
 
 

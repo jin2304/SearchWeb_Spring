@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface FolderService {
     // 폴더 생성
-    int insertFolder(int memberId, FolderCreateRequestDto folderCreateRequestDto);
+    FolderResponseDto insertFolder(int memberId, FolderCreateRequestDto folderCreateRequestDto);
     // 폴더 단일 조회
     FolderResponseDto selectFolder(int memberId, int folderId);
     // 폴더 목록 조회 
