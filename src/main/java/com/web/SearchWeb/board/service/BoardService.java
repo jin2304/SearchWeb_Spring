@@ -4,6 +4,7 @@ import com.web.SearchWeb.board.dao.BoardDao;
 import com.web.SearchWeb.board.domain.Board;
 import com.web.SearchWeb.board.dto.BoardDto;
 import com.web.SearchWeb.comment.service.CommentService;
+import com.web.SearchWeb.likes.service.LikesService;
 import com.web.SearchWeb.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,14 +19,14 @@ public class BoardService {
 
     private final BoardDao boardDao;
     private final MemberService memberService;
-    private final LikeBookmarkService likeBookmarkService;
+    private final LikesService likesService;
     private final CommentService commentService;
 
     @Autowired
-    public BoardService(BoardDao boardDao, MemberService memberService, LikeBookmarkService likeBookmarkService, CommentService commentService) {
+    public BoardService(BoardDao boardDao, MemberService memberService, LikesService likesService, CommentService commentService) {
         this.boardDao = boardDao;
         this.memberService = memberService;
-        this.likeBookmarkService = likeBookmarkService;
+        this.likesService = likesService;
         this.commentService = commentService;
     }
 

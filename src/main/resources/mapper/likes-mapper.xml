@@ -5,11 +5,11 @@
 
 
 
-<mapper namespace="com.web.SearchWeb.board.dao.LikeBookmarkDao"> <!--Dao 이름-->
+<mapper namespace="com.web.SearchWeb.likes.dao.LikesDao"> <!--Dao 이름-->
 
     <!-- 게시글 좋아요 상태 확인 -->
     <select id="isLikedByMember" resultType="boolean">
-        select is_Liked FROM likebookmark
+        select is_Liked FROM likes
         WHERE
         board_boardId = #{boardId}
         AND
@@ -19,7 +19,7 @@
 
     <!-- 게시글 좋아요 추가 -->
     <insert id="likeBoard">
-        insert INTO likebookmark (board_boardId, member_memberId, is_Liked)
+        insert INTO likes (board_boardId, member_memberId, is_Liked)
         VALUES (#{boardId}, #{memberId}, TRUE)
         ON DUPLICATE KEY UPDATE is_Liked = TRUE;
     </insert>
@@ -27,7 +27,7 @@
 
     <!-- 게시글 좋아요 취소 -->
     <update id="unlikeBoard">
-        update likebookmark
+        update likes
         SET
         is_Liked = FALSE
         WHERE
@@ -39,7 +39,7 @@
 
     <!-- 게시글 좋아요 수 조회 -->
     <select id="countLikes">
-        select COUNT(*) FROM likebookmark
+        select COUNT(*) FROM likes
         WHERE
         board_boardId = #{boardId}
         AND

@@ -4,7 +4,7 @@ import com.web.SearchWeb.aop.OwnerCheck;
 import com.web.SearchWeb.board.domain.Board;
 import com.web.SearchWeb.board.dto.BoardDto;
 import com.web.SearchWeb.board.service.BoardService;
-import com.web.SearchWeb.board.service.LikeBookmarkService;
+import com.web.SearchWeb.likes.service.LikesService;
 import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
@@ -22,7 +22,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,14 +43,14 @@ public class BoardController {
 
     private final BoardService boardservice;
     private final MemberService memberservice;
-    private final LikeBookmarkService likebookmarkservice;
+    private final LikesService likesService;
     private final BookmarkService bookmarkService;
 
     @Autowired
-    public BoardController(BoardService boardservice, MemberService memberservice, LikeBookmarkService likebookmarkservice, BookmarkService bookmarkService) {
+    public BoardController(BoardService boardservice, MemberService memberservice, LikesService likesService, BookmarkService bookmarkService) {
         this.boardservice = boardservice;
         this.memberservice = memberservice;
-        this.likebookmarkservice = likebookmarkservice;
+        this.likesService = likesService;
         this.bookmarkService = bookmarkService;
     }
 
@@ -119,7 +118,7 @@ public class BoardController {
                 return "redirect:/error";
             }
 
-            boolean isLiked = likebookmarkservice.isLiked(boardId, memberId);
+            boolean isLiked = likesService.isLiked(boardId, memberId);
             int isBookmarked = bookmarkService.isBookmarked(boardId, memberId);
             model.addAttribute("isLiked", isLiked);
             model.addAttribute("isBookmarked", isBookmarked);
@@ -182,7 +181,7 @@ public class BoardController {
             return response;
         }
 
-        boolean isLiked = likebookmarkservice.toggleLike(boardId, memberId);
+        boolean isLiked = likesService.toggleLike(boardId, memberId);
         response.put("isLiked", isLiked);
         return response;
     }

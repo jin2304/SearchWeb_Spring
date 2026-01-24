@@ -1,7 +1,7 @@
-package com.web.SearchWeb.board.dao;
+package com.web.SearchWeb.likes.dao;
 
 
-public interface LikeBookmarkDao {
+public interface LikesDao {
     // 게시글 좋아요 상태 확인
     Boolean isLikedByMember( int boardId, int memberId);
 
