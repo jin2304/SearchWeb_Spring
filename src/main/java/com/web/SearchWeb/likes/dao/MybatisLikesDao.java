@@ -1,18 +1,18 @@
-package com.web.SearchWeb.board.dao;
+package com.web.SearchWeb.likes.dao;
 
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class MybatisLikeBookmarkDao implements LikeBookmarkDao{
+public class MybatisLikesDao implements LikesDao {
 
-    private final LikeBookmarkDao mapper;
+    private final LikesDao mapper;
 
     @Autowired
-    public MybatisLikeBookmarkDao(SqlSession sqlSession) {
+    public MybatisLikesDao(SqlSession sqlSession) {
         //세션을 통해 mapper 컨테이너에서 mapper 객체를 꺼내 씀
-        mapper = sqlSession.getMapper(LikeBookmarkDao.class);
+        mapper = sqlSession.getMapper(LikesDao.class);
     }
 
     /**

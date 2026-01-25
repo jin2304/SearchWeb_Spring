@@ -61,11 +61,11 @@ CREATE TABLE `board` (
 DROP TABLE IF EXISTS `likes`;
 
 CREATE TABLE `likes` (
-  `likes_Id` int NOT NULL AUTO_INCREMENT,
+  `likesId` int NOT NULL AUTO_INCREMENT,
   `board_boardId` int NOT NULL,
   `member_memberId` int NOT NULL,
   `is_Liked` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`likes_Id`),
+  PRIMARY KEY (`likesId`),
   UNIQUE KEY `unique_board_member` (`board_boardId`,`member_memberId`),
   KEY `member_memberId_idx` (`member_memberId`) /*!80000 INVISIBLE */,
   KEY `board_boardId` (`board_boardId`),
@@ -115,25 +115,6 @@ CREATE TABLE `bookmark` (
   CONSTRAINT `fk_bookmark_website1` FOREIGN KEY (`website_websiteId`) REFERENCES `website` (`websiteId`),
   CONSTRAINT `fk_bookmark_folder` FOREIGN KEY (`folder_folderId`) REFERENCES `folder` (`folderId`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-
--- likebookmark 테이블 생성
-DROP TABLE IF EXISTS `likebookmark`;
-
-CREATE TABLE `likebookmark` (
-  `likebookmarkId` int NOT NULL AUTO_INCREMENT,
-  `board_boardId` int NOT NULL,
-  `member_memberId` int NOT NULL,
-  `is_Liked` tinyint(1) DEFAULT '0',
-  `is_Bookmarked` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`likebookmarkId`),
-  UNIQUE KEY `unique_board_member` (`board_boardId`,`member_memberId`),
-  KEY `member_memberId_idx` (`member_memberId`) /*!80000 INVISIBLE */,
-  KEY `board_boardId` (`board_boardId`),
-  CONSTRAINT `board_boardId` FOREIGN KEY (`board_boardId`) REFERENCES `board` (`boardId`) ON DELETE CASCADE,
-  CONSTRAINT `member_memberId` FOREIGN KEY (`member_memberId`) REFERENCES `member` (`memberId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 -- comment 테이블 생성
 DROP TABLE IF EXISTS `comment`;
