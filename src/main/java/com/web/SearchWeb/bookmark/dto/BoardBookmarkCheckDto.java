@@ -10,6 +10,6 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 public class BoardBookmarkCheckDto {
-    private int memberId;
-    private int boardId;
+    private Long memberId;
+    private Long bookmarkId;
 }
