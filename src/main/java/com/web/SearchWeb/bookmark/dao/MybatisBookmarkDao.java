@@ -1,10 +1,8 @@
 package com.web.SearchWeb.bookmark.dao;
 
 import com.web.SearchWeb.bookmark.domain.Bookmark;
-import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
-import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
+import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
-import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
 import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +17,39 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
     @Autowired
     public MybatisBookmarkDao(SqlSession sqlSession) {
-        //세션을 통해 mapper 컨테이너에서 mapper 객체를 꺼내 씀
         mapper = sqlSession.getMapper(BookmarkDao.class);
     }
 
 
     /**
-     *  북마크 목록 조회 
+     *  북마크 중복 확인
+     */
+    @Override
+    public int checkBookmarkExists(Long memberId, Long folderId, Long linkId) {
+        return mapper.checkBookmarkExists(memberId, folderId, linkId);
+    }
+
+
+    /**
+     *  URL 기반 북마크 존재 여부 확인 (Board Bridge용)
+     */
+    @Override
+    public int checkBookmarkExistsByUrl(Long memberId, String url) {
+        return mapper.checkBookmarkExistsByUrl(memberId, url);
+    }
+
+
+    /**
+     *  북마크 단일 조회
+     */
+    @Override
+    public Bookmark selectBookmark(Long memberId, Long bookmarkId) {
+        return mapper.selectBookmark(memberId, bookmarkId);
+    }
+
+
+    /**
+     *  북마크 목록 조회
      */
     @Override
     public List<Bookmark> selectBookmarkList(BookmarkSearchRequestDto searchRequest) {
@@ -34,29 +58,20 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
-     *  북마크 확인
+     *  링크 조회 (canonical_url로)
      */
     @Override
-    public int checkBookmark(BookmarkCheckDto bookmark) {
-        return mapper.checkBookmark(bookmark);
+    public Link selectLinkByCanonicalUrl(String canonicalUrl) {
+        return mapper.selectLinkByCanonicalUrl(canonicalUrl);
     }
 
 
     /**
-     *  게시판 북마크 확인
+     *  링크 추가
      */
     @Override
-    public int checkBoardBookmark(BoardBookmarkCheckDto checkDto) {
-        return mapper.checkBoardBookmark(checkDto);
-    }
-
-
-    /**
-     *  북마크 단일 조회
-     */
-    @Override
-    public Bookmark selectBookmark(int memberId, int bookmarkId) {
-        return mapper.selectBookmark(memberId, bookmarkId);
+    public int insertLink(Link link) {
+        return mapper.insertLink(link);
     }
 
 
@@ -64,26 +79,8 @@ public class MybatisBookmarkDao implements BookmarkDao {
      *  북마크 추가
      */
     @Override
-    public int insertBookmark(BookmarkDto bookmark) {
-        return mapper.insertBookmark(bookmark);
-    }
-
-
-    /**
-     *  북마크 추가 (사용자 직접 추가)
-     */
-    @Override
-    public int insertBookmarkForUser(BookmarkDto bookmarkDto) {
-        return mapper.insertBookmarkForUser(bookmarkDto);
-    }
-
-
-    /**
-     *  북마크 추가 (게시판에서 추가)
-     */
-    @Override
-    public int insertBookmarkBoard(BookmarkDto bookmarkDto) {
-        return mapper.insertBookmarkBoard(bookmarkDto);
+    public int insertBookmark(BookmarkDto bookmark, Long linkId) {
+        return mapper.insertBookmark(bookmark, linkId);
     }
 
 
@@ -91,59 +88,24 @@ public class MybatisBookmarkDao implements BookmarkDao {
      *  북마크 수정
      */
     @Override
-    public int updateBookmark(BookmarkDto bookmarkDto, int bookmarkId) {
+    public int updateBookmark(BookmarkDto bookmarkDto, Long bookmarkId) {
         return mapper.updateBookmark(bookmarkDto, bookmarkId);
     }
 
 
     /**
-     *  북마크 삭제
+     *  북마크 삭제 (soft delete)
      */
     @Override
-    public int deleteBookmark(BookmarkCheckDto bookmark) {
-        return mapper.deleteBookmark(bookmark);
-    }
-
-
-    /**
-     *  마이페이지 북마크 삭제
-     */
-    @Override
-    public int deleteBookmarkMyPage(int memberId, int bookmarkId) {
-        return mapper.deleteBookmarkMyPage(memberId, bookmarkId);
-    }
-
-
-    /**
-     *  게시판 북마크 삭제
-     */
-    @Override
-    public int deleteBookmarkBoard(BoardBookmarkCheckDto bookmark) {
-        return mapper.deleteBookmarkBoard(bookmark);
+    public int deleteBookmark(Long memberId, Long bookmarkId) {
+        return mapper.deleteBookmark(memberId, bookmarkId);
     }
 
     /**
-     *  북마크-웹사이트 조회
+     *  북마크 삭제 (Link ID 기반 - soft delete)
      */
     @Override
-    public List<BookmarkWebsite> selectBookmarkWebsite(int memberId) {
-        return mapper.selectBookmarkWebsite(memberId);
-    }
-
-
-    /**
-     *  사용자 태그 목록 조회
-     */
-    @Override
-    public List<String> selectTags(int memberId, Long folderId) {
-        return mapper.selectTags(memberId, folderId);
-    }
-
-
-    /**
-     *  게시글 북마크 여부 확인
-     */
-    public int isBookmarked(int boardId, int memberId) {
-        return mapper.isBookmarked(boardId, memberId);
+    public int deleteBookmarkByLink(Long memberId, Long linkId) {
+        return mapper.deleteBookmarkByLink(memberId, linkId);
     }
 }
