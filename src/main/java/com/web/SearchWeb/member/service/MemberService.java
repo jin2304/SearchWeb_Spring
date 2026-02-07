@@ -10,14 +10,14 @@ public interface MemberService {
     public void joinProcess(MemberDto member);
 
     //회원번호로 찾기
-    public Member findByMemberId(int memberId);
+    public Member findByMemberId(Long memberId);
 
     //로그인 아이디로 찾기
-    public Member findByUserName(String username);
+    public Member findByLoginId(String loginId);
 
     //비밀번호 확인
     public boolean isPasswordMatching(MemberDto memberDto);
 
     //회원 수정
-    public int updateMember(int memberId, MemberUpdateDto memberUpdateDto);
+    public int updateMember(Long memberId, MemberUpdateDto memberUpdateDto);
 }

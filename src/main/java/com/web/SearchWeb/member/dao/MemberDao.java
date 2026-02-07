@@ -13,14 +13,14 @@ public interface MemberDao {
     public void SocialjoinProcess(Member member);
 
     //회원번호로 찾기
-    public Member findByMemberId(int memberId);
+    public Member findByMemberId(Long memberId);
 
     //로그인 아이디로 찾기
-    public Member findByUserName(String username);
+    public Member findByLoginId(String loginId);
 
     //회원 수정
-    public int updateMember(int memberId, MemberUpdateDto memberUpdateDto);
+    public int updateMember(Long memberId, MemberUpdateDto memberUpdateDto);
 
     //소셜 회원 수정
-    public int updateSocialMember(int memberId, Member member);
+    public int updateSocialMember(Long memberId, Member member);
 }
