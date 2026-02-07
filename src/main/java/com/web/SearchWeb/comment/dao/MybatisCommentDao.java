@@ -10,6 +10,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * MybatisCommentDao (Legacy - PostgreSQL)
+ */
 @Repository
 public class MybatisCommentDao implements CommentDao{
 
@@ -34,7 +37,7 @@ public class MybatisCommentDao implements CommentDao{
     /**
      *  게시글 댓글 목록 조회
      */
-    public List<Comment> selectComments(int boardId){
+    public List<Comment> selectComments(Long boardId){
         return mapper.selectComments(boardId);
     }
 
@@ -42,7 +45,7 @@ public class MybatisCommentDao implements CommentDao{
     /**
      *  회원번호로 게시글 댓글 목록 조회
      */
-    public List<Comment> selectCommentsByMemberId(int memberId){
+    public List<Comment> selectCommentsByMemberId(Long memberId){
         return mapper.selectCommentsByMemberId(memberId);
     }
 
@@ -50,7 +53,7 @@ public class MybatisCommentDao implements CommentDao{
     /**
      *  게시글 댓글 단일 조회
      */
-    public Comment selectComment(int commentId){
+    public Comment selectComment(Long commentId){
         return mapper.selectComment(commentId);
     }
 
@@ -58,7 +61,7 @@ public class MybatisCommentDao implements CommentDao{
     /**
      *  게시글 댓글 수정
      */
-    public int updateComment(int commentId, CommentDto commentDto) {
+    public int updateComment(Long commentId, CommentDto commentDto) {
         return mapper.updateComment(commentId, commentDto);
     }
 
@@ -74,7 +77,7 @@ public class MybatisCommentDao implements CommentDao{
     /**
      *  게시글 댓글 삭제
      */
-    public int deleteComment(int commentId){
+    public int deleteComment(Long commentId){
         return mapper.deleteComment(commentId);
     }
 
@@ -82,7 +85,7 @@ public class MybatisCommentDao implements CommentDao{
     /**
      *  게시글 댓글 수 조회
      */
-    public int countComments(int boardId) {
+    public int countComments(Long boardId) {
         return mapper.countComments(boardId);
     }
 }

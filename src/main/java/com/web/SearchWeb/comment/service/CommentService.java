@@ -12,6 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * CommentService (Legacy - PostgreSQL)
+ */
 @Service
 public class CommentService {
 
@@ -31,15 +34,15 @@ public class CommentService {
      *  게시글 댓글 생성
      */
     @Transactional
-    public int insertComment(int boardId, String username, CommentDto commentDto){
+    public int insertComment(Long boardId, String loginId, CommentDto commentDto){
         // 댓글 추가
-        Member member = memberService.findByUserName(username);
+        Member member = memberService.findByLoginId(loginId);
         Comment comment = new Comment();
-        comment.setBoard_boardId(boardId);
-        comment.setMember_memberId(member.getMemberId());
-        comment.setMember_nickname(member.getNickname());
-        comment.setMember_job(member.getJob());
-        comment.setMember_major(member.getMajor());
+        comment.setBoardBoardId(boardId);
+        comment.setMemberMemberId(member.getMemberId());
+        comment.setMemberNickname(member.getNickName());
+        comment.setMemberJob(member.getJob());
+        comment.setMemberMajor(member.getMajor());
         comment.setContent(commentDto.getContent());
         int result = commentdao.insertComment(comment);
 
@@ -53,7 +56,7 @@ public class CommentService {
     /**
      *  게시글 댓글 목록 조회
      */
-    public List<Comment> selectComments(int boardId){
+    public List<Comment> selectComments(Long boardId){
         return commentdao.selectComments(boardId);
     }
 
@@ -61,7 +64,7 @@ public class CommentService {
     /**
      *  게시글 댓글 단일 조회
      */
-    public Comment selectComment(int commentId){
+    public Comment selectComment(Long commentId){
         return commentdao.selectComment(commentId);
     }
 
@@ -69,7 +72,7 @@ public class CommentService {
     /**
      *  게시글 댓글 수정
      */
-    public int updateComment(int commentId, CommentDto commentDto){
+    public int updateComment(Long commentId, CommentDto commentDto){
         return commentdao.updateComment(commentId, commentDto);
     }
 
@@ -78,7 +81,7 @@ public class CommentService {
      *  게시글 댓글 삭제
      */
     @Transactional
-    public int deleteComment(int boardId, int commentId){
+    public int deleteComment(Long boardId, Long commentId){
         // 댓글 삭제
         int result = commentdao.deleteComment(commentId);
 
@@ -91,15 +94,17 @@ public class CommentService {
     /**
      *  게시글 댓글 수 조회
      */
-    public int getCommentCount(int boardId) {
+    public int getCommentCount(Long boardId) {
         return commentdao.countComments(boardId);
     }
 
 
-    // 댓글 소유자(작성자) 조회
-    public int findMemberIdByCommentId(int commentId) {
+    /**
+     * 댓글 소유자(작성자) 조회
+     */
+    public Long findMemberIdByCommentId(Long commentId) {
         Comment comment = commentdao.selectComment(commentId);
         if (comment == null) throw new IllegalArgumentException("게시글이 존재하지 않습니다.");
-        return comment.getMember_memberId();
+        return comment.getMemberMemberId();
     }
 }
