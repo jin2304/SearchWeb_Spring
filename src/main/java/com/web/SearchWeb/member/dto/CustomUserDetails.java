@@ -10,7 +10,11 @@ import java.util.Collection;
 
 
 
-//로그인 검증 로직
+/**
+ * CustomUserDetails 클래스
+ * 
+ * 로그인 검증 로직
+ */
 public class CustomUserDetails implements UserDetails {
 
     private Member findUser;
@@ -38,11 +42,11 @@ public class CustomUserDetails implements UserDetails {
     }
 
     /**
-     * 아이디 찾기
+     * 로그인 아이디 반환 (Spring Security의 username 역할)
      */
     @Override
     public String getUsername() {
-        return findUser.getUsername();
+        return findUser.getLoginId();
     }
 
     /**
@@ -50,11 +54,14 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public String getPassword() {
-        return findUser.getPassword();
+        return findUser.getPasswordHash();
     }
 
 
-    public int getMemberId() {
+    /**
+     * 회원 ID 반환
+     */
+    public Long getMemberId() {
         return findUser.getMemberId();
     }
 
@@ -68,7 +75,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !"blocked".equals(findUser.getStatus());
     }
 
     @Override
@@ -78,6 +85,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return findUser.getDeletedAt() == null;
     }
 }
