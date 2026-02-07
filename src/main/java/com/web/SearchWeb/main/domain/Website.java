@@ -6,16 +6,19 @@ import lombok.Setter;
 import lombok.ToString;
 
 
+/**
+ * Website 도메인
+ */
 @Getter
 @Setter
 @ToString
 public class Website {
-    private int websiteId;
-    private String name;
-    private String korean_name;
-    private String description;
-    private String url;
-    private String category;
-    private String subcategory;
-    private Long viewCount;
+    private Long websiteId;         // website_id
+    private String name;           // name
+    private String koreanName;     // korean_name
+    private String description;    // description
+    private String url;            // url
+    private String category;       // category
+    private String subcategory;    // subcategory
+    private Long viewCount;        // view_count
 }
