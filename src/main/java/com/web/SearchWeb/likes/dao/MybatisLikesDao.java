@@ -19,7 +19,7 @@ public class MybatisLikesDao implements LikesDao {
      *  게시글 좋아요 상태 확인
      */
     @Override
-    public Boolean isLikedByMember(int boardId, int memberId) {
+    public Boolean isLikedByMember(Long boardId, Long memberId) {
         return mapper.isLikedByMember(boardId, memberId);
     }
 
@@ -28,7 +28,7 @@ public class MybatisLikesDao implements LikesDao {
      *  게시글 좋아요 추가
      */
     @Override
-    public int likeBoard(int boardId, int memberId) {
+    public int likeBoard(Long boardId, Long memberId) {
         return mapper.likeBoard(boardId, memberId);
     }
 
@@ -37,7 +37,7 @@ public class MybatisLikesDao implements LikesDao {
      *  게시글 좋아요 취소
      */
     @Override
-    public int unlikeBoard(int boardId, int memberId) {
+    public int unlikeBoard(Long boardId, Long memberId) {
         return mapper.unlikeBoard(boardId, memberId);
     }
 
@@ -46,7 +46,7 @@ public class MybatisLikesDao implements LikesDao {
      *  게시글 좋아요 수 조회
      */
     @Override
-    public int countLikes(int boardId) {
+    public int countLikes(Long boardId) {
         return mapper.countLikes(boardId);
     }
 }
