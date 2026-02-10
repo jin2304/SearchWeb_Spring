@@ -1,5 +1,6 @@
 package com.web.SearchWeb.bookmark.domain;
 
+import com.web.SearchWeb.common.domain.BaseEntity;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
@@ -19,19 +20,19 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-@ToString
-public class Link extends com.web.SearchWeb.common.domain.BaseEntity {
-    private Long linkId;               // link_id (BIGINT)
-    private String canonicalUrl;       // canonical_url (TEXT, UNIQUE, NOT NULL)
-    private String originalUrl;        // original_url (TEXT, NOT NULL)
-    private String domain;             // domain (VARCHAR 255)
-    private String title;              // title (VARCHAR 255)
-    private String description;        // description (TEXT)
-    private String thumbnailUrl;       // thumbnail_url (TEXT)
-    private String faviconUrl;         // favicon_url (TEXT)
-    private String contentType;        // content_type (VARCHAR 30, default 'link')
-    private Long primaryCategoryId;    // primary_category_id (INT, NOT NULL)
-    private BigDecimal categoryScore;  // category_score (NUMERIC 5,4)
-    private String classifierVersion;  // classifier_version (VARCHAR 50)
-    private OffsetDateTime categorizedAt; // categorized_at (TIMESTAMPTZ)
+@ToString(callSuper = true)
+public class Link extends BaseEntity {
+    private Long linkId;               // 링크 ID
+    private String canonicalUrl;       // 표준 URL (Canonical URL)
+    private String originalUrl;        // 원본 URL
+    private String domain;             // 도메인
+    private String title;              // 제목
+    private String description;        // 설명
+    private String thumbnailUrl;       // 썸네일 URL
+    private String faviconUrl;         // 파비콘 URL
+    private String contentType;        // 콘텐츠 타입 (기본: link)
+    private Long primaryCategoryId;    // 대표 카테고리 ID
+    private BigDecimal categoryScore;  // 카테고리 점수
+    private String classifierVersion;  // 분류기 버전
+    private OffsetDateTime categorizedAt; // 분류 일시
 }

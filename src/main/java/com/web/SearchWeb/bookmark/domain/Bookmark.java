@@ -1,6 +1,7 @@
 package com.web.SearchWeb.bookmark.domain;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.web.SearchWeb.common.domain.BaseEntity;
 import lombok.Getter;
@@ -15,7 +16,7 @@ import lombok.ToString;
  */
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 public class Bookmark extends BaseEntity {
     private Long bookmarkId;              // 북마크 고유 ID (PK, member_saved_link_id)
     private Long linkId;                  // 링크 ID (FK to link, 필수)

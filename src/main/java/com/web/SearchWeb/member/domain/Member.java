@@ -8,7 +8,7 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 public class Member extends BaseEntity {
     private Long memberId;           // 회원 고유 ID (PK)
     private String email;            // 이메일 (로그인/알림용, Unique)
