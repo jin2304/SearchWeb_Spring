@@ -90,7 +90,9 @@ CREATE TABLE IF NOT EXISTS "member_folder" (
   "deleted_by_member_id" bigint,
   CONSTRAINT pk_member_folder PRIMARY KEY ("member_folder_id"),
   CONSTRAINT fk_member_folder_parent_folder_id
-    FOREIGN KEY ("parent_folder_id") REFERENCES "member_folder"("member_folder_id")
+    FOREIGN KEY ("parent_folder_id") REFERENCES "member_folder"("member_folder_id"),
+  CONSTRAINT fk_member_folder_owner_member_id
+    FOREIGN KEY ("owner_member_id") REFERENCES "member"("member_id")
 );
 
 CREATE TABLE IF NOT EXISTS "member_tag" (
@@ -104,17 +106,37 @@ CREATE TABLE IF NOT EXISTS "member_tag" (
   "updated_by_member_id" bigint,
   "deleted_by_member_id" bigint,
   CONSTRAINT pk_member_tag PRIMARY KEY ("member_tag_id"),
-  CONSTRAINT uq_member_tag_owner_tag UNIQUE ("owner_member_id", "tag_name")
+  CONSTRAINT uq_member_tag_owner_tag UNIQUE ("owner_member_id", "tag_name"),
+  CONSTRAINT fk_member_tag_owner_member_id FOREIGN KEY ("owner_member_id") REFERENCES "member"("member_id")
 );
 
 CREATE TABLE IF NOT EXISTS "team" (
   "team_id" int GENERATED ALWAYS AS IDENTITY NOT NULL,
   "team_name" varchar(80) NOT NULL,
-  "owner_user_id" int NOT NULL,
+  "owner_member_id" int NOT NULL,
   "created_at" timestamptz DEFAULT now() NOT NULL,
   "updated_at" timestamptz DEFAULT now() NOT NULL,
   "deleted_at" timestamptz,
-  CONSTRAINT pk_team PRIMARY KEY ("team_id")
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
+  CONSTRAINT pk_team PRIMARY KEY ("team_id"),
+  CONSTRAINT fk_team_owner_member_id FOREIGN KEY ("owner_member_id") REFERENCES "member"("member_id")
+);
+
+CREATE TABLE IF NOT EXISTS "team_tag" (
+  "team_tag_id" bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  "team_id" int NOT NULL,
+  "tag_name" varchar(50) NOT NULL,
+  "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
+  "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
+  CONSTRAINT pk_team_tag PRIMARY KEY ("team_tag_id"),
+  CONSTRAINT uq_team_tag_team_tag UNIQUE ("team_id", "tag_name"),
+  CONSTRAINT fk_team_tag_team_id FOREIGN KEY ("team_id") REFERENCES "team"("team_id")
 );
 
 CREATE TABLE IF NOT EXISTS "team_folder" (
@@ -123,39 +145,59 @@ CREATE TABLE IF NOT EXISTS "team_folder" (
   "parent_folder_id" int,
   "folder_name" varchar(80) NOT NULL,
   "description" text,
-  "created_by_user_id" int NOT NULL,
+  "created_by_member_id" int NOT NULL,
   "created_at" timestamptz DEFAULT now() NOT NULL,
   "updated_at" timestamptz DEFAULT now() NOT NULL,
   "deleted_at" timestamptz,
-  CONSTRAINT pk_team_folder PRIMARY KEY ("team_folder_id")
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
+  CONSTRAINT pk_team_folder PRIMARY KEY ("team_folder_id"),
+  CONSTRAINT fk_team_folder_team_id FOREIGN KEY ("team_id") REFERENCES "team"("team_id"),
+  CONSTRAINT fk_team_folder_parent_folder_id FOREIGN KEY ("parent_folder_id") REFERENCES "team_folder"("team_folder_id")
 );
 
 CREATE TABLE IF NOT EXISTS "team_folder_permission" (
   "team_folder_permission_id" int GENERATED ALWAYS AS IDENTITY NOT NULL,
   "team_folder_id" int NOT NULL,
-  "user_id" int NOT NULL,
+  "member_id" int NOT NULL,
   "permission" varchar(20) DEFAULT 'viewer' NOT NULL,
+  "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
+  "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_team_folder_permission PRIMARY KEY ("team_folder_permission_id"),
-  CONSTRAINT uq_team_folder_permission_folder_user UNIQUE ("team_folder_id", "user_id"),
-  CONSTRAINT ck_team_folder_permission_permission CHECK (permission in ('viewer','editor'))
+  CONSTRAINT uq_team_folder_permission_folder_member UNIQUE ("team_folder_id", "member_id"),
+  CONSTRAINT ck_team_folder_permission_permission CHECK (permission in ('viewer','editor')),
+  CONSTRAINT fk_team_folder_permission_folder_id FOREIGN KEY ("team_folder_id") REFERENCES "team_folder"("team_folder_id"),
+  CONSTRAINT fk_team_folder_permission_member_id FOREIGN KEY ("member_id") REFERENCES "member"("member_id")
 );
 
 CREATE TABLE IF NOT EXISTS "team_member" (
   "team_member_id" int GENERATED ALWAYS AS IDENTITY NOT NULL,
   "team_id" int NOT NULL,
-  "user_id" int NOT NULL,
+  "member_id" int NOT NULL,
   "role" varchar(20) DEFAULT 'member' NOT NULL,
   "joined_at" timestamptz DEFAULT now() NOT NULL,
+  "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
+  "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_team_member PRIMARY KEY ("team_member_id"),
-  CONSTRAINT uq_team_member_team_user UNIQUE ("team_id", "user_id"),
-  CONSTRAINT ck_team_member_role CHECK (role in ('owner','admin','member'))
+  CONSTRAINT uq_team_member_team_member UNIQUE ("team_id", "member_id"),
+  CONSTRAINT ck_team_member_role CHECK (role in ('owner','admin','member')),
+  CONSTRAINT fk_team_member_team_id FOREIGN KEY ("team_id") REFERENCES "team"("team_id"),
+  CONSTRAINT fk_team_member_member_id FOREIGN KEY ("member_id") REFERENCES "member"("member_id")
 );
 
 CREATE TABLE IF NOT EXISTS "team_saved_link" (
   "team_saved_link_id" int GENERATED ALWAYS AS IDENTITY NOT NULL,
   "team_folder_id" int NOT NULL,
   "link_id" bigint NOT NULL,
-  "created_by_user_id" int NOT NULL,
+  "created_by_member_id" int NOT NULL,
   "display_title" varchar(255) NOT NULL,
   "note" text,
   "primary_category_id" int,
@@ -166,10 +208,14 @@ CREATE TABLE IF NOT EXISTS "team_saved_link" (
   "created_at" timestamptz DEFAULT now() NOT NULL,
   "updated_at" timestamptz DEFAULT now() NOT NULL,
   "deleted_at" timestamptz,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_team_saved_link PRIMARY KEY ("team_saved_link_id"),
-  CONSTRAINT ck_team_saved_link_category_source CHECK (category_source in ('system','user')),
+  CONSTRAINT ck_team_saved_link_category_source CHECK (category_source in ('system','member')),
   CONSTRAINT ck_team_saved_link_category_score CHECK (category_score is null or (category_score between 0 and 1)),
-  CONSTRAINT ck_team_saved_link_sort_nonneg CHECK (sort_order >= 0)
+  CONSTRAINT ck_team_saved_link_sort_nonneg CHECK (sort_order >= 0),
+  CONSTRAINT fk_team_saved_link_folder_id FOREIGN KEY ("team_folder_id") REFERENCES "team_folder"("team_folder_id"),
+  CONSTRAINT fk_team_saved_link_link_id FOREIGN KEY ("link_id") REFERENCES "link"("link_id")
 );
 
 CREATE TABLE IF NOT EXISTS "team_saved_link_tag" (
@@ -177,18 +223,18 @@ CREATE TABLE IF NOT EXISTS "team_saved_link_tag" (
   "team_saved_link_id" bigint NOT NULL,
   "team_tag_id" bigint NOT NULL,
   "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
+  "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_team_saved_link_tag PRIMARY KEY ("team_saved_link_tag_id"),
-  CONSTRAINT uq_team_saved_link_tag_item_tag UNIQUE ("team_saved_link_id", "team_tag_id")
+  CONSTRAINT uq_team_saved_link_tag_item_tag UNIQUE ("team_saved_link_id", "team_tag_id"),
+  CONSTRAINT fk_team_saved_link_tag_link_id FOREIGN KEY ("team_saved_link_id") REFERENCES "team_saved_link"("team_saved_link_id"),
+  CONSTRAINT fk_team_saved_link_tag_tag_id FOREIGN KEY ("team_tag_id") REFERENCES "team_tag"("team_tag_id")
 );
 
-CREATE TABLE IF NOT EXISTS "team_tag" (
-  "team_tag_id" bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
-  "team_id" int NOT NULL,
-  "tag_name" varchar(50) NOT NULL,
-  "created_at" timestamptz DEFAULT now() NOT NULL,
-  CONSTRAINT pk_team_tag PRIMARY KEY ("team_tag_id"),
-  CONSTRAINT uq_team_tag_team_tag UNIQUE ("team_id", "tag_name")
-);
+
 
 CREATE TABLE IF NOT EXISTS "link_enrichment" (
   "link_enrichment_id" int GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -256,6 +302,11 @@ CREATE TABLE IF NOT EXISTS "member_folder_tag" (
   "member_folder_id" int NOT NULL,
   "member_tag_id" bigint NOT NULL,
   "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
+  "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_member_folder_tag PRIMARY KEY ("member_folder_tag_id"),
   CONSTRAINT uq_member_folder_tag_item_tag UNIQUE ("member_folder_id", "member_tag_id"),
   CONSTRAINT fk_member_folder_tag_member_folder_id
@@ -291,7 +342,9 @@ CREATE TABLE IF NOT EXISTS "folder_suggestion_rule" (
   CONSTRAINT fk_folder_suggestion_rule_member_folder_id
     FOREIGN KEY ("member_folder_id") REFERENCES "member_folder"("member_folder_id"),
   CONSTRAINT fk_folder_suggestion_rule_team_folder_id
-    FOREIGN KEY ("team_folder_id") REFERENCES "team_folder"("team_folder_id")
+    FOREIGN KEY ("team_folder_id") REFERENCES "team_folder"("team_folder_id"),
+  CONSTRAINT fk_folder_suggestion_rule_owner_member_id FOREIGN KEY ("owner_member_id") REFERENCES "member"("member_id"),
+  CONSTRAINT fk_folder_suggestion_rule_team_id FOREIGN KEY ("team_id") REFERENCES "team"("team_id")
 );
 
 CREATE TABLE IF NOT EXISTS "link_enrichment_keyword" (
@@ -302,6 +355,11 @@ CREATE TABLE IF NOT EXISTS "link_enrichment_keyword" (
   "rank" smallint NOT NULL,
   "source" varchar(30),
   "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
+  "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_link_enrichment_keyword PRIMARY KEY ("link_enrichment_keyword_id"),
   CONSTRAINT uq_link_enrichment_keyword_enrich_keyword UNIQUE ("link_enrichment_id", "keyword"),
   CONSTRAINT ck_link_enrichment_keyword_score CHECK (score is null or (score between 0 and 1)),
@@ -342,6 +400,11 @@ CREATE TABLE IF NOT EXISTS "link_enrichment_feedback" (
   "suggested_member_folder_id" int,
   "final_member_folder_id" int,
   "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
+  "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_link_enrichment_feedback PRIMARY KEY ("link_enrichment_feedback_id"),
   CONSTRAINT ck_link_enrichment_feedback_action CHECK (action in ('ACCEPT','MOVE','REJECT','IGNORE')),
   CONSTRAINT fk_link_enrichment_feedback_link_enrichment_id
@@ -353,6 +416,11 @@ CREATE TABLE IF NOT EXISTS "member_saved_link_tag" (
   "member_saved_link_id" bigint NOT NULL,
   "member_tag_id" bigint NOT NULL,
   "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
+  "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_member_saved_link_tag PRIMARY KEY ("member_saved_link_tag_id"),
   CONSTRAINT uq_member_saved_link_tag_item_tag UNIQUE ("member_saved_link_id", "member_tag_id"),
   CONSTRAINT fk_member_saved_link_tag_member_saved_link_id
@@ -375,7 +443,11 @@ CREATE TABLE IF NOT EXISTS "website" (
   "subcategory" varchar(50),
   "view_count" bigint DEFAULT 0 NOT NULL,
   "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
   "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_website PRIMARY KEY ("website_id")
 );
 
@@ -392,7 +464,12 @@ CREATE TABLE IF NOT EXISTS "board" (
   "bookmarks_count" int DEFAULT 0 NOT NULL,
   "views_count" int DEFAULT 0 NOT NULL,
   "created_date" timestamptz DEFAULT now() NOT NULL,
+  "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
   "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_board PRIMARY KEY ("board_id"),
   CONSTRAINT fk_board_member_id FOREIGN KEY ("member_member_id") REFERENCES "member"("member_id")
 );
@@ -406,7 +483,12 @@ CREATE TABLE IF NOT EXISTS "comment" (
   "member_major" varchar(20),
   "content" text NOT NULL,
   "created_date" timestamptz DEFAULT now() NOT NULL,
+  "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
   "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_comment PRIMARY KEY ("comment_id"),
   CONSTRAINT fk_comment_board_id FOREIGN KEY ("board_board_id") REFERENCES "board"("board_id"),
   CONSTRAINT fk_comment_member_id FOREIGN KEY ("member_member_id") REFERENCES "member"("member_id")
@@ -418,6 +500,11 @@ CREATE TABLE IF NOT EXISTS "likes" (
   "member_member_id" bigint NOT NULL,
   "is_liked" boolean DEFAULT false NOT NULL,
   "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL,
+  "deleted_at" timestamptz,
+  "created_by_member_id" bigint,
+  "updated_by_member_id" bigint,
+  "deleted_by_member_id" bigint,
   CONSTRAINT pk_likes PRIMARY KEY ("likes_id"),
   CONSTRAINT uq_likes_board_member UNIQUE ("board_board_id", "member_member_id"),
   CONSTRAINT fk_likes_board_id FOREIGN KEY ("board_board_id") REFERENCES "board"("board_id"),
@@ -468,7 +555,7 @@ CREATE INDEX IF NOT EXISTS idx_member_tag_owner ON "member_tag" ("owner_member_i
 CREATE INDEX IF NOT EXISTS idx_member_tag_deleted_at ON "member_tag" ("deleted_at");
 
 CREATE INDEX IF NOT EXISTS idx_team_name ON "team" ("team_name");
-CREATE INDEX IF NOT EXISTS idx_team_owner ON "team" ("owner_user_id");
+CREATE INDEX IF NOT EXISTS idx_team_owner ON "team" ("owner_member_id");
 CREATE INDEX IF NOT EXISTS idx_team_deleted ON "team" ("deleted_at");
 
 CREATE INDEX IF NOT EXISTS idx_team_folder_team ON "team_folder" ("team_id");
@@ -477,16 +564,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_team_folder_parent_name
   ON "team_folder" ("team_id", "parent_folder_id", "folder_name")
   WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_team_folder_name ON "team_folder" ("folder_name");
-CREATE INDEX IF NOT EXISTS idx_team_folder_created_by ON "team_folder" ("created_by_user_id");
+CREATE INDEX IF NOT EXISTS idx_team_folder_created_by ON "team_folder" ("created_by_member_id");
 CREATE INDEX IF NOT EXISTS idx_team_folder_created ON "team_folder" ("created_at");
 CREATE INDEX IF NOT EXISTS idx_team_folder_deleted ON "team_folder" ("deleted_at");
 
 CREATE INDEX IF NOT EXISTS idx_tfp_team_folder ON "team_folder_permission" ("team_folder_id");
-CREATE INDEX IF NOT EXISTS idx_tfp_user ON "team_folder_permission" ("user_id");
+CREATE INDEX IF NOT EXISTS idx_tfp_member ON "team_folder_permission" ("member_id");
 CREATE INDEX IF NOT EXISTS idx_tfp_permission ON "team_folder_permission" ("permission");
 
 CREATE INDEX IF NOT EXISTS idx_team_member_team ON "team_member" ("team_id");
-CREATE INDEX IF NOT EXISTS idx_team_member_user ON "team_member" ("user_id");
+CREATE INDEX IF NOT EXISTS idx_team_member_member ON "team_member" ("member_id");
 CREATE INDEX IF NOT EXISTS idx_team_member_role ON "team_member" ("role");
 
 CREATE INDEX IF NOT EXISTS idx_team_saved_link_folder ON "team_saved_link" ("team_folder_id");
@@ -494,7 +581,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_team_saved_link_folder_link
   ON "team_saved_link" ("team_folder_id", "link_id")
   WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_team_saved_link_link ON "team_saved_link" ("link_id");
-CREATE INDEX IF NOT EXISTS idx_team_saved_link_created_by ON "team_saved_link" ("created_by_user_id");
+CREATE INDEX IF NOT EXISTS idx_team_saved_link_created_by ON "team_saved_link" ("created_by_member_id");
 CREATE INDEX IF NOT EXISTS idx_team_saved_link_title ON "team_saved_link" ("display_title");
 CREATE INDEX IF NOT EXISTS idx_team_saved_link_primary_category ON "team_saved_link" ("primary_category_id");
 CREATE INDEX IF NOT EXISTS idx_team_saved_link_categorized_at ON "team_saved_link" ("categorized_at");
@@ -526,7 +613,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_fsr_team_category
 
 CREATE INDEX IF NOT EXISTS idx_fsr_scope ON "folder_suggestion_rule" ("scope_type");
 
--- ✅ 원본: CREATE UNIQUE INDEX IF NOT EXISTS unique ...  (너무 위험한 이름이라 변경)
 CREATE UNIQUE INDEX IF NOT EXISTS uq_fsr_scope_owner_team_category_active
   ON "folder_suggestion_rule" ("scope_type", "owner_member_id", "team_id", "category_id")
   WHERE is_active = true;
