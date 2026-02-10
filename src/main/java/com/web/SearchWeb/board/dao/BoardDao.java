@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface BoardDao {
     //게시글 생성
-    public int insertBoard(int memberId, BoardDto boardDto);
+    public int insertBoard(Long memberId, BoardDto boardDto);
 
     // 페이징된 게시글 목록 조회
     List<Board> selectBoardPage(@Param("offset") int offset,
@@ -22,35 +22,35 @@ public interface BoardDao {
     int countBoardList(String query, String postType);
 
     //게시글 목록 조회(회원번호로 조회)
-    List<Board> selectBoardListByMemberId(int memberId);
+    List<Board> selectBoardListByMemberId(Long memberId);
 
     //게시글 단일 조회
-    Board selectBoard(int boardId);
+    Board selectBoard(Long boardId);
 
     //게시글 수정
-    int updateBoard(int boardId, BoardDto boardDto);
+    int updateBoard(Long boardId, BoardDto boardDto);
 
     //게시글 수정(회원정보 수정)
-    int updateBoardProfile(int boardId, String job, String major);
+    int updateBoardProfile(Long boardId, String job, String major);
 
      //게시글 삭제
-    int deleteBoard(int boardId);
+    int deleteBoard(Long boardId);
 
     //게시글 북마크 수 수정
-    int updateBookmarkCount(int boardId, int bookmarkCount);
+    int updateBookmarkCount(Long boardId, int bookmarkCount);
 
     //게시글 조회수 증가
-    int incrementViewCount(int boardId);
+    int incrementViewCount(Long boardId);
 
     //게시글 좋아요 증가
-    int incrementLikeCount(int boardId);
+    int incrementLikeCount(Long boardId);
 
     //게시글 좋아요 감소
-    int decrementLikeCount(int boardId);
+    int decrementLikeCount(Long boardId);
 
     //게시글 댓글 수 증가
-    int incrementCommentCount(int boardId);
+    int incrementCommentCount(Long boardId);
 
     //게시글 댓글 수 감소
-    int decrementCommentCount(int boardId);
+    int decrementCommentCount(Long boardId);
 }

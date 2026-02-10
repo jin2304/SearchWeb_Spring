@@ -31,7 +31,7 @@
             <!-- 사용자 이미지 -->
             <div class="flex-shrink-0 text-center">
                 <img src="https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMzAzMjZfMjUx%2FMDAxNjc5ODM0MzkxNzg5.SomK3qflKEf0ugQ9HqeikVETiazukyq1aNgj767ZXMMg.d9xeVYIkSi5cL39Zv658_wFaZAWBjQSiApP9Dap3wdgg.PNG.npay1%2F20230326%25A3%25DF213901%25A3%25DF832.png&type=sc960_832" width="100" height="100" alt="Profile Picture" class="rounded-full mx-auto" style="aspect-ratio: 1 / 1; object-fit: cover;" />
-                <h2 id="userNickname" class="text-base font-bold tracking-tight sm:text-lg mt-2"  th:text="${member.nickname}">Jane Doe</h2>
+                <h2 id="userNickname" class="text-base font-bold tracking-tight sm:text-lg mt-2"  th:text="${member.nickName}">Jane Doe</h2>
             </div>
 
             <!-- 사용자 프로필 정보 -->
@@ -79,7 +79,7 @@
                     <label for="updateNickname" class="block text-sm font-medium text-gray-700">
                         닉네임
                     </label>
-                    <input th:value="${member.nickname}" class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="updateNickname" placeholder="닉네임" required />
+                    <input th:value="${member.nickName}" class="flex h-10 text-sm w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" type="text" id="updateNickname" placeholder="닉네임" required />
                 </div>
                 <div>
                     <label for="updateJob" class="block text-sm font-medium text-gray-700">
@@ -315,6 +315,9 @@
             </div>
             <form id="updateBookmarkForm" class="space-y-6">
                 <input type="hidden" id="updateBookmarkId" /> <!-- 북마크 ID를 저장 -->
+                <input type="hidden" id="updateMemberFolderId" /> <!-- 폴더 ID 저장 -->
+                <input type="hidden" id="updatePrimaryCategoryId" /> <!-- 카테고리 ID 저장 -->
+                <input type="hidden" id="updateUrl" /> <!-- URL 저장 (수정 불가, controller requirement check needed) -->
                 <div>
                     <label for="updateName" class="block text-gray-700 font-semibold mb-2">
                         웹사이트 이름 <span class="text-red-500">*</span>
@@ -322,10 +325,10 @@
                     <input class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" type="text" id="updateName" placeholder="웹사이트 이름" required />
                 </div>
                 <div>
-                    <label for="updateUrl" class="block text-gray-700 font-semibold mb-2">
-                        URL <span class="text-red-500">*</span>
+                    <label for="displayUpdateUrl" class="block text-gray-700 font-semibold mb-2">
+                        URL <span class="text-gray-500 text-sm">(수정 불가)</span>
                     </label>
-                    <input class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-400" type="text" id="updateUrl" placeholder="URL" required />
+                    <input class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500" type="text" id="displayUpdateUrl" readonly />
                 </div>
                 <div>
                     <label for="updateDescription" class="block text-gray-700 font-semibold mb-2">설명</label>
@@ -415,15 +418,16 @@
         // 폼 데이터로부터 객체 생성
         const bookmarkData = {
             member_memberId: memberId,
-            name: name,  // 웹사이트 이름
-            url: url,  // 웹사이트 URL
-            description: description,  // 웹사이트 설명
-            tag: tag  // 단일 태그
+            displayTitle: name,  // 웹사이트 이름 -> displayTitle
+            note: description,  // 웹사이트 설명 -> note
+            tag: tag,  // 단일 태그
+            // memberFolderId: null, // 백엔드에서 처리하거나, 나중에 폴더 선택 기능 추가 시 설정
+            // primaryCategoryId: 1  // 기본 카테고리
         };
 
         // AJAX 요청 보내기
         $.ajax({
-            url: "/myPage/" + memberId + "/bookmark",
+            url: "/myPage/" + memberId + "/bookmark?url=" + encodeURIComponent(url), // URL을 쿼리 파라미터로 전달
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(bookmarkData),  // 자바스크립트 객체를 JSON 문자열로 변환
@@ -530,7 +534,8 @@
 
     // 북마크를 UI에 추가하는 함수
     function addBookmarkToUI(bookmark) {
-        const { bookmarkId, name, url, description } = bookmark;
+        const { bookmarkId, displayTitle, note } = bookmark;
+        const url = bookmark.link ? bookmark.link.originalUrl : '';
 
         const bookmarkElement = document.createElement('div');
         bookmarkElement.className = 'relative flex flex-col w-full max-w-[200px] max-h-[150px] rounded-lg bg-white border border-gray-200 shadow overflow-visible group';
@@ -560,14 +565,14 @@
             <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${url}" alt="" title="" class="w-8 h-8 mr-4">
             <div class="flex flex-col">
                 <!-- 웹사이트 이름 -->
-                <h1 class="text-xs font-bold truncate">${name}</h1>
+                <h1 class="text-xs font-bold truncate">${displayTitle}</h1>
             </div>
         </a>
 
         <!-- 웹사이트 설명 (hover시 보임) -->
         <a href="${absoluteUrl}" target="_blank" class="bookmark-description absolute inset-0 flex items-center p-3 bg-white bg-opacity-95 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
             <img src="https://www.google.com/s2/favicons?sz=48&domain_url=${absoluteUrl}" alt="" title="" class="w-8 h-8 mr-4">
-            <p class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 0.66rem;">${description}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 0.66rem;">${note || ''}</p>
         </a>
     `;
 
@@ -634,10 +639,15 @@
             success: function(response) {
                 // 불러온 데이터를 폼에 채우기
                 document.getElementById('updateBookmarkId').value = response.bookmarkId;
-                document.getElementById('updateName').value = response.name;
-                document.getElementById('updateUrl').value = response.url;
-                document.getElementById('updateDescription').value = response.description;
-                document.getElementById('updateTag').value = response.tag;
+                document.getElementById('updateName').value = response.displayTitle;
+                document.getElementById('updateUrl').value = response.link ? response.link.originalUrl : ''; // 히든값
+                document.getElementById('displayUpdateUrl').value = response.link ? response.link.originalUrl : ''; // 표시용
+                document.getElementById('updateDescription').value = response.note;
+                document.getElementById('updateTag').value = response.tag || '';
+                
+                // 필수: 업데이트 시 기존 ID 유지 (Folder, Category)
+                document.getElementById('updateMemberFolderId').value = response.memberFolderId || '';
+                document.getElementById('updatePrimaryCategoryId').value = response.primaryCategoryId || 1;
 
                 // 북마크 수정 폼 표시
                 toggleUpdateBookmarkForm();
@@ -660,13 +670,18 @@
         const url = document.getElementById('updateUrl').value;
         const description = document.getElementById('updateDescription').value;
         const tag = document.getElementById('updateTag').value.trim();
+        const memberFolderId = document.getElementById('updateMemberFolderId').value;
+        const primaryCategoryId = document.getElementById('updatePrimaryCategoryId').value;
 
         // 수정된 북마크 데이터 생성
         const updatedBookmarkData = {
-            name: name,
-            url: url,
-            description: description,
-            tag: tag
+            displayTitle: name,
+            url: url, // DTO has url field
+            note: description,
+            tag: tag,
+            memberFolderId: memberFolderId ? parseInt(memberFolderId) : null,
+            primaryCategoryId: primaryCategoryId ? parseInt(primaryCategoryId) : 1,
+            createdByMemberId: memberId // DTO 필드
         };
 
         // AJAX 요청 보내기 (북마크 업데이트)
@@ -679,7 +694,7 @@
                 loadBookmarks();              // 수정된 내용 반영하여 북마크 목록 갱신
                 loadTags();                   // 수정된 태그 반영하여 북마크 목록 갱신
                 toggleUpdateBookmarkForm();   // 수정 팝업 닫기
-                document.getElementById('updateForm').reset(); // 폼 초기화
+                document.getElementById('updateBookmarkForm').reset();
             },
             error: function(error) {
                 console.error('Error:', error);

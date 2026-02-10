@@ -5,14 +5,17 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * Bookmark 검색 요청 DTO
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class BookmarkSearchRequestDto {
-    private int memberId;
-    private String tag;
-    private String sort;
-    private String query;
-    private Long folderId;
+    private Long memberId;                // created_by_member_id로 필터
+    private Long folderId;                // member_folder_id로 필터
+    private String sort;                  // 정렬 기준 (Newest, Oldest)
+    private String query;                 // 검색어 (display_title 검색)
+    private Long categoryId;              // primary_category_id로 필터 (태그 대체)
 }

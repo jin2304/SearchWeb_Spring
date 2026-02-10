@@ -18,7 +18,7 @@ public class MybatisMainDao implements MainDao {
     }
 
     @Override
-    public Website selectWebsite(int websiteId) {
+    public Website selectWebsite(Long websiteId) {
         return  mapper.selectWebsite(websiteId);
     }
 

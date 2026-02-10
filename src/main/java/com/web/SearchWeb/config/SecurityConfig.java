@@ -46,6 +46,7 @@ public class SecurityConfig {
                 .formLogin((auth) -> auth
                         .loginPage("/login")
                         .loginProcessingUrl("/loginProc") //Spring Security가 제공하는 기본 인증 필터(UsernamePasswordAuthenticationFilter)를 통해 자동으로 로그인 요청을 처리
+                        .usernameParameter("loginId") // 로그인 폼에서 아이디 입력 필드의 name 속성값 (기본: username -> loginId로 변경)
                         .successHandler(customAuthenticationSuccessHandler()) // 커스텀 성공 핸들러 추가
                         .failureHandler(customAuthenticationFailureHandler()) // 커스텀 실패 핸들러 추가
                         .permitAll()

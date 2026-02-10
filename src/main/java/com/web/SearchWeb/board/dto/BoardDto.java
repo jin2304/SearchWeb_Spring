@@ -8,12 +8,12 @@ import lombok.ToString;
 @Setter
 @ToString
 public class BoardDto {
-    private String nickname;
-    private String job;
-    private String major;
-    private String url;
-    private String title;
-    private String summary;
-    private String description;
-    private String hashtags;
+    private String nickname;       // 작성자 닉네임
+    private String job;            // 직업
+    private String major;          // 전공
+    private String url;            // 참조 URL
+    private String title;          // 제목
+    private String summary;        // 요약
+    private String description;    // 본문 내용
+    private String hashtags;       // 해시태그
 }

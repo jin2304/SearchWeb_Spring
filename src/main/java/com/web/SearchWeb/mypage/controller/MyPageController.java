@@ -14,7 +14,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -23,13 +25,11 @@ import java.util.List;
  *
  * 코드 설명:
  *  - MyPageController는 사용자의 정보 및 사용자가 북마크한 웹사이트를 관리하는 컨트롤러
- *
+ * 
  * 코드 주요 기능:
  *  - 사용자 정보 조회, 사용자 프로필 수정
  *  - 마이페이지 북마크 추가(사용자 직접 추가), 북마크 목록 조회, 북마크 단일 조회, 태그 조회, 북마크 수정, 북마크 삭제
  *
- * 코드 작성일:
- *  - 2024.07.10 ~ 2024.08.08
  */
 @Controller
 public class MyPageController {
@@ -49,7 +49,7 @@ public class MyPageController {
      */
     @GetMapping("/myPage/{memberId}")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public String myPage(@PathVariable int memberId, Model model){
+    public String myPage(@PathVariable Long memberId, Model model){
         Member member = memberService.findByMemberId(memberId);
         model.addAttribute("member", member);
         return "mypage/myPage";
@@ -61,7 +61,7 @@ public class MyPageController {
      */
     @PutMapping("/myPage/{memberId}/profile")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<Integer> updateProfile(@PathVariable final int memberId, @RequestBody MemberUpdateDto memberUpdateDto) {
+    public ResponseEntity<Integer> updateProfile(@PathVariable final Long memberId, @RequestBody MemberUpdateDto memberUpdateDto) {
         return ResponseEntity.ok(memberService.updateMember(memberId, memberUpdateDto));
     }
     
@@ -72,9 +72,14 @@ public class MyPageController {
      */
     @PostMapping(value ="/myPage/{memberId}/bookmark")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<BookmarkDto> insertBookmark(@PathVariable final int memberId, @RequestBody BookmarkDto bookmarkdto){
-        bookmarkService.insertBookmarkForUser(bookmarkdto);
-        return ResponseEntity.ok(bookmarkdto);
+    public ResponseEntity<Map<String, Object>> insertBookmark(@PathVariable final Long memberId,
+                                                               @RequestBody BookmarkDto bookmarkDto,
+                                                               @RequestParam String url){
+        Map<String, Object> response = new HashMap<>();
+        bookmarkDto.setCreatedByMemberId(memberId);
+        int result = bookmarkService.insertBookmark(bookmarkDto, url);
+        response.put("success", result > 0);
+        return ResponseEntity.ok(response);
     }
 
 
@@ -84,25 +89,13 @@ public class MyPageController {
      */
     @GetMapping(value ="/myPage/{memberId}/bookmarks")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<List<Bookmark>> getBookmarks(@PathVariable final int memberId,
+    public ResponseEntity<List<Bookmark>> getBookmarks(@PathVariable final Long memberId,
                                                        @RequestParam(required = false) String query,
-                                                       @RequestParam(defaultValue = "All") String tag,
                                                        @RequestParam(required = false) Long folderId,
+                                                       @RequestParam(required = false) Long categoryId,
                                                        @RequestParam(defaultValue = "Oldest") String sort) {
-        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(memberId, tag, sort, query, folderId);
+        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(memberId, folderId, sort, query, categoryId);
         return ResponseEntity.ok(bookmarks);
-    }
-
-
-    /**
-     * 마이페이지 북마크 태그 조회
-     */
-    @GetMapping("/myPage/{memberId}/tags")
-    @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<List<String>> getTags(@PathVariable final int memberId,
-                                                @RequestParam(required = false) Long folderId) {
-        List<String> tags = bookmarkService.selectTags(memberId, folderId);
-        return ResponseEntity.ok(tags);
     }
 
 
@@ -111,7 +104,7 @@ public class MyPageController {
      */
     @GetMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<Bookmark> getBookmark(@PathVariable final int memberId, @PathVariable final int bookmarkId) {
+    public ResponseEntity<Bookmark> getBookmark(@PathVariable final Long memberId, @PathVariable final Long bookmarkId) {
         Bookmark bookmark = bookmarkService.selectBookmark(memberId, bookmarkId);
         return ResponseEntity.ok(bookmark);
     }
@@ -122,11 +115,13 @@ public class MyPageController {
      */
     @PutMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<Integer> updateBookmark(@PathVariable final int memberId,
-                                                  @PathVariable final int bookmarkId,
+    public ResponseEntity<Map<String, Object>> updateBookmark(@PathVariable final Long memberId,
+                                                  @PathVariable final Long bookmarkId,
                                                   @RequestBody BookmarkDto bookmarkDto) {
+        Map<String, Object> response = new HashMap<>();
         int result = bookmarkService.updateBookmark(bookmarkDto, bookmarkId);
-        return ResponseEntity.ok(result);
+        response.put("success", result > 0);
+        return ResponseEntity.ok(response);
     }
 
 
@@ -135,8 +130,10 @@ public class MyPageController {
      */
     @DeleteMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<Integer> deleteBookmark(@PathVariable final int memberId, @PathVariable final int bookmarkId) {
-        int result = bookmarkService.deleteBookmarkMyPage(memberId, bookmarkId);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<Map<String, Object>> deleteBookmark(@PathVariable final Long memberId, @PathVariable final Long bookmarkId) {
+        Map<String, Object> response = new HashMap<>();
+        int result = bookmarkService.deleteBookmark(memberId, bookmarkId);
+        response.put("success", result > 0);
+        return ResponseEntity.ok(response);
     }
 }

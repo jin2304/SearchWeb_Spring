@@ -4,166 +4,148 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 
+<mapper namespace="com.web.SearchWeb.bookmark.dao.BookmarkDao">
 
-<mapper namespace="com.web.SearchWeb.bookmark.dao.BookmarkDao"> <!--Dao 이름-->
+    <!-- ResultMap for Bookmark (member_saved_link) entity with Link join -->
+    <resultMap id="BookmarkResultMap" type="com.web.SearchWeb.bookmark.domain.Bookmark">
+        <id property="bookmarkId" column="member_saved_link_id"/>
+        <result property="linkId" column="link_id"/>
+        <result property="linkEnrichmentId" column="link_enrichment_id"/>
+        <result property="memberFolderId" column="member_folder_id"/>
+        <result property="displayTitle" column="display_title"/>
+        <result property="note" column="note"/>
+        <result property="primaryCategoryId" column="primary_category_id"/>
+        <result property="categorySource" column="category_source"/>
+        <result property="categoryScore" column="category_score"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deletedAt" column="deleted_at"/>
+        <result property="createdByMemberId" column="created_by_member_id"/>
+        <result property="updatedByMemberId" column="updated_by_member_id"/>
+        <result property="deletedByMemberId" column="deleted_by_member_id"/>
+        <!-- Link 조인 (Association) -->
+        <association property="link" resultMap="LinkResultMap"/>
+    </resultMap>
 
-    <!-- 북마크 확인 -->
-    <select id="checkBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkCheckDto">
-        select COUNT(*)
-        from bookmark
-        WHERE member_memberId=#{member_memberId}
-         AND website_websiteId=#{website_websiteId}
+    <!-- ResultMap for Link entity -->
+    <resultMap id="LinkResultMap" type="com.web.SearchWeb.bookmark.domain.Link">
+        <id property="linkId" column="link_id"/>
+        <result property="canonicalUrl" column="canonical_url"/>
+        <result property="originalUrl" column="original_url"/>
+        <result property="domain" column="domain"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="faviconUrl" column="favicon_url"/>
+        <result property="contentType" column="content_type"/>
+        <result property="primaryCategoryId" column="primary_category_id"/>
+        <result property="categoryScore" column="category_score"/>
+        <result property="classifierVersion" column="classifier_version"/>
+        <result property="categorizedAt" column="categorized_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+
+    <!-- 북마크 중복 확인 (동일 폴더에 동일 링크) -->
+    <select id="checkBookmarkExists" resultType="int">
+        SELECT COUNT(*)
+        FROM member_saved_link
+        WHERE created_by_member_id = #{memberId}
+        AND member_folder_id = #{folderId}
+        AND link_id = #{linkId}
+        AND deleted_at IS NULL
     </select>
 
 
-    <!-- 게시판 북마크 확인 -->
-    <select id="checkBoardBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto">
-        select COUNT(*)
-        from bookmark
-        WHERE member_memberId=#{memberId}
-        AND board_boardId=#{boardId}
-    </select>
-
-
-    <!-- 북마크 단일 조회  -->
-    <select id="selectBookmark" parameterType="map" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
-        select *
-        from bookmark
-        WHERE member_memberId=#{memberId}
-         AND bookmarkId =#{bookmarkId};
+    <!-- 북마크 단일 조회 -->
+    <select id="selectBookmark" parameterType="map" resultMap="BookmarkResultMap">
+        SELECT msl.*, l.original_url, l.canonical_url, l.domain, l.thumbnail_url
+        FROM member_saved_link msl
+        JOIN link l ON msl.link_id = l.link_id
+        WHERE msl.created_by_member_id = #{memberId}
+        AND msl.member_saved_link_id = #{bookmarkId}
+        AND msl.deleted_at IS NULL
     </select>
 
 
     <!-- 북마크 목록 조회 -->
-    <select id="selectBookmarkList" parameterType="com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto" resultType="com.web.SearchWeb.bookmark.domain.Bookmark">
-        select *
-        from bookmark
-        WHERE member_memberId = #{memberId}
+    <select id="selectBookmarkList" parameterType="com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto" resultMap="BookmarkResultMap">
+        SELECT msl.*, l.original_url, l.canonical_url, l.domain, l.thumbnail_url
+        FROM member_saved_link msl
+        JOIN link l ON msl.link_id = l.link_id
+        WHERE msl.created_by_member_id = #{memberId}
+        AND msl.deleted_at IS NULL
         <if test="folderId != null">
-            AND folder_folderId = #{folderId}
+            AND msl.member_folder_id = #{folderId}
         </if>
-        <if test="tag != null and tag != '' and tag != 'All'">
-            AND tag = #{tag}
+        <if test="categoryId != null">
+            AND msl.primary_category_id = #{categoryId}
         </if>
         <if test="query != null and query != ''">
-            AND LOWER(name) LIKE CONCAT('%', LOWER(#{query}), '%')
+            AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%'
         </if>
         ORDER BY
         <choose>
             <when test="sort == 'Newest'">
-                modified_date DESC
+                msl.updated_at DESC
             </when>
             <when test="sort == 'Oldest'">
-                modified_date ASC
+                msl.updated_at ASC
             </when>
             <otherwise>
-                modified_date DESC
+                msl.updated_at DESC
             </otherwise>
         </choose>
     </select>
 
 
+    <!-- 링크 조회 (canonical_url로) -->
+    <select id="selectLinkByCanonicalUrl" parameterType="String" resultMap="LinkResultMap">
+        SELECT * FROM link
+        WHERE canonical_url = #{canonicalUrl}
+        AND deleted_at IS NULL
+    </select>
+
+
+    <!-- 링크 추가 -->
+    <insert id="insertLink" parameterType="com.web.SearchWeb.bookmark.domain.Link" useGeneratedKeys="true" keyProperty="linkId" keyColumn="link_id">
+        INSERT INTO link (canonical_url, original_url, domain, title, description, primary_category_id, created_by_member_id)
+        VALUES (#{canonicalUrl}, #{originalUrl}, #{domain}, #{title}, #{description}, #{primaryCategoryId}, #{createdByMemberId})
+    </insert>
+
+
     <!-- 북마크 추가 -->
-    <insert id="insertBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto">
-        insert
-        into
-        bookmark(member_memberId, website_websiteId, name, description, url, folder_folderId)
-        values(#{member_memberId}, #{website_websiteId}, #{name}, #{description}, #{url}, #{folder_folderId});
-    </insert>
-
-
-    <!-- 북마크 추가 (사용자 직접 추가) -->
-    <insert id="insertBookmarkForUser" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto" >
-        insert
-        into
-        bookmark(member_memberId, name, description, url, tag, folder_folderId)
-        values(#{member_memberId},#{name}, #{description}, #{url}, #{tag}, #{folder_folderId});
-    </insert>
-
-
-    <!-- 북마크 추가 (게시판에서 추가) -->
-    <insert id="insertBookmarkBoard" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkDto" >
-        insert
-        into
-        bookmark(member_memberId, board_boardId, name, description, url, tag, folder_folderId)
-        values(#{member_memberId},#{board_boardId}, #{name}, #{description}, #{url}, #{tag}, #{folder_folderId});
+    <insert id="insertBookmark" parameterType="map">
+        INSERT INTO member_saved_link (link_id, member_folder_id, display_title, note, primary_category_id, created_by_member_id)
+        VALUES (#{linkId}, #{bookmark.memberFolderId}, #{bookmark.displayTitle}, #{bookmark.note}, #{bookmark.primaryCategoryId}, #{bookmark.createdByMemberId})
     </insert>
 
 
     <!-- 북마크 수정 -->
     <update id="updateBookmark" parameterType="map">
-        update bookmark
+        UPDATE member_saved_link
         SET
-        name = #{bookmarkDto.name},
-        description = #{bookmarkDto.description},
-        url = #{bookmarkDto.url},
-        tag = #{bookmarkDto.tag},
-        folder_folderId = #{bookmarkDto.folder_folderId}
-        WHERE
-        bookmarkId = #{bookmarkId}
+            display_title = #{bookmarkDto.displayTitle},
+            note = #{bookmarkDto.note},
+            member_folder_id = #{bookmarkDto.memberFolderId},
+            primary_category_id = #{bookmarkDto.primaryCategoryId},
+            updated_at = now(),
+            updated_by_member_id = #{bookmarkDto.createdByMemberId}
+        WHERE member_saved_link_id = #{bookmarkId}
+        AND deleted_at IS NULL
     </update>
 
 
-    <!-- 북마크 삭제 -->
-    <delete id="deleteBookmark" parameterType="com.web.SearchWeb.bookmark.dto.BookmarkCheckDto">
-        delete
-        from bookmark
-        WHERE member_memberId=#{member_memberId}
-         AND website_websiteId=#{website_websiteId};
-    </delete>
-
-
-    <!-- 마이페이지 북마크 삭제 -->
-    <delete id="deleteBookmarkMyPage" parameterType="map">
-        delete
-        from bookmark
-        WHERE member_memberId=#{memberId}
-         AND bookmarkId = #{bookmarkId};
-    </delete>
-
-
-    <!-- 게시판 북마크 삭제 -->
-    <delete id="deleteBookmarkBoard" parameterType="com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto">
-        delete
-        from bookmark
-        WHERE member_memberId=#{memberId}
-        AND board_boardId=#{boardId}
-    </delete>
-
-
-    <!-- 북마크-웹사이트 조회 -->
-    <select id="selectBookmarkWebsite" resultType="com.web.SearchWeb.bookmark.domain.BookmarkWebsite">
-        select b.member_memberId, w.*
-         FROM bookmark b
-         JOIN website w
-         ON b.website_websiteId = w.websiteId
-         where member_memberId=#{member_memberId};
-    </select>
-
-
-    <!-- 마이페이지 북마크 태그 목록 조회 -->
-    <select id="selectTags" parameterType="map" resultType="string">
-        select DISTINCT tag
-        from bookmark
-        WHERE member_memberId=#{memberId}
-        <if test="folderId != null">
-            AND folder_folderId = #{folderId}
-        </if>
-        AND tag IS NOT NULL
-        And tag != ''
-    </select>
-
-
-    <!-- 게시글 북마크 여부 확인 -->
-    <select id="isBookmarked">
-        select COUNT(*) FROM bookmark
-        WHERE
-        board_boardId = #{boardId}
-        AND
-        member_memberId = #{memberId}
-    </select>
+    <!-- 북마크 삭제 (soft delete) -->
+    <update id="deleteBookmark" parameterType="map">
+        UPDATE member_saved_link
+        SET deleted_at = now(),
+            deleted_by_member_id = #{memberId}
+        WHERE member_saved_link_id = #{bookmarkId}
+        AND created_by_member_id = #{memberId}
+        AND deleted_at IS NULL
+    </update>
 
 </mapper>
-
-
-

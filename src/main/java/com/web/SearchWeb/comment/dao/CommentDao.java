@@ -6,28 +6,31 @@ import com.web.SearchWeb.comment.dto.UpdateUserProfileCommentDto;
 
 import java.util.List;
 
+/**
+ * CommentDao Interface (Legacy - PostgreSQL)
+ */
 public interface CommentDao {
     //게시글 댓글 생성
     int insertComment(Comment comment);
 
     //게시글 댓글 목록 조회
-    List<Comment> selectComments(int boardId);
+    List<Comment> selectComments(Long boardId);
 
-    //회원번호로 게시글 댓글 목록 조회
-    List<Comment> selectCommentsByMemberId(int memberId);
+    //회원번호로 게시글 댓글 목록 조회 (Long for member FK)
+    List<Comment> selectCommentsByMemberId(Long memberId);
 
     //게시글 댓글 단일 조회
-    Comment selectComment(int commentId);
+    Comment selectComment(Long commentId);
 
     //게시글 댓글 수정
-    int updateComment(int commentId, CommentDto commentDto);
+    int updateComment(Long commentId, CommentDto commentDto);
 
     //게시글 댓글 사용자 프로필 수정
     int updateCommentUserProfile(UpdateUserProfileCommentDto commentDto);
 
     //게시글 댓글 삭제
-    int deleteComment(int commentId);
+    int deleteComment(Long commentId);
 
     //게시글 댓글 수 조회
-    int countComments(int boardId);
+    int countComments(Long boardId);
 }

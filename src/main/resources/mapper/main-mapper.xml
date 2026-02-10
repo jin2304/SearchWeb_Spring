@@ -7,7 +7,7 @@
 <mapper namespace="com.web.SearchWeb.main.dao.MainDao">
     <select id="selectWebsite" resultType="com.web.SearchWeb.main.domain.Website">
         select * from website
-        where websiteId = #{websiteId}
+        where website_id = #{websiteId}
     </select>
 
 
@@ -30,13 +30,5 @@
         ORDER BY
         CASE WHEN LOWER(name) LIKE CONCAT('%', LOWER(#{query}), '%') THEN 1
         ELSE 2  END;
-
-        <!--SELECT * FROM website
-        WHERE
-        name LIKE CONCAT('%', UPPER(#{query}), '%')
-        OR
-        name LIKE CONCAT('%', LOWER(#{query}), '%');-->
-
-        <!--WHERE LOWER(name) LIKE CONCAT('%', LOWER(#{query}), '%')-->
     </select>
 </mapper>

@@ -78,26 +78,27 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         /* 회원가입 및 로그인 로직 */
         // 사용자 고유 식별값 생성 (소셜 서비스 이름 + 소셜 서비스 사용자 ID)
-        String username = oAuth2Response.getProvider()+oAuth2Response.getProviderId();
+        String loginId = oAuth2Response.getProvider() + oAuth2Response.getProviderId();
         // 기존 사용자 정보 조회
-        Member existMember = memberDao.findByUserName(username);
+        Member existMember = memberDao.findByLoginId(loginId);
         // 기본 사용자 역할 설정
         String role = "ROLE_USER";
-        int memberId;
+        Long memberId;
         
         // 사용자가 존재하지않으면 회원가입
         if(existMember == null) {
             Member member = new Member();
-            member.setUsername(username);
-            member.setPassword("1111");
-            member.setNickname("닉네임"); //닉네임 임시 설정
+            member.setLoginId(loginId);
+            member.setPasswordHash("1111");  // 소셜 로그인은 비밀번호 불필요하지만 NOT NULL 제약 대응
+            member.setMemberName(oAuth2Response.getName() != null ? oAuth2Response.getName() : "Unknown");  // member_name (NOT NULL)
+            member.setNickName("닉네임"); // 닉네임 임시 설정
             member.setEmail(oAuth2Response.getEmail());
             member.setRole(role);
             memberDao.SocialjoinProcess(member);
             memberId = member.getMemberId();
         }// 사용자가 이미 존재한다면 업데이트
         else{
-            existMember.setUsername(username);
+            existMember.setLoginId(loginId);
             existMember.setEmail(oAuth2Response.getEmail());
             role = existMember.getRole();
             memberId = existMember.getMemberId();
