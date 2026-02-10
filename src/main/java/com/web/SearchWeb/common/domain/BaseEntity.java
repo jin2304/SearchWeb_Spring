@@ -73,6 +73,12 @@ public abstract class BaseEntity implements Serializable {
         this.deletedByMemberId = deletedByMemberId;
     }
 
+    /** Set creation audit fields manually (MyBatis / 명시적 호출용) */
+    public void markAsCreated(Long memberId, OffsetDateTime now) {
+        this.createdAt = now;
+        this.createdByMemberId = memberId;
+    }
+
     /** Update audit fields manually (MyBatis / 명시적 호출용) */
     public void markAsUpdated(Long memberId, OffsetDateTime now) {
         this.updatedAt = now;
