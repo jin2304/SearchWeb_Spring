@@ -420,7 +420,7 @@
             member_memberId: memberId,
             displayTitle: name,  // 웹사이트 이름 -> displayTitle
             note: description,  // 웹사이트 설명 -> note
-            tag: tag,  // 단일 태그
+            tags: tag,  // 단일 태그 -> tags로 변경
             // memberFolderId: null, // 백엔드에서 처리하거나, 나중에 폴더 선택 기능 추가 시 설정
             // primaryCategoryId: 1  // 기본 카테고리
         };
@@ -678,7 +678,7 @@
             displayTitle: name,
             url: url, // DTO has url field
             note: description,
-            tag: tag,
+            tags: tag,
             memberFolderId: memberFolderId ? parseInt(memberFolderId) : null,
             primaryCategoryId: primaryCategoryId ? parseInt(primaryCategoryId) : 1,
             createdByMemberId: memberId // DTO 필드
@@ -745,7 +745,7 @@
 
 
 
-    <!--  사용자 프로필 수정  -->
+    // 사용자 프로필 수정
     // 프로필 수정 폼 토글 함수
     function toggleUpdateProfileForm() {
         document.getElementById('updateProfileForm').classList.toggle('hidden');
