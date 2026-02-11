@@ -3,6 +3,7 @@ package com.web.SearchWeb.bookmark.dao;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
+import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
 import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public interface BookmarkDao {
     int checkBookmarkExists(Long memberId, Long folderId, Long linkId);
 
     //북마크 추가
-    int insertBookmark(BookmarkDto bookmark, Long linkId);
+    int insertBookmark(BookmarkDto bookmarkDto, Long linkId);
     
     //북마크 단일 조회
     Bookmark selectBookmark(Long memberId, Long bookmarkId);
@@ -37,4 +38,10 @@ public interface BookmarkDao {
 
     //URL 기반 북마크 존재 여부 확인 (Board Bridge용)
     int checkBookmarkExistsByUrl(Long memberId, String url);
+
+    // 태그 등록 및 조회 (Insert & Select)
+    List<MemberTagResultDto> insertAndSelectTags(Long memberId, List<String> tagNames);
+
+    // 북마크-태그 연결 일괄 추가 (Bulk Insert)
+    int insertBookmarkTags(Long bookmarkId, List<Long> tagIds);
 }

@@ -30,4 +30,7 @@ public class Bookmark extends BaseEntity {
 
     // Link 객체 (Association)
     private Link link;            // Link 테이블과 조인된 객체
+
+    // Tag 목록 (Collection)
+    private List<String> tags; // 태그 목록
 }

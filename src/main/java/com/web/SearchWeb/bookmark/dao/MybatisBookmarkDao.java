@@ -3,6 +3,7 @@ package com.web.SearchWeb.bookmark.dao;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
+import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
 import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,5 +108,23 @@ public class MybatisBookmarkDao implements BookmarkDao {
     @Override
     public int deleteBookmarkByLink(Long memberId, Long linkId) {
         return mapper.deleteBookmarkByLink(memberId, linkId);
+    }
+
+
+    /**
+     *  태그 등록 및 조회 (Insert & Select)
+     */
+    @Override
+    public List<MemberTagResultDto> insertAndSelectTags(Long memberId, List<String> tagNames) {
+        return mapper.insertAndSelectTags(memberId, tagNames);
+    }
+
+
+    /**
+     *  북마크-태그 연결 일괄 추가 (Bulk Insert)
+     */
+    @Override
+    public int insertBookmarkTags(Long bookmarkId, List<Long> tagIds) {
+        return mapper.insertBookmarkTags(bookmarkId, tagIds);
     }
 }

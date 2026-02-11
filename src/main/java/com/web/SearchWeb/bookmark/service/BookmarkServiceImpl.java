@@ -6,14 +6,24 @@ import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class BookmarkServiceImpl implements BookmarkService {
 
     private final BookmarkDao bookmarkDao;
@@ -103,17 +113,32 @@ public class BookmarkServiceImpl implements BookmarkService {
     public int insertBookmark(BookmarkDto bookmarkDto, String url) {
         // 링크 조회 또는 생성
         Link link = getOrCreateLink(url, bookmarkDto.getCreatedByMemberId());
-        
-        // 중복 확인 (기본 폴더 등에서)
-        int exists = bookmarkDao.checkBookmarkExists(bookmarkDto.getCreatedByMemberId(), bookmarkDto.getMemberFolderId(), link.getLinkId());
-        if (exists > 0) {
-            return 0; // 이미 존재함
-        }
-        
-        // 북마크 추가
-        return bookmarkDao.insertBookmark(bookmarkDto, link.getLinkId());
-    }
 
+        // TODO: 링크 분석 및 폴더 서비스 완성 후 제거 - 임시 기본 폴더 ID 설정
+        if (bookmarkDto.getMemberFolderId() == null) {
+            bookmarkDto.setMemberFolderId(1L);  // 임시 하드코딩 값
+            log.warn("memberFolderId가 null이어서 임시 기본값(1)을 사용합니다. 링크 분석 및 폴더 서비스 연동 후 제거 필요.");
+        }
+
+        // 북마크 추가
+        try {
+            int result = bookmarkDao.insertBookmark(bookmarkDto, link.getLinkId());
+
+            // 태그 처리 및 저장
+            if (result > 0 && bookmarkDto.getTags() != null && !bookmarkDto.getTags().isEmpty()) {
+                // MyBatis의 useGeneratedKeys="true" 설정에 의해 insert 성공 시, bookmarkDto.bookmarkId에 생성된 PK(member_saved_link_id)가 자동으로 채워짐
+                processAndCreateTags(bookmarkDto.getBookmarkId(), bookmarkDto.getCreatedByMemberId(), bookmarkDto.getTags());
+            }
+
+            return result;
+        } catch (DataIntegrityViolationException e) {
+            // TODO: 글로벌 예외 처리 구현 후, 커스텀에러 던지도록 변경
+            // 현재는 임시로 0 반환 (DB UNIQUE 제약 uq_member_saved_link_folder_link 위반 시)
+            log.warn("북마크 중복 저장 시도: memberId={}, folderId={}, linkId={}", 
+                    bookmarkDto.getCreatedByMemberId(), bookmarkDto.getMemberFolderId(), link.getLinkId());
+            return 0;
+        }
+    }
 
     /**
      *  북마크 수정
@@ -161,6 +186,45 @@ public class BookmarkServiceImpl implements BookmarkService {
             return uri.getHost();
         } catch (Exception e) {
             return null;
+        }
+    }
+    
+    /**
+     * 태그 문자열 처리 및 저장
+     * @param bookmarkId 북마크 ID
+     * @param memberId 회원 ID
+     * @param tags 태그 문자열 (띄어쓰기 또는 콤마 구분)
+     */
+    private void processAndCreateTags(Long bookmarkId, Long memberId, String tags) {
+        if (tags == null || tags.isBlank()) return;
+    
+        // 1. 태그 파싱 및 중복 제거
+        Set<String> uniqueTags = new HashSet<>();
+        String[] splitTags = tags.split("[,\\s]+");
+        for (String tag : splitTags) {
+            if (!tag.isBlank()) {
+                uniqueTags.add(tag.trim());
+            }
+        }
+        
+        if (uniqueTags.isEmpty()) return;
+        
+        List<String> tagNames = new ArrayList<>(uniqueTags);
+
+        // 2. 태그 등록 및 조회 (Insert & Select) - CTE를 사용하여 한 번의 쿼리로 처리
+        // 새로운 태그는 생성하고, 기존 태그는 조회하여 모든 태그의 ID를 반환함
+        List<MemberTagResultDto> allTags = bookmarkDao.insertAndSelectTags(memberId, tagNames);
+        
+        log.info("allTags: {}", allTags);
+
+        // 최종 태그 ID 목록 추출
+        List<Long> finalTagIds = allTags.stream()
+                .map(MemberTagResultDto::getMemberTagId)
+                .collect(Collectors.toList());
+
+        // 3. 북마크-태그 연결 일괄 추가 (Bulk Insert)
+        if (!finalTagIds.isEmpty()) {
+            bookmarkDao.insertBookmarkTags(bookmarkId, finalTagIds);
         }
     }
     
