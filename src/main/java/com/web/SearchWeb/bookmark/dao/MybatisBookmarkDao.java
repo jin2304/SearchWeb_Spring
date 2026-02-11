@@ -59,11 +59,11 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
-     *  링크 조회 (canonical_url로)
+     *  링크 조회 (url로)
      */
     @Override
-    public Link selectLinkByCanonicalUrl(String canonicalUrl) {
-        return mapper.selectLinkByCanonicalUrl(canonicalUrl);
+    public Link selectLinkByUrl(String url) {
+        return mapper.selectLinkByUrl(url);
     }
 
 

@@ -69,7 +69,7 @@ public class BookmarkServiceImpl implements BookmarkService {
         String canonicalUrl = normalizeUrl(url);
         
         // 기존 링크 조회
-        Link existingLink = bookmarkDao.selectLinkByCanonicalUrl(canonicalUrl);
+        Link existingLink = bookmarkDao.selectLinkByUrl(url);
         if (existingLink != null) {
             return existingLink;
         }
@@ -96,7 +96,7 @@ public class BookmarkServiceImpl implements BookmarkService {
     public boolean checkBookmarkExistsByUrl(Long memberId, String url) {
         String canonicalUrl = normalizeUrl(url);
         // Link가 존재하는지 먼저 확인 (최적화)
-        Link link = bookmarkDao.selectLinkByCanonicalUrl(canonicalUrl);
+        Link link = bookmarkDao.selectLinkByUrl(url);
         if (link == null) {
             return false;
         }

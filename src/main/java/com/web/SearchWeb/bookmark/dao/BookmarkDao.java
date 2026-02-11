@@ -30,8 +30,8 @@ public interface BookmarkDao {
     //북마크 삭제 (Link ID 기반 - soft delete)
     int deleteBookmarkByLink(Long memberId, Long linkId);
 
-    //링크 조회 (canonical_url로)
-    Link selectLinkByCanonicalUrl(String canonicalUrl);
+    //링크 조회 (url로)
+    Link selectLinkByUrl(String url);
     
     //링크 추가 (link 테이블)
     int insertLink(Link link);

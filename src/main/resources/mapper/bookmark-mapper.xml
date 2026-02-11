@@ -105,10 +105,10 @@
     </select>
 
 
-    <!-- 링크 조회 (canonical_url로) -->
-    <select id="selectLinkByCanonicalUrl" parameterType="String" resultMap="LinkResultMap">
+    <!-- 링크 조회 (url로) -->
+    <select id="selectLinkByUrl" parameterType="String" resultMap="LinkResultMap">
         SELECT * FROM link
-        WHERE canonical_url = #{canonicalUrl}
+        WHERE canonical_url = #{url}
         AND deleted_at IS NULL
     </select>
 
