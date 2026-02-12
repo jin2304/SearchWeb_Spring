@@ -21,7 +21,7 @@ public class MainServiceImpl implements MainService {
      *  웹사이트 조회
      */
     @Override
-    public Website selectWebsite(int websiteId) {
+    public Website selectWebsite(Long websiteId) {
         return mainDao.selectWebsite(websiteId);
     }
 

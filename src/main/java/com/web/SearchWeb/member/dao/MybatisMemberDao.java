@@ -34,18 +34,20 @@ public class MybatisMemberDao implements MemberDao {
         mapper.SocialjoinProcess(member);
     }
 
-
+    /**
+     *  회원번호로 찾기
+     */
     @Override
-    public Member findByMemberId(int memberId) {
-        Member findUser = mapper.findByMemberId(memberId);
-        return findUser;
+    public Member findByMemberId(Long memberId) {
+        return mapper.findByMemberId(memberId);
     }
 
-
+    /**
+     *  로그인 아이디로 찾기
+     */
     @Override
-    public Member findByUserName(String username) {
-        Member findUser = mapper.findByUserName(username);
-        return findUser;
+    public Member findByLoginId(String loginId) {
+        return mapper.findByLoginId(loginId);
     }
 
 
@@ -53,7 +55,7 @@ public class MybatisMemberDao implements MemberDao {
      *  회원 수정
      */
     @Override
-    public int updateMember(int memberId, MemberUpdateDto memberUpdateDto) {
+    public int updateMember(Long memberId, MemberUpdateDto memberUpdateDto) {
         return mapper.updateMember(memberId, memberUpdateDto);
     }
 
@@ -62,7 +64,7 @@ public class MybatisMemberDao implements MemberDao {
      *  소셜 회원 수정
      */
     @Override
-    public int updateSocialMember(int memberId, Member member) {
+    public int updateSocialMember(Long memberId, Member member) {
         return mapper.updateSocialMember(memberId, member);
     }
 }

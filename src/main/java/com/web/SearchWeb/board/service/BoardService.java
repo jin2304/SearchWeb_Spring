@@ -34,7 +34,7 @@ public class BoardService {
     /**
      *  게시글 생성
      */
-    public int insertBoard(int memberId, BoardDto boardDto) {
+    public int insertBoard(Long memberId, BoardDto boardDto) {
         return boardDao.insertBoard(memberId, boardDto);
     }
 
@@ -66,7 +66,7 @@ public class BoardService {
     /**
      * 게시글 단일 조회
      */
-    public Map<String, Object> selectBoard(int boardId) {
+    public Map<String, Object> selectBoard(Long boardId) {
 
         // 조회수 증가
         boardDao.incrementViewCount(boardId);
@@ -87,7 +87,7 @@ public class BoardService {
     /**
      *  게시글 수정
      */
-    public int updateBoard(int boardId, BoardDto boardDto){
+    public int updateBoard(Long boardId, BoardDto boardDto){
         return boardDao.updateBoard(boardId, boardDto);
     }
 
@@ -95,7 +95,7 @@ public class BoardService {
     /**
      *  게시글 삭제
      */
-    public int deleteBoard(int boardId) {
+    public int deleteBoard(Long boardId) {
         return boardDao.deleteBoard(boardId);
     }
 
@@ -103,11 +103,10 @@ public class BoardService {
     /**
      *  게시글 북마크 수 증가
      */
-    public void incrementBookmarkCount(int boardId) {
+    public void incrementBookmarkCount(Long boardId) {
         Board board = boardDao.selectBoard(boardId);
         if (board != null) {
-            board.setBookmarks_count(board.getBookmarks_count() + 1);
-            boardDao.updateBookmarkCount(boardId, board.getBookmarks_count());
+            boardDao.updateBookmarkCount(boardId, board.getBookmarksCount() + 1);
         } else {
             throw new IllegalArgumentException("Invalid board ID");
         }
@@ -117,21 +116,22 @@ public class BoardService {
     /**
      *  게시글 북마크 수 감소
      */
-    public void decrementBookmarkCount(int boardId) {
+    public void decrementBookmarkCount(Long boardId) {
         Board board = boardDao.selectBoard(boardId);
         if (board != null) {
-            board.setBookmarks_count(board.getBookmarks_count() - 1);
-            boardDao.updateBookmarkCount(boardId, board.getBookmarks_count());
+            boardDao.updateBookmarkCount(boardId, board.getBookmarksCount() - 1);
         } else {
             throw new IllegalArgumentException("Invalid board ID");
         }
     }
 
 
-    // 게시글 소유자(작성자) 조회
-    public int findMemberIdByBoardId(int boardId) {
+    /**
+     * 게시글 소유자(작성자) 조회
+     */
+    public Long findMemberIdByBoardId(Long boardId) {
         Board board = boardDao.selectBoard(boardId);
         if (board == null) throw new IllegalArgumentException("게시글이 존재하지 않습니다.");
-        return board.getMember_memberId();
+        return board.getMemberMemberId();
     }
 }

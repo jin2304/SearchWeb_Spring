@@ -6,7 +6,6 @@ import com.web.SearchWeb.comment.dto.CommentDto;
 import com.web.SearchWeb.comment.service.CommentService;
 import com.web.SearchWeb.member.dto.CustomOAuth2User;
 import com.web.SearchWeb.member.dto.CustomUserDetails;
-import com.web.SearchWeb.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * CommentApiController (Legacy - PostgreSQL)
+ */
 @RestController
 public class CommentApiController {
 
@@ -36,7 +38,7 @@ public class CommentApiController {
      *  게시글 댓글 생성
      */
     @PostMapping("board/{boardId}/comment")
-    public ResponseEntity<Map<String, Object>> insertComment(@PathVariable int boardId,
+    public ResponseEntity<Map<String, Object>> insertComment(@PathVariable Long boardId,
                                                              @AuthenticationPrincipal Object currentUser,
                                                              @RequestBody CommentDto commentDto){
         Map<String, Object> response = new HashMap<>();
@@ -48,22 +50,22 @@ public class CommentApiController {
                     .body(response); // 401 Unauthorized 응답
         }
 
-        // 로그인 된 경우
-        String username;
+        // 로그인 된 경우 (loginId 사용)
+        String loginId;
         if(currentUser instanceof UserDetails) {
             // 일반 로그인 사용자 처리
-            username = ((CustomUserDetails) currentUser).getUsername();
+            loginId = ((CustomUserDetails) currentUser).getUsername();
         }
         else if(currentUser instanceof OAuth2User) {
             // 소셜 로그인 사용자 처리
-            username = ((CustomOAuth2User) currentUser).getUsername();
+            loginId = ((CustomOAuth2User) currentUser).getLoginId();
         } else {
             return ResponseEntity
                     .status(HttpStatus.FORBIDDEN)
                     .body(response);  // 403 Forbidden 응답
         }
 
-        commentService.insertComment(boardId, username, commentDto);
+        commentService.insertComment(boardId, loginId, commentDto);
 
         response.put("success", true);
         return ResponseEntity.ok(response);  // 200 OK 응답
@@ -74,7 +76,7 @@ public class CommentApiController {
      *  게시글 댓글 목록 조회
      */
     @GetMapping("board/{boardId}/comments")
-    public ResponseEntity<List<Comment>> selectComments(@PathVariable int boardId, Model model){
+    public ResponseEntity<List<Comment>> selectComments(@PathVariable Long boardId, Model model){
         List<Comment> comments = commentService.selectComments(boardId);
         return ResponseEntity.ok(comments);
     }
@@ -85,7 +87,7 @@ public class CommentApiController {
      */
     @GetMapping("board/{boardId}/comment/{commentId}")
     @OwnerCheck(idParam = "commentId", service = "commentService")
-    public ResponseEntity<Comment> selectComment(@PathVariable int commentId){
+    public ResponseEntity<Comment> selectComment(@PathVariable Long commentId){
         Comment comment = commentService.selectComment(commentId);
         return ResponseEntity.ok(comment);
     }
@@ -96,8 +98,8 @@ public class CommentApiController {
      */
     @PutMapping("board/{boardId}/comments/{commentId}")
     @OwnerCheck(idParam = "commentId", service = "commentService")
-    public ResponseEntity<Map<String, Object>> updateComment(@PathVariable int boardId,
-                                                             @PathVariable int commentId,
+    public ResponseEntity<Map<String, Object>> updateComment(@PathVariable Long boardId,
+                                                             @PathVariable Long commentId,
                                                              @RequestBody CommentDto commentDto){
         Map<String, Object> response = new HashMap<>();
         commentService.updateComment(commentId, commentDto);
@@ -111,8 +113,8 @@ public class CommentApiController {
      */
     @DeleteMapping("board/{boardId}/comments/{commentId}")
     @OwnerCheck(idParam = "commentId", service = "commentService")
-    public ResponseEntity<Map<String, Object>> deleteComment(@PathVariable int boardId,
-                                                             @PathVariable int commentId){
+    public ResponseEntity<Map<String, Object>> deleteComment(@PathVariable Long boardId,
+                                                             @PathVariable Long commentId){
         Map<String, Object> response = new HashMap<>();
         commentService.deleteComment(boardId, commentId);
         response.put("success", true);

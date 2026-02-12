@@ -1,41 +1,40 @@
 package com.web.SearchWeb.bookmark.dao;
 
 import com.web.SearchWeb.bookmark.domain.Bookmark;
-import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
-import com.web.SearchWeb.bookmark.dto.BookmarkCheckDto;
+import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
-import com.web.SearchWeb.bookmark.domain.BookmarkWebsite;
 import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
 
 import java.util.List;
 
 public interface BookmarkDao {
-    //북마크 확인
-    int checkBookmark(BookmarkCheckDto bookmark);
-    //게시판 북마크 확인
-    int checkBoardBookmark(BoardBookmarkCheckDto checkDto);
+    //북마크 링크 중복 확인 (동일 폴더에 동일 링크)
+    int checkBookmarkExists(Long memberId, Long folderId, Long linkId);
+
+    //북마크 추가
+    int insertBookmark(BookmarkDto bookmark, Long linkId);
+    
     //북마크 단일 조회
-    Bookmark selectBookmark(int memberId, int bookmarkId);
+    Bookmark selectBookmark(Long memberId, Long bookmarkId);
+    
     //북마크 목록 조회
     List<Bookmark> selectBookmarkList(BookmarkSearchRequestDto searchRequest);
-    //북마크 추가
-    int insertBookmark(BookmarkDto bookmark);
-    //북마크 추가 (사용자 직접 추가)
-    int insertBookmarkForUser(BookmarkDto bookmarkDto);
-    //북마크 추가 (게시판에서 추가)
-    int insertBookmarkBoard(BookmarkDto bookmarkDto);
+
     //북마크 수정
-    int updateBookmark(BookmarkDto bookmarkDto, int bookmarkId);
+    int updateBookmark(BookmarkDto bookmarkDto, Long bookmarkId);
+    
     //북마크 삭제
-    int deleteBookmark(BookmarkCheckDto bookmark);
-    //마이페이지 북마크 삭제
-    int deleteBookmarkMyPage(int memberId,int bookmarkId);
-    //게시판 북마크 삭제
-    int deleteBookmarkBoard(BoardBookmarkCheckDto bookmark);
-    //북마크-웹사이트 조회
-    List<BookmarkWebsite> selectBookmarkWebsite(int memberId);
-    //사용자 태그 목록 조회
-    List<String> selectTags(int memberId, Long folderId);
-    //게시글 북마크 여부 확인
-    int isBookmarked(int boardId, int memberId);
+    int deleteBookmark(Long memberId, Long bookmarkId);
+
+    //북마크 삭제 (Link ID 기반 - soft delete)
+    int deleteBookmarkByLink(Long memberId, Long linkId);
+
+    //링크 조회 (canonical_url로)
+    Link selectLinkByCanonicalUrl(String canonicalUrl);
+    
+    //링크 추가 (link 테이블)
+    int insertLink(Link link);
+
+    //URL 기반 북마크 존재 여부 확인 (Board Bridge용)
+    int checkBookmarkExistsByUrl(Long memberId, String url);
 }

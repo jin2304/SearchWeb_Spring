@@ -4,62 +4,85 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 
+<mapper namespace="com.web.SearchWeb.member.dao.MemberDao">
 
-<mapper namespace="com.web.SearchWeb.member.dao.MemberDao"> <!--Dao 이름-->
+    <!-- ResultMap for Member entity -->
+    <resultMap id="MemberResultMap" type="com.web.SearchWeb.member.domain.Member">
+        <id property="memberId" column="member_id"/>
+        <result property="email" column="email"/>
+        <result property="loginId" column="login_id"/>
+        <result property="passwordHash" column="password_hash"/>
+        <result property="memberName" column="member_name"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="job" column="job"/>
+        <result property="major" column="major"/>
+        <result property="summary" column="summary"/>
+        <result property="status" column="status"/>
+        <result property="role" column="role"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deletedAt" column="deleted_at"/>
+        <result property="createdByMemberId" column="created_by_member_id"/>
+        <result property="updatedByMemberId" column="updated_by_member_id"/>
+        <result property="deletedByMemberId" column="deleted_by_member_id"/>
+    </resultMap>
+
 
     <!-- 회원가입 -->
     <insert id="joinProcess" parameterType="com.web.SearchWeb.member.dto.MemberDto">
-        insert into
-            member (username, password, nickname, role)
-            VALUES(#{username}, #{password}, #{nickname}, #{role})
+        INSERT INTO member (login_id, password_hash, member_name, nick_name, email, role)
+        VALUES (#{loginId}, #{password}, #{memberName}, #{nickName}, #{email}, #{role})
     </insert>
 
 
     <!-- 소셜 회원가입 -->
-    <insert id="SocialjoinProcess" parameterType="com.web.SearchWeb.member.domain.Member" useGeneratedKeys="true" keyProperty="memberId">
-        insert into
-        member (username, password, nickname, role, email)
-        VALUES(#{username}, #{password}, #{nickname}, #{role}, #{email})
+    <insert id="SocialjoinProcess" parameterType="com.web.SearchWeb.member.domain.Member" useGeneratedKeys="true" keyProperty="memberId" keyColumn="member_id">
+        INSERT INTO member (login_id, password_hash, member_name, nick_name, role, email)
+        VALUES (#{loginId}, #{passwordHash}, #{memberName}, #{nickName}, #{role}, #{email})
     </insert>
 
 
-    <select id="findByMemberId" parameterType="int" resultType="com.web.SearchWeb.member.domain.Member">
-        select * from member
-        where memberId=#{memberId}
+    <!-- 회원번호로 조회 -->
+    <select id="findByMemberId" parameterType="long" resultMap="MemberResultMap">
+        SELECT * FROM member
+        WHERE member_id = #{memberId}
+        AND deleted_at IS NULL
     </select>
 
 
-    <select id="findByUserName" parameterType="String" resultType="com.web.SearchWeb.member.domain.Member">
-        select * from member
-        where username=#{username}
+    <!-- 로그인 아이디로 조회 -->
+    <select id="findByLoginId" parameterType="String" resultMap="MemberResultMap">
+        SELECT * FROM member
+        WHERE login_id = #{loginId}
+        AND deleted_at IS NULL
     </select>
 
 
     <!-- 회원 수정 -->
     <update id="updateMember" parameterType="map">
-        update member
+        UPDATE member
         SET
-        job = #{memberUpdateDto.job},
-        major = #{memberUpdateDto.major},
-        summary = #{memberUpdateDto.summary}
-        WHERE
-        memberId = #{memberId}
+            job = #{memberUpdateDto.job},
+            major = #{memberUpdateDto.major},
+            summary = #{memberUpdateDto.summary},
+            nick_name = #{memberUpdateDto.nickName},
+            updated_at = now()
+        WHERE member_id = #{memberId}
+        AND deleted_at IS NULL
     </update>
 
 
     <!-- 소셜 회원 수정 -->
     <update id="updateSocialMember" parameterType="map">
-        update member
+        UPDATE member
         SET
-        username = #{member.username},
-        job = #{member.job},
-        major = #{member.major},
-        summary = #{member.summary},
-        email = #{member.email}
-        WHERE
-        memberId = #{memberId}
+            login_id = #{member.loginId},
+            job = #{member.job},
+            major = #{member.major},
+            summary = #{member.summary},
+            email = #{member.email},
+            updated_at = now()
+        WHERE member_id = #{memberId}
+        AND deleted_at IS NULL
     </update>
 </mapper>
-
-
-

@@ -27,12 +27,12 @@ import java.util.Map;
  *      -getAuthorities(): 사용자 권한 반환.
  *      -getName(): 소셜 서비스에서 제공한 사용자 이름 반환.
  *      -getMemberId(): 데이터베이스에 저장된 사용자 고유 ID 반환.
- *      -getUsername(): 소셜 서비스 이름과 사용자 ID를 조합한 고유 식별값 반환.
+ *      -getLoginId(): 소셜 서비스 이름과 사용자 ID를 조합한 고유 식별값 반환.
  *
  * 클래스 주요 필드:
  *      -OAuth2Response oAuth2Response: 소셜 서비스에서 가져온 사용자 정보.
  *      -String role: Searchweb 서비스에 부여한 사용자 권한(Role).
- *      -int memberId: 데이터베이스에 저장된 사용자 고유 ID.
+ *      -Long memberId: 데이터베이스에 저장된 사용자 고유 ID.
  *
  * 소셜 서비스 지원 플랫폼:
  *      -naver, google, kakao
@@ -45,9 +45,9 @@ public class CustomOAuth2User implements OAuth2User {
 
     private final OAuth2Response oAuth2Response;
     private final String role;
-    private final int memberId;
+    private final Long memberId;
 
-    public CustomOAuth2User(OAuth2Response oAuth2Response, String role, int memberId) {
+    public CustomOAuth2User(OAuth2Response oAuth2Response, String role, Long memberId) {
         this.oAuth2Response = oAuth2Response;
         this.role = role;
         this.memberId = memberId;
@@ -76,13 +76,13 @@ public class CustomOAuth2User implements OAuth2User {
     }
 
 
-    public int getMemberId() {
+    public Long getMemberId() {
         return memberId;
     }
 
 
-    public String getUsername() {
-        return oAuth2Response.getProvider()+oAuth2Response.getProviderId();
+    public String getLoginId() {
+        return oAuth2Response.getProvider() + oAuth2Response.getProviderId();
     }
 
 

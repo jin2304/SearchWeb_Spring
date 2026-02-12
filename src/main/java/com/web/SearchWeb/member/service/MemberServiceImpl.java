@@ -2,7 +2,6 @@ package com.web.SearchWeb.member.service;
 
 
 import com.web.SearchWeb.board.dao.BoardDao;
-import com.web.SearchWeb.board.domain.Board;
 import com.web.SearchWeb.comment.dao.CommentDao;
 import com.web.SearchWeb.comment.domain.Comment;
 import com.web.SearchWeb.comment.dto.UpdateUserProfileCommentDto;
@@ -18,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 
-//서비스 로직, 트랜잭션 처리
+
 @Service
 public class MemberServiceImpl implements MemberService{
 
@@ -51,7 +50,7 @@ public class MemberServiceImpl implements MemberService{
     /**
      *  회원번호로 찾기
      */
-    public Member findByMemberId(int memberId){
+    public Member findByMemberId(Long memberId){
         return memberDao.findByMemberId(memberId);
     }
 
@@ -59,8 +58,8 @@ public class MemberServiceImpl implements MemberService{
     /**
      *  로그인 아이디로 찾기
      */
-    public Member findByUserName(String username){
-        return memberDao.findByUserName(username);
+    public Member findByLoginId(String loginId){
+        return memberDao.findByLoginId(loginId);
     }
 
 
@@ -77,7 +76,7 @@ public class MemberServiceImpl implements MemberService{
      */
     @Override
     @Transactional
-    public int updateMember(int memberId, MemberUpdateDto memberUpdateDto) {
+    public int updateMember(Long memberId, MemberUpdateDto memberUpdateDto) {
         int result = memberDao.updateMember(memberId, memberUpdateDto);
 
         // 회원 정보 수정이 성공했을 경우, 게시글 댓글의 회원정보 업데이트

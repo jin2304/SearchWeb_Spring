@@ -23,7 +23,7 @@ public class MybatisBoardDao implements BoardDao{
     /**
      *  게시글 생성
      */
-    public int insertBoard(int memberId, BoardDto boardDto) {
+    public int insertBoard(Long memberId, BoardDto boardDto) {
         return mapper.insertBoard(memberId, boardDto);
     }
 
@@ -48,7 +48,7 @@ public class MybatisBoardDao implements BoardDao{
     /**
      *  게시글 목록 조회(회원번호로 조회)
      */
-    public List<Board> selectBoardListByMemberId(int memberId) {
+    public List<Board> selectBoardListByMemberId(Long memberId) {
         return mapper.selectBoardListByMemberId(memberId);
     }
 
@@ -56,7 +56,7 @@ public class MybatisBoardDao implements BoardDao{
     /**
      *  게시글 단일 조회
      */
-    public Board selectBoard(int boardId) {
+    public Board selectBoard(Long boardId) {
         return mapper.selectBoard(boardId);
     }
 
@@ -64,7 +64,7 @@ public class MybatisBoardDao implements BoardDao{
     /**
      *  게시글 수정
      */
-    public int updateBoard(int boardId, BoardDto boardDto){
+    public int updateBoard(Long boardId, BoardDto boardDto){
         return mapper.updateBoard(boardId, boardDto);
     }
 
@@ -72,7 +72,7 @@ public class MybatisBoardDao implements BoardDao{
     /**
      *  게시글 수정(회원정보 수정)
      */
-    public int updateBoardProfile(int boardId, String job, String major){
+    public int updateBoardProfile(Long boardId, String job, String major){
         return mapper.updateBoardProfile(boardId, job, major);
     }
 
@@ -80,7 +80,7 @@ public class MybatisBoardDao implements BoardDao{
     /**
      *  게시글 삭제
      */
-    public int deleteBoard(int boardId) {
+    public int deleteBoard(Long boardId) {
         return mapper.deleteBoard(boardId);
     }
 
@@ -89,7 +89,7 @@ public class MybatisBoardDao implements BoardDao{
      *  게시글 북마크 수 수정
      */
     @Override
-    public int updateBookmarkCount(int boardId, int bookmarkCount) {
+    public int updateBookmarkCount(Long boardId, int bookmarkCount) {
         return mapper.updateBookmarkCount(boardId, bookmarkCount);
     }
 
@@ -97,7 +97,7 @@ public class MybatisBoardDao implements BoardDao{
     /**
      *  게시글 조회수 증가
      */
-    public int incrementViewCount(int boardId) {
+    public int incrementViewCount(Long boardId) {
         return mapper.incrementViewCount(boardId);
     }
 
@@ -106,7 +106,7 @@ public class MybatisBoardDao implements BoardDao{
      *  게시글 좋아요 증가
      */
     @Override
-    public int incrementLikeCount(int boardId) {
+    public int incrementLikeCount(Long boardId) {
         return mapper.incrementLikeCount(boardId);
     }
 
@@ -115,7 +115,7 @@ public class MybatisBoardDao implements BoardDao{
      *  게시글 좋아요 감소
      */
     @Override
-    public int decrementLikeCount(int boardId) {
+    public int decrementLikeCount(Long boardId) {
         return mapper.decrementLikeCount(boardId);
     }
 
@@ -124,7 +124,7 @@ public class MybatisBoardDao implements BoardDao{
      *  게시글 댓글 수 증가
      */
     @Override
-    public int incrementCommentCount(int boardId) {
+    public int incrementCommentCount(Long boardId) {
         return mapper.incrementCommentCount(boardId);
     }
 
@@ -133,8 +133,7 @@ public class MybatisBoardDao implements BoardDao{
      *  게시글 댓글 수 감소
      */
     @Override
-    public int decrementCommentCount(int boardId) {
+    public int decrementCommentCount(Long boardId) {
         return mapper.decrementCommentCount(boardId);
     }
 }
-

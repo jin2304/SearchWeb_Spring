@@ -22,7 +22,7 @@ public class LikesService {
     /**
      *  게시글 좋아요 상태 확인
      */
-    public boolean isLiked(int boardId, int memberId) {
+    public boolean isLiked(Long boardId, Long memberId) {
         Boolean isLiked = likesDao.isLikedByMember(boardId, memberId);
         return Boolean.TRUE.equals(isLiked);
     }
@@ -32,7 +32,7 @@ public class LikesService {
      *  게시글 좋아요 추가/취소
      */
     @Transactional
-    public boolean toggleLike(int boardId, int memberId) {
+    public boolean toggleLike(Long boardId, Long memberId) {
         //게시글 좋아요 상태 확인
         Boolean isLiked = likesDao.isLikedByMember(boardId, memberId);
 
@@ -53,7 +53,7 @@ public class LikesService {
     /**
      *  게시글 좋아요 수 조회
      */
-    public int getLikeCount(int boardId) {
+    public int getLikeCount(Long boardId) {
         return likesDao.countLikes(boardId);
     }
 
