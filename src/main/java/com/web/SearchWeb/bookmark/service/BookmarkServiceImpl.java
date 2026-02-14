@@ -14,6 +14,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.web.SearchWeb.bookmark.error.BookmarkErrorCode;
+import com.web.SearchWeb.config.BusinessException;
+import com.web.SearchWeb.config.CommonErrorCode;
+
 import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
 import java.net.URI;
 import java.util.ArrayList;
@@ -110,33 +114,43 @@ public class BookmarkServiceImpl implements BookmarkService {
      */
     @Override
     @Transactional
-    public int insertBookmark(BookmarkDto bookmarkDto, String url) {
+    public Long insertBookmark(Long memberId, String url, Long memberFolderId, String displayTitle, 
+                              String note, Long primaryCategoryId, String tags) {
         // 링크 조회 또는 생성
-        Link link = getOrCreateLink(url, bookmarkDto.getCreatedByMemberId());
+        Link link = getOrCreateLink(url, memberId);
 
         // TODO: 링크 분석 및 폴더 서비스 완성 후 제거 - 임시 기본 폴더 ID 설정
-        if (bookmarkDto.getMemberFolderId() == null) {
-            bookmarkDto.setMemberFolderId(1L);  // 임시 하드코딩 값
+        if (memberFolderId == null) {
+            memberFolderId = 1L;  // 임시 하드코딩 값
             log.warn("memberFolderId가 null이어서 임시 기본값(1)을 사용합니다. 링크 분석 및 폴더 서비스 연동 후 제거 필요.");
         }
 
+        // Entity 생성
+        Bookmark bookmark = Bookmark.builder()
+                .linkId(link.getLinkId())
+                .memberFolderId(memberFolderId)
+                .displayTitle(displayTitle)
+                .note(note)
+                .primaryCategoryId(primaryCategoryId)
+                .createdByMemberId(memberId)
+                .build();
+
         // 북마크 추가
         try {
-            int result = bookmarkDao.insertBookmark(bookmarkDto, link.getLinkId());
+            int result = bookmarkDao.insertBookmark(bookmark);
 
             // 태그 처리 및 저장
-            if (result > 0 && bookmarkDto.getTags() != null && !bookmarkDto.getTags().isEmpty()) {
-                // MyBatis의 useGeneratedKeys="true" 설정에 의해 insert 성공 시, bookmarkDto.bookmarkId에 생성된 PK(member_saved_link_id)가 자동으로 채워짐
-                processAndCreateTags(bookmarkDto.getBookmarkId(), bookmarkDto.getCreatedByMemberId(), bookmarkDto.getTags());
+            if (result > 0) {
+                if (tags != null && !tags.isEmpty()) {
+                     // MyBatis의 useGeneratedKeys="true" 설정에 의해 insert 성공 시, bookmark.bookmarkId에 생성된 PK가 자동으로 채워짐
+                    processAndCreateTags(bookmark.getBookmarkId(), memberId, tags);
+                }
+                return bookmark.getBookmarkId();
             }
-
-            return result;
+            throw BusinessException.from(CommonErrorCode.INTERNAL_SERVER_ERROR);
         } catch (DataIntegrityViolationException e) {
-            // TODO: 글로벌 예외 처리 구현 후, 커스텀에러 던지도록 변경
-            // 현재는 임시로 0 반환 (DB UNIQUE 제약 uq_member_saved_link_folder_link 위반 시)
-            log.warn("북마크 중복 저장 시도: memberId={}, folderId={}, linkId={}", 
-                    bookmarkDto.getCreatedByMemberId(), bookmarkDto.getMemberFolderId(), link.getLinkId());
-            return 0;
+            log.warn("북마크 중복 저장 시도: memberId={}, folderId={}, linkId={}", memberId, memberFolderId, link.getLinkId());
+            throw BusinessException.from(BookmarkErrorCode.DUPLICATE_BOOKMARK);
         }
     }
 
@@ -215,8 +229,6 @@ public class BookmarkServiceImpl implements BookmarkService {
         // 새로운 태그는 생성하고, 기존 태그는 조회하여 모든 태그의 ID를 반환함
         List<MemberTagResultDto> allTags = bookmarkDao.insertAndSelectTags(memberId, tagNames);
         
-        log.info("allTags: {}", allTags);
-
         // 최종 태그 ID 목록 추출
         List<Long> finalTagIds = allTags.stream()
                 .map(MemberTagResultDto::getMemberTagId)

@@ -1,9 +1,11 @@
 package com.web.SearchWeb.bookmark.controller;
 
 
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
+import com.web.SearchWeb.config.ApiResponse;
 import com.web.SearchWeb.member.dto.CustomOAuth2User;
 import com.web.SearchWeb.member.dto.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,27 +58,34 @@ public class BookmarkApiController {
      *  북마크 추가
      */
     @PostMapping
-    public ResponseEntity<Map<String, Object>> insertBookmark(
+    public ResponseEntity<ApiResponse<Long>> insertBookmark(
             @AuthenticationPrincipal Object currentUser,
-            @RequestBody BookmarkDto bookmarkDto,
-            @RequestParam String url) {
-        
-        Map<String, Object> response = new HashMap<>();
-        
+            @RequestBody BookmarkRequests.CreateDto request) {
+
+        // TODO: AOP 처리
         // 로그인 되지 않은 경우
         if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         
         Long memberId = getMemberId(currentUser);
         if (memberId == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         
-        bookmarkDto.setCreatedByMemberId(memberId);
-        int result = bookmarkService.insertBookmark(bookmarkDto, url);
-        response.put("success", result > 0);
-        return ResponseEntity.ok(response);
+        Long bookmarkId = bookmarkService.insertBookmark(
+            memberId, 
+            request.url, 
+            request.memberFolderId,
+            request.displayTitle, 
+            request.note, 
+            request.primaryCategoryId, 
+            request.tags
+        );
+        
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(ApiResponse.success(bookmarkId));
     }
 
 

@@ -125,9 +125,9 @@
 
 
     <!-- 북마크 추가 -->
-    <insert id="insertBookmark" parameterType="map" useGeneratedKeys="true" keyProperty="bookmarkDto.bookmarkId" keyColumn="member_saved_link_id">
+    <insert id="insertBookmark" parameterType="com.web.SearchWeb.bookmark.domain.Bookmark" useGeneratedKeys="true" keyProperty="bookmarkId" keyColumn="member_saved_link_id">
         INSERT INTO member_saved_link (link_id, member_folder_id, display_title, note, primary_category_id, created_by_member_id)
-        VALUES (#{linkId}, #{bookmarkDto.memberFolderId}, #{bookmarkDto.displayTitle}, #{bookmarkDto.note}, #{bookmarkDto.primaryCategoryId}, #{bookmarkDto.createdByMemberId})
+        VALUES (#{linkId}, #{memberFolderId}, #{displayTitle}, #{note}, #{primaryCategoryId}, #{createdByMemberId})
     </insert>
 
 

@@ -10,7 +10,8 @@ import java.util.List;
 
 public interface BookmarkService {
     //북마크 추가
-    int insertBookmark(BookmarkDto bookmarkDto, String url);
+    Long insertBookmark(Long memberId, String url, Long memberFolderId, String displayTitle,
+                       String note, Long primaryCategoryId, String tags);
     
     //북마크 단일 조회
     Bookmark selectBookmark(Long memberId, Long bookmarkId);

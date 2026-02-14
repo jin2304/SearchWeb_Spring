@@ -77,8 +77,18 @@ public class MyPageController {
                                                                @RequestParam String url){
         Map<String, Object> response = new HashMap<>();
         bookmarkDto.setCreatedByMemberId(memberId);
-        int result = bookmarkService.insertBookmark(bookmarkDto, url);
-        response.put("success", result > 0);
+
+        Long bookmarkId = bookmarkService.insertBookmark(
+            memberId,
+            url,
+            bookmarkDto.getMemberFolderId(),
+            bookmarkDto.getDisplayTitle(),
+            bookmarkDto.getNote(),
+            bookmarkDto.getPrimaryCategoryId(),
+            bookmarkDto.getTags()
+        );
+
+        response.put("success", bookmarkId != null && bookmarkId > 0);
         return ResponseEntity.ok(response);
     }
 

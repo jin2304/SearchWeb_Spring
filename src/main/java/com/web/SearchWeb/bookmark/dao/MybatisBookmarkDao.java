@@ -80,8 +80,8 @@ public class MybatisBookmarkDao implements BookmarkDao {
      *  북마크 추가
      */
     @Override
-    public int insertBookmark(BookmarkDto bookmark, Long linkId) {
-        return mapper.insertBookmark(bookmark, linkId);
+    public int insertBookmark(Bookmark bookmark) {
+        return mapper.insertBookmark(bookmark);
     }
 
 

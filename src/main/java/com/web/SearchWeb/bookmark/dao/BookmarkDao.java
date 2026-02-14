@@ -13,7 +13,7 @@ public interface BookmarkDao {
     int checkBookmarkExists(Long memberId, Long folderId, Long linkId);
 
     //북마크 추가
-    int insertBookmark(BookmarkDto bookmarkDto, Long linkId);
+    int insertBookmark(Bookmark bookmark);
     
     //북마크 단일 조회
     Bookmark selectBookmark(Long memberId, Long bookmarkId);
