@@ -4,7 +4,7 @@ import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
-import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
+import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ public interface BookmarkDao {
     Bookmark selectBookmark(Long memberId, Long bookmarkId);
     
     //북마크 목록 조회
-    List<Bookmark> selectBookmarkList(BookmarkSearchRequestDto searchRequest);
+    List<Bookmark> selectBookmarkList(BookmarkSearchCommand searchCommand);
 
     //북마크 수정
     int updateBookmark(BookmarkDto bookmarkDto, Long bookmarkId);

@@ -1,4 +1,4 @@
-package com.web.SearchWeb.bookmark.dto.request;
+package com.web.SearchWeb.bookmark.service.command;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,13 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Bookmark 검색 요청 DTO
+ * Bookmark 검색 요청 Command
  */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BookmarkSearchRequestDto {
+public class BookmarkSearchCommand {
     private Long memberId;                // created_by_member_id로 필터
     private Long folderId;                // member_folder_id로 필터
     private String sort;                  // 정렬 기준 (Newest, Oldest)

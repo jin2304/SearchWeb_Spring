@@ -1,12 +1,15 @@
 package com.web.SearchWeb.mypage.controller;
 
 import com.web.SearchWeb.aop.OwnerCheck;
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
+import com.web.SearchWeb.config.ApiResponse;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.dto.MemberUpdateDto;
 import com.web.SearchWeb.member.service.MemberService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -99,13 +102,11 @@ public class MyPageController {
      */
     @GetMapping(value ="/myPage/{memberId}/bookmarks")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<List<Bookmark>> getBookmarks(@PathVariable final Long memberId,
-                                                       @RequestParam(required = false) String query,
-                                                       @RequestParam(required = false) Long folderId,
-                                                       @RequestParam(required = false) Long categoryId,
-                                                       @RequestParam(defaultValue = "Oldest") String sort) {
-        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(memberId, folderId, sort, query, categoryId);
-        return ResponseEntity.ok(bookmarks);
+    public ResponseEntity<ApiResponse<List<Bookmark>>> getBookmarks(
+            @PathVariable final Long memberId,
+            @ModelAttribute BookmarkRequests.SearchDto searchDto) {
+        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
+        return ResponseEntity.ok(ApiResponse.success(bookmarks));
     }
 
 

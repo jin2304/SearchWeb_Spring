@@ -93,13 +93,11 @@ public class BookmarkApiController {
      *  북마크 목록 조회
      */
     @GetMapping
-    public ResponseEntity<List<Bookmark>> selectBookmarkList(
+    public ResponseEntity<ApiResponse<List<Bookmark>>> selectBookmarkList(
             @AuthenticationPrincipal Object currentUser,
-            @RequestParam(required = false) Long folderId,
-            @RequestParam(defaultValue = "Newest") String sort,
-            @RequestParam(required = false) String query,
-            @RequestParam(required = false) Long categoryId) {
+            @ModelAttribute BookmarkRequests.SearchDto searchDto) {
         
+        // TODO: AOP 처리
         // 로그인 되지 않은 경우
         if (currentUser == null || "anonymousUser".equals(currentUser)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -110,8 +108,8 @@ public class BookmarkApiController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         
-        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(memberId, folderId, sort, query, categoryId);
-        return ResponseEntity.ok(bookmarks);
+        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
+        return ResponseEntity.ok(ApiResponse.success(bookmarks));
     }
 
 
@@ -119,10 +117,11 @@ public class BookmarkApiController {
      *  북마크 단일 조회
      */
     @GetMapping("/{bookmarkId}")
-    public ResponseEntity<Bookmark> selectBookmark(
+    public ResponseEntity<ApiResponse<Bookmark>> selectBookmark(
             @AuthenticationPrincipal Object currentUser,
             @PathVariable Long bookmarkId) {
 
+        // TODO: AOP 처리
         // 로그인 되지 않은 경우
         if (currentUser == null || "anonymousUser".equals(currentUser)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -134,7 +133,7 @@ public class BookmarkApiController {
         }
 
         Bookmark bookmark = bookmarkService.selectBookmark(memberId, bookmarkId);
-        return ResponseEntity.ok(bookmark);
+        return ResponseEntity.ok(ApiResponse.success(bookmark));
     }
 
 

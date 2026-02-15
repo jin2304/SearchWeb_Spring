@@ -65,36 +65,50 @@
 
     <!-- 북마크 단일 조회 -->
     <select id="selectBookmark" parameterType="map" resultMap="BookmarkResultMap">
-        SELECT msl.*, l.original_url, l.canonical_url, l.domain, l.thumbnail_url, mt.tag_name
-        FROM member_saved_link msl
-        JOIN link l ON msl.link_id = l.link_id
-        LEFT JOIN member_saved_link_tag mslt ON msl.member_saved_link_id = mslt.member_saved_link_id
-        LEFT JOIN member_tag mt ON mslt.member_tag_id = mt.member_tag_id AND mt.deleted_at IS NULL
-        WHERE msl.created_by_member_id = #{memberId}
-        AND msl.member_saved_link_id = #{bookmarkId}
-        AND msl.deleted_at IS NULL
+        SELECT msl.*,
+               l.original_url, l.canonical_url, l.domain, l.thumbnail_url,
+               mt.tag_name
+          FROM member_saved_link msl
+          JOIN link l
+            ON msl.link_id = l.link_id
+          LEFT JOIN member_saved_link_tag mslt
+            ON msl.member_saved_link_id = mslt.member_saved_link_id
+           AND mslt.deleted_at IS NULL
+          LEFT JOIN member_tag mt
+            ON mslt.member_tag_id = mt.member_tag_id
+           AND mt.deleted_at IS NULL
+         WHERE msl.created_by_member_id = #{memberId}
+           AND msl.member_saved_link_id = #{bookmarkId}
+           AND msl.deleted_at IS NULL
     </select>
 
 
     <!-- 북마크 목록 조회 -->
-    <select id="selectBookmarkList" parameterType="com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto" resultMap="BookmarkResultMap">
-        SELECT msl.*, l.original_url, l.canonical_url, l.domain, l.thumbnail_url, mt.tag_name
-        FROM member_saved_link msl
-        JOIN link l ON msl.link_id = l.link_id
-        LEFT JOIN member_saved_link_tag mslt ON msl.member_saved_link_id = mslt.member_saved_link_id
-        LEFT JOIN member_tag mt ON mslt.member_tag_id = mt.member_tag_id AND mt.deleted_at IS NULL
-        WHERE msl.created_by_member_id = #{memberId}
-        AND msl.deleted_at IS NULL
+    <select id="selectBookmarkList" parameterType="com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand" resultMap="BookmarkResultMap">
+        SELECT msl.*,
+               l.original_url, l.canonical_url, l.domain, l.thumbnail_url,
+               mt.tag_name
+          FROM member_saved_link msl
+          JOIN link l
+            ON msl.link_id = l.link_id
+          LEFT JOIN member_saved_link_tag mslt
+            ON msl.member_saved_link_id = mslt.member_saved_link_id
+           AND mslt.deleted_at IS NULL
+          LEFT JOIN member_tag mt
+            ON mslt.member_tag_id = mt.member_tag_id
+           AND mt.deleted_at IS NULL
+         WHERE msl.created_by_member_id = #{memberId}
+           AND msl.deleted_at IS NULL
         <if test="folderId != null">
-            AND msl.member_folder_id = #{folderId}
+           AND msl.member_folder_id = #{folderId}
         </if>
         <if test="categoryId != null">
-            AND msl.primary_category_id = #{categoryId}
+           AND msl.primary_category_id = #{categoryId}
         </if>
         <if test="query != null and query != ''">
-            AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%'
+           AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%'
         </if>
-        ORDER BY
+         ORDER BY
         <choose>
             <when test="sort == 'Newest'">
                 msl.updated_at DESC

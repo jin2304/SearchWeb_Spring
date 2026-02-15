@@ -5,7 +5,7 @@ import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
-import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
+import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +43,11 @@ public class BookmarkServiceImpl implements BookmarkService {
      */
     @Override
     public Bookmark selectBookmark(Long memberId, Long bookmarkId) {
-        return bookmarkDao.selectBookmark(memberId, bookmarkId);
+        Bookmark bookmark = bookmarkDao.selectBookmark(memberId, bookmarkId);
+        if (bookmark == null) {
+            throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+        }
+        return bookmark;
     }
 
 
@@ -51,15 +55,8 @@ public class BookmarkServiceImpl implements BookmarkService {
      *  북마크 목록 조회
      */
     @Override
-    public List<Bookmark> selectBookmarkList(Long memberId, Long folderId, String sort, String query, Long categoryId) {
-        BookmarkSearchRequestDto searchRequest = BookmarkSearchRequestDto.builder()
-                .memberId(memberId)
-                .folderId(folderId)
-                .sort(sort)
-                .query(query)
-                .categoryId(categoryId)
-                .build();
-        return bookmarkDao.selectBookmarkList(searchRequest);
+    public List<Bookmark> selectBookmarkList(BookmarkSearchCommand command) {
+        return bookmarkDao.selectBookmarkList(command);
     }
 
 

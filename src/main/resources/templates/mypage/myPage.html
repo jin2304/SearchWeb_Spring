@@ -477,9 +477,12 @@
                 query: query // 검색어를 서버로 전달
             },
             success: function(response) {
+                // ApiResponse 구조 대응 (response.data)
+                const bookmarks = response.data || [];
+
                 // 콜백 함수 실행 (필요한 경우)
                 if (callback) {
-                    callback(response); // 콜백 함수 실행, response를 인자로 전달
+                    callback(bookmarks); // 콜백 함수 실행, response.data를 인자로 전달
                     return
                 }
 
@@ -489,12 +492,12 @@
 
 
                 // 불러온 북마크가 없는 경우 빈 상태 메시지 표시
-                if (response.length === 0) {
+                if (bookmarks.length === 0) {
                     document.getElementById('emptyBookmarkMessage').classList.remove('hidden');
                 } else {
                     document.getElementById('emptyBookmarkMessage').classList.add('hidden');
                     // 불러온 북마크를 UI에 추가
-                    response.forEach(addBookmarkToUI);
+                    bookmarks.forEach(addBookmarkToUI);
                 }
 
 

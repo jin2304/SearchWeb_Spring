@@ -4,7 +4,7 @@ import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
-import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
+import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -53,8 +53,8 @@ public class MybatisBookmarkDao implements BookmarkDao {
      *  북마크 목록 조회
      */
     @Override
-    public List<Bookmark> selectBookmarkList(BookmarkSearchRequestDto searchRequest) {
-        return mapper.selectBookmarkList(searchRequest);
+    public List<Bookmark> selectBookmarkList(BookmarkSearchCommand searchCommand) {
+        return mapper.selectBookmarkList(searchCommand);
     }
 
 
