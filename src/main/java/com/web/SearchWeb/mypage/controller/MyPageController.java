@@ -148,10 +148,8 @@ public class MyPageController {
      */
     @DeleteMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<Map<String, Object>> deleteBookmark(@PathVariable final Long memberId, @PathVariable final Long bookmarkId) {
-        Map<String, Object> response = new HashMap<>();
-        int result = bookmarkService.deleteBookmark(memberId, bookmarkId);
-        response.put("success", result > 0);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<Long>> deleteBookmark(@PathVariable final Long memberId, @PathVariable final Long bookmarkId) {
+        Long deletedId = bookmarkService.deleteBookmark(memberId, bookmarkId);
+        return ResponseEntity.ok(ApiResponse.success(deletedId));
     }
 }

@@ -15,9 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -173,20 +171,23 @@ public class BookmarkApiController {
      *  북마크 삭제
      */
     @DeleteMapping("/{bookmarkId}")
-    public ResponseEntity<Map<String, Object>> deleteBookmark(
+    public ResponseEntity<ApiResponse<Long>> deleteBookmark(
             @AuthenticationPrincipal Object currentUser,
             @PathVariable Long bookmarkId) {
         
-        Map<String, Object> response = new HashMap<>();
-        
+        // TODO: AOP 처리
+        // 로그인 되지 않은 경우
+        if (currentUser == null || "anonymousUser".equals(currentUser)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         Long memberId = getMemberId(currentUser);
         if (memberId == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         
-        int result = bookmarkService.deleteBookmark(memberId, bookmarkId);
-        response.put("success", result > 0);
-        return ResponseEntity.ok(response);
+        Long deletedId = bookmarkService.deleteBookmark(memberId, bookmarkId);
+        return ResponseEntity.ok(ApiResponse.success(deletedId));
     }
 
 

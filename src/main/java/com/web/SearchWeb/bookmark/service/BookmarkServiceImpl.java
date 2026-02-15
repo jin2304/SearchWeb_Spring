@@ -196,8 +196,19 @@ public class BookmarkServiceImpl implements BookmarkService {
      *  북마크 삭제 (soft delete)
      */
     @Override
-    public int deleteBookmark(Long memberId, Long bookmarkId) {
-        return bookmarkDao.deleteBookmark(memberId, bookmarkId);
+    @Transactional
+    public Long deleteBookmark(Long memberId, Long bookmarkId) {
+        // 1. 북마크 삭제 (Soft Delete)
+        int result = bookmarkDao.deleteBookmark(memberId, bookmarkId);
+
+        if (result == 0) {
+            throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+        }
+
+        // 2. 관련 태그 관계 삭제 (Soft Delete)
+        bookmarkDao.deleteBookmarkTags(bookmarkId, memberId);
+
+        return bookmarkId;
     }
 
 

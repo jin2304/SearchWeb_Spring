@@ -25,7 +25,7 @@ public interface BookmarkService {
                        String note, Long primaryCategoryId, String tags);
 
     //북마크 삭제
-    int deleteBookmark(Long memberId, Long bookmarkId);
+    Long deleteBookmark(Long memberId, Long bookmarkId);
 
     // 링크 조회 또는 생성 (URL 정규화)
     Link getOrCreateLink(String url, Long createdByMemberId);
