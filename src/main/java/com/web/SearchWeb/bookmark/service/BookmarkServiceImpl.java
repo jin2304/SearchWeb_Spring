@@ -155,8 +155,40 @@ public class BookmarkServiceImpl implements BookmarkService {
      *  북마크 수정
      */
     @Override
-    public int updateBookmark(BookmarkDto bookmarkDto, Long bookmarkId) {
-        return bookmarkDao.updateBookmark(bookmarkDto, bookmarkId);
+    @Transactional
+    public Long updateBookmark(Long memberId, Long bookmarkId, Long memberFolderId, String displayTitle,
+                               String note, Long primaryCategoryId, String tags) {
+        try {
+            // 1. Entity 생성 (도메인 생성 로직을 서비스 계층으로 이동)
+            Bookmark bookmark = Bookmark.builder()
+                    .bookmarkId(bookmarkId)
+                    .memberFolderId(memberFolderId)
+                    .displayTitle(displayTitle)
+                    .note(note)
+                    .primaryCategoryId(primaryCategoryId)
+                    .createdByMemberId(memberId)
+                    .build();
+
+            // 2. 북마크 기본 정보 수정
+            int result = bookmarkDao.updateBookmark(bookmark);
+
+            if (result == 0) {
+                throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+            }
+
+            // 3. 기존 태그 관계 삭제 (Soft Delete)
+            bookmarkDao.deleteBookmarkTags(bookmarkId, memberId);
+
+            // 4. 새 태그 등록 및 관계 생성/재활성화
+            if (tags != null && !tags.isBlank()) {
+                processAndCreateTags(bookmarkId, memberId, tags);
+            }
+
+            return bookmarkId;
+        } catch (DataIntegrityViolationException e) {
+            log.error("북마크 수정 중 데이터 무결성 위반: bookmarkId={}, memberId={}", bookmarkId, memberId, e);
+            throw BusinessException.from(BookmarkErrorCode.DUPLICATE_BOOKMARK);
+        }
     }
 
 

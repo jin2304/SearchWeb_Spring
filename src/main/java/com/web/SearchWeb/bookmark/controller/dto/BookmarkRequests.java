@@ -49,4 +49,20 @@ public class BookmarkRequests {
                 .build();
         }
     }
+
+
+    /**
+     * 북마크 수정 요청 Dto
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateDto {
+        public Long memberFolderId;       // 폴더 ID
+        public String displayTitle;       // 표시 제목
+        public String note;               // 메모
+        public Long primaryCategoryId;    // 카테고리 ID
+        public String tags;               // 태그 문자열 (공백/콤마 구분)
+    }
+
 }

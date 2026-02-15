@@ -2,7 +2,6 @@ package com.web.SearchWeb.bookmark.dao;
 
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
-import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
 import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 
@@ -22,7 +21,10 @@ public interface BookmarkDao {
     List<Bookmark> selectBookmarkList(BookmarkSearchCommand searchCommand);
 
     //북마크 수정
-    int updateBookmark(BookmarkDto bookmarkDto, Long bookmarkId);
+    int updateBookmark(Bookmark bookmark);
+
+    //북마크 태그 연결 삭제
+    int deleteBookmarkTags(Long bookmarkId, Long memberId);
     
     //북마크 삭제
     int deleteBookmark(Long memberId, Long bookmarkId);

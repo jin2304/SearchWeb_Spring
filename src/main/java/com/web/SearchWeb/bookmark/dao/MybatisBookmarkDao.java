@@ -2,7 +2,6 @@ package com.web.SearchWeb.bookmark.dao;
 
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
-import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
 import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 import org.apache.ibatis.session.SqlSession;
@@ -89,8 +88,17 @@ public class MybatisBookmarkDao implements BookmarkDao {
      *  북마크 수정
      */
     @Override
-    public int updateBookmark(BookmarkDto bookmarkDto, Long bookmarkId) {
-        return mapper.updateBookmark(bookmarkDto, bookmarkId);
+    public int updateBookmark(Bookmark bookmark) {
+        return mapper.updateBookmark(bookmark);
+    }
+
+
+    /**
+     *  북마크 태그 연결 삭제
+     */
+    @Override
+    public int deleteBookmarkTags(Long bookmarkId, Long memberId) {
+        return mapper.deleteBookmarkTags(bookmarkId, memberId);
     }
 
 

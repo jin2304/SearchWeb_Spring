@@ -146,15 +146,25 @@
 
 
     <!-- 북마크 수정 -->
-    <update id="updateBookmark" parameterType="map">
+    <update id="updateBookmark" parameterType="com.web.SearchWeb.bookmark.domain.Bookmark">
         UPDATE member_saved_link
         SET
-            display_title = #{bookmarkDto.displayTitle},
-            note = #{bookmarkDto.note},
-            member_folder_id = #{bookmarkDto.memberFolderId},
-            primary_category_id = #{bookmarkDto.primaryCategoryId},
+            display_title = #{displayTitle},
+            note = #{note},
+            member_folder_id = #{memberFolderId},
+            primary_category_id = #{primaryCategoryId},
             updated_at = now(),
-            updated_by_member_id = #{bookmarkDto.createdByMemberId}
+            updated_by_member_id = #{createdByMemberId}
+        WHERE member_saved_link_id = #{bookmarkId}
+        AND deleted_at IS NULL
+    </update>
+
+
+    <!-- 북마크 태그 연결 삭제 (soft delete) -->
+    <update id="deleteBookmarkTags" parameterType="map">
+        UPDATE member_saved_link_tag
+        SET deleted_at = now(),
+            deleted_by_member_id = #{memberId}
         WHERE member_saved_link_id = #{bookmarkId}
         AND deleted_at IS NULL
     </update>
@@ -213,14 +223,15 @@
         AND t.deleted_at IS NULL
     </select>
 
-    <!-- 북마크-태그 연결 일괄 추가 -->
+    <!-- 북마크-태그 연결 일괄 추가 (중복 시 재활성화) -->
     <insert id="insertBookmarkTags">
         INSERT INTO member_saved_link_tag (member_saved_link_id, member_tag_id)
         VALUES
         <foreach collection="tagIds" item="tagId" separator=",">
             (#{bookmarkId}, #{tagId})
         </foreach>
-        ON CONFLICT (member_saved_link_id, member_tag_id) DO NOTHING
+        ON CONFLICT (member_saved_link_id, member_tag_id) 
+        DO UPDATE SET deleted_at = NULL, updated_at = now()
     </insert>
 
 </mapper>

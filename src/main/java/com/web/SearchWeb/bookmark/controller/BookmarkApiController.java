@@ -3,7 +3,6 @@ package com.web.SearchWeb.bookmark.controller;
 
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
-import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.config.ApiResponse;
 import com.web.SearchWeb.member.dto.CustomOAuth2User;
@@ -141,22 +140,32 @@ public class BookmarkApiController {
      *  북마크 수정
      */
     @PutMapping("/{bookmarkId}")
-    public ResponseEntity<Map<String, Object>> updateBookmark(
+    public ResponseEntity<ApiResponse<Long>> updateBookmark(
             @AuthenticationPrincipal Object currentUser,
             @PathVariable Long bookmarkId,
-            @RequestBody BookmarkDto bookmarkDto) {
+            @RequestBody BookmarkRequests.UpdateDto request) {
         
-        Map<String, Object> response = new HashMap<>();
+        // TODO: AOP 처리
+        // 로그인 되지 않은 경우
+        if (currentUser == null || "anonymousUser".equals(currentUser)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         
         Long memberId = getMemberId(currentUser);
         if (memberId == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         
-        bookmarkDto.setCreatedByMemberId(memberId);
-        int result = bookmarkService.updateBookmark(bookmarkDto, bookmarkId);
-        response.put("success", result > 0);
-        return ResponseEntity.ok(response);
+        Long updatedBookmarkId = bookmarkService.updateBookmark(
+            memberId, 
+            bookmarkId, 
+            request.memberFolderId, 
+            request.displayTitle, 
+            request.note, 
+            request.primaryCategoryId, 
+            request.tags
+        );
+        return ResponseEntity.ok(ApiResponse.success(updatedBookmarkId));
     }
 
 

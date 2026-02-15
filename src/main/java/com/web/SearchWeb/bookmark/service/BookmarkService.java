@@ -21,7 +21,8 @@ public interface BookmarkService {
     List<Bookmark> selectBookmarkList(BookmarkSearchCommand command);
     
     //북마크 수정
-    int updateBookmark(BookmarkDto bookmarkDto, Long bookmarkId);
+    Long updateBookmark(Long memberId, Long bookmarkId, Long memberFolderId, String displayTitle,
+                       String note, Long primaryCategoryId, String tags);
 
     //북마크 삭제
     int deleteBookmark(Long memberId, Long bookmarkId);

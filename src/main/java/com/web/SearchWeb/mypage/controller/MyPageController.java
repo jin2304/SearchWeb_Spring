@@ -9,7 +9,6 @@ import com.web.SearchWeb.config.ApiResponse;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.dto.MemberUpdateDto;
 import com.web.SearchWeb.member.service.MemberService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -126,13 +125,21 @@ public class MyPageController {
      */
     @PutMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<Map<String, Object>> updateBookmark(@PathVariable final Long memberId,
-                                                  @PathVariable final Long bookmarkId,
-                                                  @RequestBody BookmarkDto bookmarkDto) {
-        Map<String, Object> response = new HashMap<>();
-        int result = bookmarkService.updateBookmark(bookmarkDto, bookmarkId);
-        response.put("success", result > 0);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<Long>> updateBookmark(
+            @PathVariable final Long memberId,
+            @PathVariable final Long bookmarkId,
+            @RequestBody BookmarkRequests.UpdateDto request) {
+        
+        Long updatedBookmarkId = bookmarkService.updateBookmark(
+            memberId,
+            bookmarkId,
+            request.memberFolderId,
+            request.displayTitle,
+            request.note,
+            request.primaryCategoryId,
+            request.tags
+        );
+        return ResponseEntity.ok(ApiResponse.success(updatedBookmarkId));
     }
 
 
