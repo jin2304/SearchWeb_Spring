@@ -215,12 +215,6 @@
             RETURNING member_tag_id, tag_name
         )
         SELECT member_tag_id as "memberTagId", tag_name as "tagName" FROM inserted_tags
-        UNION
-        SELECT t.member_tag_id as "memberTagId", t.tag_name as "tagName"
-        FROM member_tag t
-        JOIN input_tags i ON t.tag_name = i.tag_name
-        WHERE t.owner_member_id = #{memberId}
-        AND t.deleted_at IS NULL
     </select>
 
     <!-- 북마크-태그 연결 일괄 추가 (중복 시 재활성화) -->
