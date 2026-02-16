@@ -8,9 +8,6 @@ import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 import java.util.List;
 
 public interface BookmarkDao {
-    //북마크 링크 중복 확인 (동일 폴더에 동일 링크)
-    int checkBookmarkExists(Long memberId, Long folderId, Long linkId);
-
     //북마크 추가
     int insertBookmark(Bookmark bookmark);
     
@@ -23,14 +20,17 @@ public interface BookmarkDao {
     //북마크 수정
     int updateBookmark(Bookmark bookmark);
 
-    //북마크 태그 연결 삭제
-    int deleteBookmarkTags(Long bookmarkId, Long memberId);
-    
     //북마크 삭제
     int deleteBookmark(Long memberId, Long bookmarkId);
 
+    //북마크 태그 연결 삭제
+    int deleteBookmarkTags(Long bookmarkId, Long memberId);
+
     //북마크 삭제 (Link ID 기반 - soft delete)
     int deleteBookmarkByLink(Long memberId, Long linkId);
+
+    //북마크 링크 중복 확인 (동일 폴더에 동일 링크)
+    int checkBookmarkExists(Long memberId, Long folderId, Long linkId);
 
     //링크 조회 (url로)
     Link selectLinkByUrl(String url);

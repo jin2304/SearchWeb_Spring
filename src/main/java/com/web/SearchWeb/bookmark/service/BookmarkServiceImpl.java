@@ -39,74 +39,6 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
-     *  북마크 단일 조회
-     */
-    @Override
-    public Bookmark selectBookmark(Long memberId, Long bookmarkId) {
-        Bookmark bookmark = bookmarkDao.selectBookmark(memberId, bookmarkId);
-        if (bookmark == null) {
-            throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
-        }
-        return bookmark;
-    }
-
-
-    /**
-     *  북마크 목록 조회
-     */
-    @Override
-    public List<Bookmark> selectBookmarkList(BookmarkSearchCommand command) {
-        return bookmarkDao.selectBookmarkList(command);
-    }
-
-
-    /**
-     *  링크 조회 또는 생성 (URL 정규화)
-     */
-    @Override
-    @Transactional
-    public Link getOrCreateLink(String url, Long createdByMemberId) {
-        // URL 정규화 (canonical URL 생성)
-        String canonicalUrl = normalizeUrl(url);
-        
-        // 기존 링크 조회
-        Link existingLink = bookmarkDao.selectLinkByUrl(url);
-        if (existingLink != null) {
-            return existingLink;
-        }
-        
-        // 새 링크 생성
-        Link newLink = Link.builder()
-                .canonicalUrl(canonicalUrl)
-                .originalUrl(url)
-                .domain(extractDomain(url))
-                .title(url)  // 기본값, 나중에 메타데이터 추출로 업데이트
-                .primaryCategoryId(1L)  // 기본 카테고리
-                .createdByMemberId(createdByMemberId)
-                .build();
-        
-        bookmarkDao.insertLink(newLink);
-        return newLink;
-    }
-
-
-    /**
-     *  북마크 존재 여부 확인 (URL 기반)
-     */
-    @Override
-    public boolean checkBookmarkExistsByUrl(Long memberId, String url) {
-        String canonicalUrl = normalizeUrl(url);
-        // Link가 존재하는지 먼저 확인 (최적화)
-        Link link = bookmarkDao.selectLinkByUrl(url);
-        if (link == null) {
-            return false;
-        }
-        // Link ID로 북마크 테이블 조회
-        return bookmarkDao.checkBookmarkExistsByUrl(memberId, url) > 0;
-    }
-
-
-    /**
      *  북마크 추가
      */
     @Override
@@ -150,6 +82,29 @@ public class BookmarkServiceImpl implements BookmarkService {
             throw BusinessException.from(BookmarkErrorCode.DUPLICATE_BOOKMARK);
         }
     }
+
+
+    /**
+     *  북마크 단일 조회
+     */
+    @Override
+    public Bookmark selectBookmark(Long memberId, Long bookmarkId) {
+        Bookmark bookmark = bookmarkDao.selectBookmark(memberId, bookmarkId);
+        if (bookmark == null) {
+            throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+        }
+        return bookmark;
+    }
+
+
+    /**
+     *  북마크 목록 조회
+     */
+    @Override
+    public List<Bookmark> selectBookmarkList(BookmarkSearchCommand command) {
+        return bookmarkDao.selectBookmarkList(command);
+    }
+
 
     /**
      *  북마크 수정
@@ -209,6 +164,55 @@ public class BookmarkServiceImpl implements BookmarkService {
         bookmarkDao.deleteBookmarkTags(bookmarkId, memberId);
 
         return bookmarkId;
+    }
+
+
+
+
+    // ========== Helper Methods ==========
+    /**
+     *  링크 조회 또는 생성 (URL 정규화)
+     */
+    @Override
+    @Transactional
+    public Link getOrCreateLink(String url, Long createdByMemberId) {
+        // URL 정규화 (canonical URL 생성)
+        String canonicalUrl = normalizeUrl(url);
+
+        // 기존 링크 조회
+        Link existingLink = bookmarkDao.selectLinkByUrl(url);
+        if (existingLink != null) {
+            return existingLink;
+        }
+
+        // 새 링크 생성
+        Link newLink = Link.builder()
+                .canonicalUrl(canonicalUrl)
+                .originalUrl(url)
+                .domain(extractDomain(url))
+                .title(url)  // 기본값, 나중에 메타데이터 추출로 업데이트
+                .primaryCategoryId(1L)  // 기본 카테고리
+                .createdByMemberId(createdByMemberId)
+                .build();
+
+        bookmarkDao.insertLink(newLink);
+        return newLink;
+    }
+
+
+    /**
+     *  북마크 존재 여부 확인 (URL 기반)
+     */
+    @Override
+    public boolean checkBookmarkExistsByUrl(Long memberId, String url) {
+        String canonicalUrl = normalizeUrl(url);
+        // Link가 존재하는지 먼저 확인 (최적화)
+        Link link = bookmarkDao.selectLinkByUrl(url);
+        if (link == null) {
+            return false;
+        }
+        // Link ID로 북마크 테이블 조회
+        return bookmarkDao.checkBookmarkExistsByUrl(memberId, url) > 0;
     }
 
 
@@ -280,7 +284,7 @@ public class BookmarkServiceImpl implements BookmarkService {
         }
     }
     
-    
+
     // ========== Legacy Board-Bookmark Methods ==========
     
     /**

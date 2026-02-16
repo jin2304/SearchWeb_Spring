@@ -22,20 +22,11 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
-     *  북마크 중복 확인
+     *  북마크 추가
      */
     @Override
-    public int checkBookmarkExists(Long memberId, Long folderId, Long linkId) {
-        return mapper.checkBookmarkExists(memberId, folderId, linkId);
-    }
-
-
-    /**
-     *  URL 기반 북마크 존재 여부 확인 (Board Bridge용)
-     */
-    @Override
-    public int checkBookmarkExistsByUrl(Long memberId, String url) {
-        return mapper.checkBookmarkExistsByUrl(memberId, url);
+    public int insertBookmark(Bookmark bookmark) {
+        return mapper.insertBookmark(bookmark);
     }
 
 
@@ -58,6 +49,60 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
+     *  북마크 수정
+     */
+    @Override
+    public int updateBookmark(Bookmark bookmark) {
+        return mapper.updateBookmark(bookmark);
+    }
+
+
+    /**
+     *  북마크 삭제 (soft delete)
+     */
+    @Override
+    public int deleteBookmark(Long memberId, Long bookmarkId) {
+        return mapper.deleteBookmark(memberId, bookmarkId);
+    }
+
+
+    /**
+     *  북마크 태그 연결 삭제
+     */
+    @Override
+    public int deleteBookmarkTags(Long bookmarkId, Long memberId) {
+        return mapper.deleteBookmarkTags(bookmarkId, memberId);
+    }
+
+
+    /**
+     *  북마크 삭제 (Link ID 기반 - soft delete)
+     */
+    @Override
+    public int deleteBookmarkByLink(Long memberId, Long linkId) {
+        return mapper.deleteBookmarkByLink(memberId, linkId);
+    }
+
+
+    /**
+     *  북마크 중복 확인
+     */
+    @Override
+    public int checkBookmarkExists(Long memberId, Long folderId, Long linkId) {
+        return mapper.checkBookmarkExists(memberId, folderId, linkId);
+    }
+
+
+    /**
+     *  URL 기반 북마크 존재 여부 확인 (Board Bridge용)
+     */
+    @Override
+    public int checkBookmarkExistsByUrl(Long memberId, String url) {
+        return mapper.checkBookmarkExistsByUrl(memberId, url);
+    }
+
+
+    /**
      *  링크 조회 (url로)
      */
     @Override
@@ -72,50 +117,6 @@ public class MybatisBookmarkDao implements BookmarkDao {
     @Override
     public int insertLink(Link link) {
         return mapper.insertLink(link);
-    }
-
-
-    /**
-     *  북마크 추가
-     */
-    @Override
-    public int insertBookmark(Bookmark bookmark) {
-        return mapper.insertBookmark(bookmark);
-    }
-
-
-    /**
-     *  북마크 수정
-     */
-    @Override
-    public int updateBookmark(Bookmark bookmark) {
-        return mapper.updateBookmark(bookmark);
-    }
-
-
-    /**
-     *  북마크 태그 연결 삭제
-     */
-    @Override
-    public int deleteBookmarkTags(Long bookmarkId, Long memberId) {
-        return mapper.deleteBookmarkTags(bookmarkId, memberId);
-    }
-
-
-    /**
-     *  북마크 삭제 (soft delete)
-     */
-    @Override
-    public int deleteBookmark(Long memberId, Long bookmarkId) {
-        return mapper.deleteBookmark(memberId, bookmarkId);
-    }
-
-    /**
-     *  북마크 삭제 (Link ID 기반 - soft delete)
-     */
-    @Override
-    public int deleteBookmarkByLink(Long memberId, Long linkId) {
-        return mapper.deleteBookmarkByLink(memberId, linkId);
     }
 
 

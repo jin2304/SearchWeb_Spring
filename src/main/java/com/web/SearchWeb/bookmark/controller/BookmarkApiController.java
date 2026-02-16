@@ -34,24 +34,6 @@ public class BookmarkApiController {
     }
 
     /**
-     *  북마크 확인
-     */
-    @GetMapping("/check")
-    public ResponseEntity<Boolean> checkBookmark(@AuthenticationPrincipal Object currentUser, @RequestParam String url) {
-        // 로그인 되지 않은 경우
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        Long memberId = getMemberId(currentUser);
-
-        // 북마크 존재 여부 확인
-        boolean exists = bookmarkService.checkBookmarkExistsByUrl(memberId, url);
-        return ResponseEntity.ok(exists);
-    }
-
-
-    /**
      *  북마크 추가
      */
     @PostMapping
@@ -87,30 +69,6 @@ public class BookmarkApiController {
 
 
     /**
-     *  북마크 목록 조회
-     */
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<Bookmark>>> selectBookmarkList(
-            @AuthenticationPrincipal Object currentUser,
-            @ModelAttribute BookmarkRequests.SearchDto searchDto) {
-        
-        // TODO: AOP 처리
-        // 로그인 되지 않은 경우
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        
-        Long memberId = getMemberId(currentUser);
-        if (memberId == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        
-        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
-        return ResponseEntity.ok(ApiResponse.success(bookmarks));
-    }
-
-
-    /**
      *  북마크 단일 조회
      */
     @GetMapping("/{bookmarkId}")
@@ -131,6 +89,30 @@ public class BookmarkApiController {
 
         Bookmark bookmark = bookmarkService.selectBookmark(memberId, bookmarkId);
         return ResponseEntity.ok(ApiResponse.success(bookmark));
+    }
+
+
+    /**
+     *  북마크 목록 조회
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<Bookmark>>> selectBookmarkList(
+            @AuthenticationPrincipal Object currentUser,
+            @ModelAttribute BookmarkRequests.SearchDto searchDto) {
+        
+        // TODO: AOP 처리
+        // 로그인 되지 않은 경우
+        if (currentUser == null || "anonymousUser".equals(currentUser)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        Long memberId = getMemberId(currentUser);
+        if (memberId == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
+        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
+        return ResponseEntity.ok(ApiResponse.success(bookmarks));
     }
 
 
@@ -188,6 +170,24 @@ public class BookmarkApiController {
         
         Long deletedId = bookmarkService.deleteBookmark(memberId, bookmarkId);
         return ResponseEntity.ok(ApiResponse.success(deletedId));
+    }
+
+
+    /**
+     *  북마크 확인
+     */
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> checkBookmark(@AuthenticationPrincipal Object currentUser, @RequestParam String url) {
+        // 로그인 되지 않은 경우
+        if (currentUser == null || "anonymousUser".equals(currentUser)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Long memberId = getMemberId(currentUser);
+
+        // 북마크 존재 여부 확인
+        boolean exists = bookmarkService.checkBookmarkExistsByUrl(memberId, url);
+        return ResponseEntity.ok(exists);
     }
 
 
