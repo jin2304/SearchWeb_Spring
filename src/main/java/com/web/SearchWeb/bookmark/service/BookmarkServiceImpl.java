@@ -131,12 +131,15 @@ public class BookmarkServiceImpl implements BookmarkService {
                 throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
             }
 
-            // 3. 기존 태그 관계 삭제 (Soft Delete)
-            bookmarkDao.deleteBookmarkTags(bookmarkId, memberId);
+            // 3. 태그 수정
+            if (tags != null) {
+                // 기존 태그 관계 삭제 (Soft Delete)
+                bookmarkDao.deleteBookmarkTags(bookmarkId, memberId);
 
-            // 4. 새 태그 등록 및 관계 생성/재활성화
-            if (tags != null && !tags.isBlank()) {
-                processAndCreateTags(bookmarkId, memberId, tags);
+                // 새 태그 등록 및 관계 생성/재활성화 (빈 문자열이면 모든 태그 제거)
+                if (!tags.isBlank()) {
+                    processAndCreateTags(bookmarkId, memberId, tags);
+                }
             }
 
             return bookmarkId;
