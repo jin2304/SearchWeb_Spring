@@ -5,15 +5,29 @@ import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
-import com.web.SearchWeb.bookmark.dto.request.BookmarkSearchRequestDto;
+import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.web.SearchWeb.bookmark.error.BookmarkErrorCode;
+import com.web.SearchWeb.config.BusinessException;
+import com.web.SearchWeb.config.CommonErrorCode;
+
+import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class BookmarkServiceImpl implements BookmarkService {
 
     private final BookmarkDao bookmarkDao;
@@ -25,11 +39,61 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
+     *  북마크 추가
+     */
+    @Override
+    @Transactional
+    public Long insertBookmark(Long memberId, String url, Long memberFolderId, String displayTitle, 
+                              String note, Long primaryCategoryId, String tags) {
+        // 링크 조회 또는 생성
+        Link link = getOrCreateLink(url, memberId);
+
+        // TODO: 링크 분석 및 폴더 서비스 완성 후 제거 - 임시 기본 폴더 ID 설정
+        if (memberFolderId == null) {
+            memberFolderId = 1L;  // 임시 하드코딩 값
+            log.warn("memberFolderId가 null이어서 임시 기본값(1)을 사용합니다. 링크 분석 및 폴더 서비스 연동 후 제거 필요.");
+        }
+
+        // Entity 생성
+        Bookmark bookmark = Bookmark.builder()
+                .linkId(link.getLinkId())
+                .memberFolderId(memberFolderId)
+                .displayTitle(displayTitle)
+                .note(note)
+                .primaryCategoryId(primaryCategoryId)
+                .createdByMemberId(memberId)
+                .build();
+
+        // 북마크 추가
+        try {
+            int result = bookmarkDao.insertBookmark(bookmark);
+
+            // 태그 처리 및 저장
+            if (result > 0) {
+                if (tags != null && !tags.isEmpty()) {
+                     // MyBatis의 useGeneratedKeys="true" 설정에 의해 insert 성공 시, bookmark.bookmarkId에 생성된 PK가 자동으로 채워짐
+                    processAndCreateTags(bookmark.getBookmarkId(), memberId, tags);
+                }
+                return bookmark.getBookmarkId();
+            }
+            throw BusinessException.from(CommonErrorCode.INTERNAL_SERVER_ERROR);
+        } catch (DataIntegrityViolationException e) {
+            log.warn("북마크 중복 저장 시도: memberId={}, folderId={}, linkId={}", memberId, memberFolderId, link.getLinkId());
+            throw BusinessException.from(BookmarkErrorCode.DUPLICATE_BOOKMARK);
+        }
+    }
+
+
+    /**
      *  북마크 단일 조회
      */
     @Override
     public Bookmark selectBookmark(Long memberId, Long bookmarkId) {
-        return bookmarkDao.selectBookmark(memberId, bookmarkId);
+        Bookmark bookmark = bookmarkDao.selectBookmark(memberId, bookmarkId);
+        if (bookmark == null) {
+            throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+        }
+        return bookmark;
     }
 
 
@@ -37,18 +101,78 @@ public class BookmarkServiceImpl implements BookmarkService {
      *  북마크 목록 조회
      */
     @Override
-    public List<Bookmark> selectBookmarkList(Long memberId, Long folderId, String sort, String query, Long categoryId) {
-        BookmarkSearchRequestDto searchRequest = BookmarkSearchRequestDto.builder()
-                .memberId(memberId)
-                .folderId(folderId)
-                .sort(sort)
-                .query(query)
-                .categoryId(categoryId)
-                .build();
-        return bookmarkDao.selectBookmarkList(searchRequest);
+    public List<Bookmark> selectBookmarkList(BookmarkSearchCommand command) {
+        return bookmarkDao.selectBookmarkList(command);
     }
 
 
+    /**
+     *  북마크 수정
+     */
+    @Override
+    @Transactional
+    public Long updateBookmark(Long memberId, Long bookmarkId, Long memberFolderId, String displayTitle,
+                               String note, Long primaryCategoryId, String tags) {
+        try {
+            // 1. Entity 생성 (도메인 생성 로직을 서비스 계층으로 이동)
+            Bookmark bookmark = Bookmark.builder()
+                    .bookmarkId(bookmarkId)
+                    .memberFolderId(memberFolderId)
+                    .displayTitle(displayTitle)
+                    .note(note)
+                    .primaryCategoryId(primaryCategoryId)
+                    .createdByMemberId(memberId)
+                    .build();
+
+            // 2. 북마크 기본 정보 수정
+            int result = bookmarkDao.updateBookmark(bookmark);
+
+            if (result == 0) {
+                throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+            }
+
+            // 3. 태그 수정
+            if (tags != null) {
+                // 기존 태그 관계 삭제 (Soft Delete)
+                bookmarkDao.deleteBookmarkTags(bookmarkId, memberId);
+
+                // 새 태그 등록 및 관계 생성/재활성화 (빈 문자열이면 모든 태그 제거)
+                if (!tags.isBlank()) {
+                    processAndCreateTags(bookmarkId, memberId, tags);
+                }
+            }
+
+            return bookmarkId;
+        } catch (DataIntegrityViolationException e) {
+            log.error("북마크 수정 중 데이터 무결성 위반: bookmarkId={}, memberId={}", bookmarkId, memberId, e);
+            throw BusinessException.from(BookmarkErrorCode.DUPLICATE_BOOKMARK);
+        }
+    }
+
+
+    /**
+     *  북마크 삭제 (soft delete)
+     */
+    @Override
+    @Transactional
+    public Long deleteBookmark(Long memberId, Long bookmarkId) {
+        // 1. 북마크 삭제 (Soft Delete)
+        int result = bookmarkDao.deleteBookmark(memberId, bookmarkId);
+
+        if (result == 0) {
+            throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+        }
+
+        // 2. 관련 태그 관계 삭제 (Soft Delete)
+        bookmarkDao.deleteBookmarkTags(bookmarkId, memberId);
+
+        return bookmarkId;
+    }
+
+
+
+
+    // ========== Helper Methods ==========
     /**
      *  링크 조회 또는 생성 (URL 정규화)
      */
@@ -57,13 +181,13 @@ public class BookmarkServiceImpl implements BookmarkService {
     public Link getOrCreateLink(String url, Long createdByMemberId) {
         // URL 정규화 (canonical URL 생성)
         String canonicalUrl = normalizeUrl(url);
-        
+
         // 기존 링크 조회
-        Link existingLink = bookmarkDao.selectLinkByCanonicalUrl(canonicalUrl);
+        Link existingLink = bookmarkDao.selectLinkByUrl(url);
         if (existingLink != null) {
             return existingLink;
         }
-        
+
         // 새 링크 생성
         Link newLink = Link.builder()
                 .canonicalUrl(canonicalUrl)
@@ -73,7 +197,7 @@ public class BookmarkServiceImpl implements BookmarkService {
                 .primaryCategoryId(1L)  // 기본 카테고리
                 .createdByMemberId(createdByMemberId)
                 .build();
-        
+
         bookmarkDao.insertLink(newLink);
         return newLink;
     }
@@ -86,50 +210,12 @@ public class BookmarkServiceImpl implements BookmarkService {
     public boolean checkBookmarkExistsByUrl(Long memberId, String url) {
         String canonicalUrl = normalizeUrl(url);
         // Link가 존재하는지 먼저 확인 (최적화)
-        Link link = bookmarkDao.selectLinkByCanonicalUrl(canonicalUrl);
+        Link link = bookmarkDao.selectLinkByUrl(url);
         if (link == null) {
             return false;
         }
         // Link ID로 북마크 테이블 조회
         return bookmarkDao.checkBookmarkExistsByUrl(memberId, url) > 0;
-    }
-
-
-    /**
-     *  북마크 추가
-     */
-    @Override
-    @Transactional
-    public int insertBookmark(BookmarkDto bookmarkDto, String url) {
-        // 링크 조회 또는 생성
-        Link link = getOrCreateLink(url, bookmarkDto.getCreatedByMemberId());
-        
-        // 중복 확인 (기본 폴더 등에서)
-        int exists = bookmarkDao.checkBookmarkExists(bookmarkDto.getCreatedByMemberId(), bookmarkDto.getMemberFolderId(), link.getLinkId());
-        if (exists > 0) {
-            return 0; // 이미 존재함
-        }
-        
-        // 북마크 추가
-        return bookmarkDao.insertBookmark(bookmarkDto, link.getLinkId());
-    }
-
-
-    /**
-     *  북마크 수정
-     */
-    @Override
-    public int updateBookmark(BookmarkDto bookmarkDto, Long bookmarkId) {
-        return bookmarkDao.updateBookmark(bookmarkDto, bookmarkId);
-    }
-
-
-    /**
-     *  북마크 삭제 (soft delete)
-     */
-    @Override
-    public int deleteBookmark(Long memberId, Long bookmarkId) {
-        return bookmarkDao.deleteBookmark(memberId, bookmarkId);
     }
 
 
@@ -164,7 +250,44 @@ public class BookmarkServiceImpl implements BookmarkService {
         }
     }
     
+    /**
+     * 태그 문자열 처리 및 저장
+     * @param bookmarkId 북마크 ID
+     * @param memberId 회원 ID
+     * @param tags 태그 문자열 (띄어쓰기 또는 콤마 구분)
+     */
+    private void processAndCreateTags(Long bookmarkId, Long memberId, String tags) {
+        if (tags == null || tags.isBlank()) return;
     
+        // 1. 태그 파싱 및 중복 제거
+        Set<String> uniqueTags = new HashSet<>();
+        String[] splitTags = tags.split("[,\\s]+");
+        for (String tag : splitTags) {
+            if (!tag.isBlank()) {
+                uniqueTags.add(tag.trim());
+            }
+        }
+        
+        if (uniqueTags.isEmpty()) return;
+        
+        List<String> tagNames = new ArrayList<>(uniqueTags);
+
+        // 2. 태그 등록 및 조회 (Insert & Select) - CTE를 사용하여 한 번의 쿼리로 처리
+        // 새로운 태그는 생성하고, 기존 태그는 조회하여 모든 태그의 ID를 반환함
+        List<MemberTagResultDto> allTags = bookmarkDao.insertAndSelectTags(memberId, tagNames);
+        
+        // 최종 태그 ID 목록 추출
+        List<Long> finalTagIds = allTags.stream()
+                .map(MemberTagResultDto::getMemberTagId)
+                .collect(Collectors.toList());
+
+        // 3. 북마크-태그 연결 일괄 추가 (Bulk Insert)
+        if (!finalTagIds.isEmpty()) {
+            bookmarkDao.insertBookmarkTags(bookmarkId, finalTagIds);
+        }
+    }
+    
+
     // ========== Legacy Board-Bookmark Methods ==========
     
     /**

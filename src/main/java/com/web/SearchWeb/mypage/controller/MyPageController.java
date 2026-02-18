@@ -1,9 +1,11 @@
 package com.web.SearchWeb.mypage.controller;
 
 import com.web.SearchWeb.aop.OwnerCheck;
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
+import com.web.SearchWeb.config.ApiResponse;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.dto.MemberUpdateDto;
 import com.web.SearchWeb.member.service.MemberService;
@@ -77,8 +79,18 @@ public class MyPageController {
                                                                @RequestParam String url){
         Map<String, Object> response = new HashMap<>();
         bookmarkDto.setCreatedByMemberId(memberId);
-        int result = bookmarkService.insertBookmark(bookmarkDto, url);
-        response.put("success", result > 0);
+
+        Long bookmarkId = bookmarkService.insertBookmark(
+            memberId,
+            url,
+            bookmarkDto.getMemberFolderId(),
+            bookmarkDto.getDisplayTitle(),
+            bookmarkDto.getNote(),
+            bookmarkDto.getPrimaryCategoryId(),
+            bookmarkDto.getTags()
+        );
+
+        response.put("success", bookmarkId != null && bookmarkId > 0);
         return ResponseEntity.ok(response);
     }
 
@@ -89,13 +101,11 @@ public class MyPageController {
      */
     @GetMapping(value ="/myPage/{memberId}/bookmarks")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<List<Bookmark>> getBookmarks(@PathVariable final Long memberId,
-                                                       @RequestParam(required = false) String query,
-                                                       @RequestParam(required = false) Long folderId,
-                                                       @RequestParam(required = false) Long categoryId,
-                                                       @RequestParam(defaultValue = "Oldest") String sort) {
-        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(memberId, folderId, sort, query, categoryId);
-        return ResponseEntity.ok(bookmarks);
+    public ResponseEntity<ApiResponse<List<Bookmark>>> getBookmarks(
+            @PathVariable final Long memberId,
+            @ModelAttribute BookmarkRequests.SearchDto searchDto) {
+        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
+        return ResponseEntity.ok(ApiResponse.success(bookmarks));
     }
 
 
@@ -115,13 +125,21 @@ public class MyPageController {
      */
     @PutMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<Map<String, Object>> updateBookmark(@PathVariable final Long memberId,
-                                                  @PathVariable final Long bookmarkId,
-                                                  @RequestBody BookmarkDto bookmarkDto) {
-        Map<String, Object> response = new HashMap<>();
-        int result = bookmarkService.updateBookmark(bookmarkDto, bookmarkId);
-        response.put("success", result > 0);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<Long>> updateBookmark(
+            @PathVariable final Long memberId,
+            @PathVariable final Long bookmarkId,
+            @RequestBody BookmarkRequests.UpdateDto request) {
+        
+        Long updatedBookmarkId = bookmarkService.updateBookmark(
+            memberId,
+            bookmarkId,
+            request.memberFolderId,
+            request.displayTitle,
+            request.note,
+            request.primaryCategoryId,
+            request.tags
+        );
+        return ResponseEntity.ok(ApiResponse.success(updatedBookmarkId));
     }
 
 
@@ -130,10 +148,8 @@ public class MyPageController {
      */
     @DeleteMapping("/myPage/{memberId}/bookmark/{bookmarkId}")
     @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<Map<String, Object>> deleteBookmark(@PathVariable final Long memberId, @PathVariable final Long bookmarkId) {
-        Map<String, Object> response = new HashMap<>();
-        int result = bookmarkService.deleteBookmark(memberId, bookmarkId);
-        response.put("success", result > 0);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<Long>> deleteBookmark(@PathVariable final Long memberId, @PathVariable final Long bookmarkId) {
+        Long deletedId = bookmarkService.deleteBookmark(memberId, bookmarkId);
+        return ResponseEntity.ok(ApiResponse.success(deletedId));
     }
 }

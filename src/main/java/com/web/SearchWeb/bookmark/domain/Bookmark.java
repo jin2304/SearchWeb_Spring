@@ -4,9 +4,12 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import com.web.SearchWeb.common.domain.BaseEntity;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Bookmark 도메인 클래스 (MemberSavedLink)
@@ -16,6 +19,9 @@ import lombok.ToString;
  */
 @Getter
 @Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString(callSuper = true)
 public class Bookmark extends BaseEntity {
     private Long bookmarkId;              // 북마크 고유 ID (PK, member_saved_link_id)
@@ -30,4 +36,7 @@ public class Bookmark extends BaseEntity {
 
     // Link 객체 (Association)
     private Link link;            // Link 테이블과 조인된 객체
+
+    // Tag 목록 (Collection)
+    private List<String> tags; // 태그 목록
 }

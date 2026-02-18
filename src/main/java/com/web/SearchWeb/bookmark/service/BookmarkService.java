@@ -5,24 +5,27 @@ import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 
+import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 import java.util.List;
 
 
 public interface BookmarkService {
     //북마크 추가
-    int insertBookmark(BookmarkDto bookmarkDto, String url);
+    Long insertBookmark(Long memberId, String url, Long memberFolderId, String displayTitle,
+                       String note, Long primaryCategoryId, String tags);
     
     //북마크 단일 조회
     Bookmark selectBookmark(Long memberId, Long bookmarkId);
     
     //북마크 목록 조회
-    List<Bookmark> selectBookmarkList(Long memberId, Long folderId, String sort, String query, Long categoryId);
+    List<Bookmark> selectBookmarkList(BookmarkSearchCommand command);
     
     //북마크 수정
-    int updateBookmark(BookmarkDto bookmarkDto, Long bookmarkId);
+    Long updateBookmark(Long memberId, Long bookmarkId, Long memberFolderId, String displayTitle,
+                       String note, Long primaryCategoryId, String tags);
 
     //북마크 삭제
-    int deleteBookmark(Long memberId, Long bookmarkId);
+    Long deleteBookmark(Long memberId, Long bookmarkId);
 
     // 링크 조회 또는 생성 (URL 정규화)
     Link getOrCreateLink(String url, Long createdByMemberId);

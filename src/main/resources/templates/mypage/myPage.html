@@ -420,7 +420,7 @@
             member_memberId: memberId,
             displayTitle: name,  // 웹사이트 이름 -> displayTitle
             note: description,  // 웹사이트 설명 -> note
-            tag: tag,  // 단일 태그
+            tags: tag,  // 단일 태그 -> tags로 변경
             // memberFolderId: null, // 백엔드에서 처리하거나, 나중에 폴더 선택 기능 추가 시 설정
             // primaryCategoryId: 1  // 기본 카테고리
         };
@@ -477,9 +477,12 @@
                 query: query // 검색어를 서버로 전달
             },
             success: function(response) {
+                // ApiResponse 구조 대응 (response.data)
+                const bookmarks = response.data || [];
+
                 // 콜백 함수 실행 (필요한 경우)
                 if (callback) {
-                    callback(response); // 콜백 함수 실행, response를 인자로 전달
+                    callback(bookmarks); // 콜백 함수 실행, response.data를 인자로 전달
                     return
                 }
 
@@ -489,12 +492,12 @@
 
 
                 // 불러온 북마크가 없는 경우 빈 상태 메시지 표시
-                if (response.length === 0) {
+                if (bookmarks.length === 0) {
                     document.getElementById('emptyBookmarkMessage').classList.remove('hidden');
                 } else {
                     document.getElementById('emptyBookmarkMessage').classList.add('hidden');
                     // 불러온 북마크를 UI에 추가
-                    response.forEach(addBookmarkToUI);
+                    bookmarks.forEach(addBookmarkToUI);
                 }
 
 
@@ -678,7 +681,7 @@
             displayTitle: name,
             url: url, // DTO has url field
             note: description,
-            tag: tag,
+            tags: tag,
             memberFolderId: memberFolderId ? parseInt(memberFolderId) : null,
             primaryCategoryId: primaryCategoryId ? parseInt(primaryCategoryId) : 1,
             createdByMemberId: memberId // DTO 필드
@@ -745,7 +748,7 @@
 
 
 
-    <!--  사용자 프로필 수정  -->
+    // 사용자 프로필 수정
     // 프로필 수정 폼 토글 함수
     function toggleUpdateProfileForm() {
         document.getElementById('updateProfileForm').classList.toggle('hidden');
