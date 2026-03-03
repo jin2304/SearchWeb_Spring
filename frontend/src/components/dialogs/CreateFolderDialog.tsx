@@ -3,6 +3,8 @@
 import { useUIStore } from '@/lib/store/uiStore';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
+import { useCreateFolder } from '@/lib/api/folderApi';
+import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
 
 const COLORS = [
   { id: 'purple', base: 'bg-purple-500 hover:ring-purple-500', active: 'ring-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]' },
@@ -14,22 +16,55 @@ const COLORS = [
 
 const ICONS = ['folder', 'work', 'school', 'star', 'rocket_launch'];
 
+/**
+ * 새 폴더 생성 다이얼로그 컴포넌트
+ */
 export function CreateFolderDialog() {
+  // 전역 UI 상태 (다이얼로그 열림/닫힘)
   const { createFolderDialogOpen, toggleCreateFolderDialog } = useUIStore();
-  const [folderName, setFolderName] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState('work');
-  const [selectedColor, setSelectedColor] = useState('purple');
-  const [isPinned, setIsPinned] = useState(true);
+
+  // 로컬 상태 관리 (입력 폼 데이터)
+  const [folderName, setFolderName] = useState('');             // 폴더 이름
+  const [selectedIcon, setSelectedIcon] = useState('work');     // 선택된 아이콘 이름
+  const [selectedColor, setSelectedColor] = useState('purple'); // 선택된 색상 ID
+  const [isPinned, setIsPinned] = useState(true);               // 상단 고정 여부
+
+  // 폴더 생성 API 연동 (React Query Mutation)
+  const createFolderMutation = useCreateFolder();
+
+
+  /**
+   * [핸들러] 폴더 생성 버튼 클릭 시 실행
+   */
+  const handleCreateFolder = () => {
+    // 유효성 검사: 이름이 비어있으면 중단
+    if (!folderName.trim()) return;
+
+    // API 호출
+    createFolderMutation.mutate(
+      {
+        ownerMemberId: TEMP_MEMBER_ID, // 현재는 테스트용 ID 사용
+        folderName: folderName.trim(),
+      },
+      {
+        // 성공 시 후처리
+        onSuccess: () => {
+          toggleCreateFolderDialog(false); // 창 닫기
+          setFolderName('');               // 입력값 초기화
+        },
+      }
+    );
+  };
 
   return (
     <Dialog open={createFolderDialogOpen} onOpenChange={toggleCreateFolderDialog}>
       <DialogContent className="sm:max-w-md bg-white dark:bg-card-dark rounded-[16px] shadow-2xl p-0 overflow-hidden border border-gray-100 dark:border-gray-700 !gap-0 [&>button]:hidden">
         
-        {/* SR Only Title for Accessibility */}
+        {/* 접근성을 위한 제목 (가독성을 위해 숨김 처리) */}
         <DialogTitle className="sr-only">Create New Folder</DialogTitle>
 
         <div className="p-6">
-          {/* Header */}
+          {/* 헤더 영역: 제목 및 닫기 버튼 */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] p-1.5 rounded-lg shadow-lg shadow-violet-200/50 flex items-center justify-center ring-1 ring-white/20">
@@ -46,7 +81,7 @@ export function CreateFolderDialog() {
           </div>
 
           <div className="space-y-6">
-            {/* Folder Name */}
+            {/* 1. 폴더 이름 입력 섹션 */}
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
@@ -61,7 +96,7 @@ export function CreateFolderDialog() {
               />
             </div>
 
-            {/* Appearance */}
+            {/* 2. 외형 설정 (아이콘 선택) 섹션 */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
@@ -91,13 +126,14 @@ export function CreateFolderDialog() {
               </div>
             </div>
 
-            {/* Pin Settings */}
+            {/* 3. 고정 및 색상 설정 섹션 */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Pin Settings</label>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                {/* 상단 고정 토글 */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Pin to Top</span>
                   <button 
@@ -110,6 +146,7 @@ export function CreateFolderDialog() {
                     <span className={`${isPinned ? 'translate-x-[18px]' : 'translate-x-[2px]'} inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ease-in-out`}></span>
                   </button>
                 </div>
+                {/* 테마 색상 선택 */}
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 mb-3 font-medium">Select Color</p>
                   <div className="flex gap-3">
@@ -133,7 +170,7 @@ export function CreateFolderDialog() {
           </div>
         </div>
 
-        {/* Footer */}
+        {/* 푸터 영역: 취소 및 생성 완료 버튼 */}
         <div className="bg-gray-50 dark:bg-gray-800/50 px-6 py-4 flex justify-end items-center gap-4 border-t border-gray-100 dark:border-gray-700">
           <button 
             type="button"
@@ -142,11 +179,13 @@ export function CreateFolderDialog() {
           >
             Cancel
           </button>
-          <button 
+          <button
             type="button"
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] transition-all duration-200"
+            onClick={handleCreateFolder}
+            disabled={!folderName.trim() || createFolderMutation.isPending} // 이름이 없거나 생성 중이면 비활성화
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Folder
+            {createFolderMutation.isPending ? 'Creating...' : 'Create Folder'}
           </button>
         </div>
       </DialogContent>

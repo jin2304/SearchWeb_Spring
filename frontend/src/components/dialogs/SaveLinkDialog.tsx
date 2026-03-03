@@ -1,9 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUIStore } from '@/lib/store/uiStore';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useFolders } from '@/lib/api/folderApi';
+import { useTags, useCreateTag } from '@/lib/api/tagApi';
+import { useCreateBookmark, useAnalyzeUrl } from '@/lib/api/bookmarkApi';
+import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
 
 // 디자인 시안에서 추출한 커스텀 테마 매핑
 const theme = {
@@ -28,15 +32,136 @@ const styles = {
   sectionContainer: "bg-[#f8f9fc] rounded-xl p-3 border border-transparent"
 };
 
+/**
+ * 링크(북마크) 저장 다이얼로그 컴포넌트
+ */
 export function SaveLinkDialog() {
+  // 전역 UI 상태 (다이얼로그 열림/닫힘)
   const { saveLinkDialogOpen, toggleSaveLinkDialog } = useUIStore();
-  const [tagInput, setTagInput] = useState('');
-  const [openTagPopover, setOpenTagPopover] = useState(false);
-  const [isCreatingNewTag, setIsCreatingNewTag] = useState(false);
-  const [newTagInputValue, setNewTagInputValue] = useState('');
 
-  // 임시 태그 목록
-  const existingTagsList = ["Inspiration", "Development", "Productivity", "Marketing"];
+  // --- UI 전용 상태 (태그 팝오버, 입력값 등) ---
+  const [tagInput, setTagInput] = useState('');                    // 태그 검색어
+  const [openTagPopover, setOpenTagPopover] = useState(false);     // 태그 선택창 열림 여부
+  const [isCreatingNewTag, setIsCreatingNewTag] = useState(false); // 새 태그 생성 모드 여부
+  const [newTagInputValue, setNewTagInputValue] = useState('');    // 새 태그 입력값
+
+  // --- 폼 기반 입력 상태 (실제 서버로 전송될 데이터) ---
+  const [url, setUrl] = useState('');                                            // 저장할 링크 URL
+  const [displayTitle, setDisplayTitle] = useState('');                          // 표시될 제목
+  const [isTitleEdited, setIsTitleEdited] = useState(false);                     // 사용자가 제목을 직접 편집했는지 여부
+  const [note, setNote] = useState('');                                          // 사용자의 메모
+  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null); // 선택된 폴더 ID
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);                // 선택된 태그 목록 (이름 리스트)
+
+  // --- API 연동 (React Query Hooks) ---
+  const { data: folders } = useFolders(TEMP_MEMBER_ID);    // 기존 폴더 목록 조회
+  const { data: tagsData } = useTags(TEMP_MEMBER_ID);      // 기존 태그 목록 조회
+  const createBookmarkMutation = useCreateBookmark();      // 북마크 생성 API 연동
+  const createTagMutation = useCreateTag();                // 태그 생성 API 연동
+  const analyzeUrlMutation = useAnalyzeUrl();              // URL 분석(제목 추출) API 연동
+
+  // --- URL 입력 시 제목 자동 생성 및 실시간 분석 로직 ---
+  useEffect(() => {
+    if (!url || !url.startsWith('http')) {
+      if (!isTitleEdited) setDisplayTitle('');
+      return;
+    }
+
+    // 이미 수동으로 편집 중이면 자동 변경 안 함
+    if (isTitleEdited) return;
+
+    // 1단계: 즉시 도메인으로 임시 제목 설정
+    const domain = url.replace(/^https?:\/\//, '').split('/')[0];
+    setDisplayTitle(domain);
+
+    // 2단계: 실제 페이지 제목(Title) 요청 (복사-붙여넣기 위주이므로 즉시 요청)
+    analyzeUrlMutation.mutate(url, {
+      onSuccess: (realTitle: string) => {
+        if (!isTitleEdited && realTitle) {
+          setDisplayTitle(realTitle);
+        }
+      }
+    });
+  }, [url, isTitleEdited]);
+
+  
+  // --- 팝업이 열고 닫힐 때마다 모든 입력 상태 초기화 ---
+  useEffect(() => {
+    // 팝업이 닫힐 때 뿐만 아니라 열릴 때도 깨끗한 상태를 보장하기 위해
+    // saveLinkDialogOpen의 상태가 변경될 때 필드들을 초기화합니다.
+    if (!saveLinkDialogOpen) {
+      setUrl('');
+      setDisplayTitle('');
+      setIsTitleEdited(false);
+      setNote('');
+      setSelectedFolderId(null);
+      setSelectedTags([]);
+      setTagInput('');
+      setNewTagInputValue('');
+      setIsCreatingNewTag(false);
+    }
+  }, [saveLinkDialogOpen]);
+
+  // 단순 표시용 태그 이름 리스트 추출
+  const existingTagsList = tagsData?.map((t) => t.tagName) ?? [];
+
+  /**
+   * [핸들러] 태그 선택/해제 토글
+   */
+  const toggleTagSelection = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  /**
+   * [핸들러] 최종 저장 버튼 클릭 시 실행
+   */
+  const handleSave = () => {
+    if (!url.trim()) return;
+
+    // 북마크 생성 API 호출
+    createBookmarkMutation.mutate(
+      {
+        url: url.trim(),
+        displayTitle: displayTitle.trim() || url.trim(), // 편집된 제목 사용, 없으면 URL 사용
+        memberFolderId: selectedFolderId,
+        note: note.trim() || undefined,
+        tags: selectedTags.length > 0 ? selectedTags.join(',') : undefined, // 태그를 콤마로 구분된 문자열로 변환
+      },
+      {
+        onSuccess: () => {
+          // 저장 성공 시: 알림 닫고 입력 필드 초기화
+          toggleSaveLinkDialog(false);
+          setUrl('');
+          setDisplayTitle('');
+          setIsTitleEdited(false);
+          setNote('');
+          setSelectedFolderId(null);
+          setSelectedTags([]);
+        },
+      }
+    );
+  };
+
+  
+  /**
+   * [핸들러] 새로운 태그를 직접 생성할 때 호출
+   */
+  const handleCreateNewTag = (tagName: string) => {
+    if (!tagName.trim()) return;
+
+    createTagMutation.mutate(
+      { ownerMemberId: TEMP_MEMBER_ID, tagName: tagName.trim() },
+      {
+        onSuccess: () => {
+          // 태그가 서버에 생성되면, 현재 선택된 태그 목록에도 추가
+          setSelectedTags((prev) => [...prev, tagName.trim()]);
+        },
+      }
+    );
+  };
+
 
   return (
     <Dialog open={saveLinkDialogOpen} onOpenChange={toggleSaveLinkDialog}>
@@ -73,14 +198,58 @@ export function SaveLinkDialog() {
                 <span className={`material-symbols-outlined !text-[12px] ${theme.accentPurple}`}>link</span>
                 <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">URL</label>
               </div>
-              <div className="relative group">
-                <input 
-                  className={styles.minimalInput} 
-                  readOnly 
-                  type="text" 
-                  value="https://example.com/modern-ui-design-trends-2024" 
+              <div className="relative group flex items-center gap-2">
+                <div className="flex-none w-8 h-8 rounded-lg bg-white border border-[#e2e8f0] flex items-center justify-center shadow-sm overflow-hidden">
+                  {url ? (
+                    <img 
+                      src={`https://www.google.com/s2/favicons?domain=${url.replace(/^https?:\/\//, '').split('/')[0]}&sz=64`} 
+                      alt="" 
+                      className="w-5 h-5 object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                        if ((e.target as HTMLImageElement).parentElement) {
+                          (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="material-symbols-outlined text-slate-400 !text-[18px]">link</span>';
+                        }
+                      }}
+                    />
+                  ) : (
+                    <span className="material-symbols-outlined text-slate-400 !text-[18px]">link</span>
+                  )}
+                </div>
+                <input
+                  className={`${styles.minimalInput} flex-1`}
+                  type="text"
+                  placeholder="https://example.com"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
                 />
               </div>
+            </div>
+
+            {/* Title Input (새로 추가) */}
+            <div className={`${styles.sectionContainer} space-y-1.5`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className={`material-symbols-outlined !text-[12px] ${theme.accentPurple}`}>title</span>
+                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">TITLE</label>
+                </div>
+                {analyzeUrlMutation.isPending && (
+                  <span className="text-[9px] text-violet-500 animate-pulse flex items-center gap-1 font-medium">
+                    <span className="material-symbols-outlined !text-[10px] animate-spin">progress_activity</span>
+                    Fetching title...
+                  </span>
+                )}
+              </div>
+              <input
+                className={styles.minimalInput}
+                type="text"
+                placeholder="Enter link title"
+                value={displayTitle}
+                onChange={(e) => {
+                  setDisplayTitle(e.target.value);
+                  setIsTitleEdited(true); // 직접 수정했음을 표시
+                }}
+              />
             </div>
 
             {/* AI Analysis Button */}
@@ -106,19 +275,19 @@ export function SaveLinkDialog() {
               </div>
               
               <div className="grid grid-cols-3 gap-2">
-                <div className={`${styles.folderTile} ${styles.folderTileActive} group`}>
-                  <div className={styles.matchBadge}>Recommend</div>
-                  <span className="material-symbols-outlined !text-[20px] mb-0.5 text-violet-600 drop-shadow-sm">design_services</span>
-                  <span className="text-[10px] font-bold text-violet-900 leading-tight">Design Trends</span>
-                </div>
-                <div className={`${styles.folderTile} group`}>
-                  <span className="material-symbols-outlined !text-[20px] text-slate-400 group-hover:text-violet-500 mb-0.5 transition-colors">library_books</span>
-                  <span className="text-[10px] text-slate-500 group-hover:text-slate-800 font-medium leading-tight">Reading List</span>
-                </div>
-                <div className={`${styles.folderTile} group`}>
-                  <span className="material-symbols-outlined !text-[20px] text-slate-400 group-hover:text-violet-500 mb-0.5 transition-colors">work_outline</span>
-                  <span className="text-[10px] text-slate-500 group-hover:text-slate-800 font-medium leading-tight">Projects</span>
-                </div>
+                {folders?.slice(0, 6).map((folder) => {
+                  const isActive = selectedFolderId === folder.memberFolderId;
+                  return (
+                    <div
+                      key={folder.memberFolderId}
+                      onClick={() => setSelectedFolderId(isActive ? null : folder.memberFolderId)}
+                      className={`${styles.folderTile} ${isActive ? styles.folderTileActive : ''} group`}
+                    >
+                      <span className={`material-symbols-outlined !text-[20px] mb-0.5 transition-colors ${isActive ? 'text-violet-600 drop-shadow-sm' : 'text-slate-400 group-hover:text-violet-500'}`}>folder</span>
+                      <span className={`text-[10px] leading-tight truncate w-full ${isActive ? 'font-bold text-violet-900' : 'text-slate-500 group-hover:text-slate-800 font-medium'}`}>{folder.folderName}</span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="flex items-center gap-2">
@@ -143,12 +312,31 @@ export function SaveLinkDialog() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5 items-center">
-                <div className={`${styles.tagChip} ${styles.tagChipSelected}`}>UI/UX</div>
-                <div className={`${styles.tagChip} ${styles.tagChipSelected}`}>Modernism</div>
-                <div className={`${styles.tagChip} ${styles.tagChipExisting}`}>Web Design</div>
-                <div className={`${styles.tagChip} ${styles.tagChipExisting}`}>2024 Trends</div>
-                <div className={`${styles.tagChip} ${styles.tagChipExisting}`}>Minimalism</div>
-                
+                {/* 
+                  태그가 아주 많을 경우를 대비해:
+                  1. 사용자가 '이미 선택한' 태그는 무조건 다 보여줍니다.
+                  2. '선택하지 않은' 기존 태그들은 앞의 8개까지만 "추천"으로 보여줍니다.
+                  3. 나머지는 'Add tag' 버튼을 통해 검색해서 찾도록 유도합니다.
+                */}
+                {existingTagsList
+                  .filter(tag => 
+                    selectedTags.includes(tag) ||     // 선택된 태그거나
+                    existingTagsList.indexOf(tag) < 8 // 상위 8개인 경우만 노출
+                  )
+                  .map((tag) => {
+                  const isSelected = selectedTags.includes(tag);
+                  
+                  return (
+                    <div
+                      key={tag}
+                      onClick={() => toggleTagSelection(tag)}
+                      className={`${styles.tagChip} ${isSelected ? styles.tagChipSelected : styles.tagChipExisting} cursor-pointer`}
+                    >
+                      {tag}
+                    </div>
+                  );
+                })}
+
                 {isCreatingNewTag ? (
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-violet-400 bg-white ring-2 ring-violet-100 shadow-sm min-h-[26px]">
                     <input 
@@ -160,6 +348,7 @@ export function SaveLinkDialog() {
                       autoFocus
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && newTagInputValue.trim()) {
+                           handleCreateNewTag(newTagInputValue);
                            setIsCreatingNewTag(false);
                            setNewTagInputValue('');
                         } else if (e.key === 'Escape') {
@@ -169,9 +358,10 @@ export function SaveLinkDialog() {
                       }}
                     />
                     <div className="flex items-center gap-0.5 pl-1.5 border-l border-slate-200">
-                      <button 
+                      <button
                         onClick={() => {
                           if (newTagInputValue.trim()) {
+                            handleCreateNewTag(newTagInputValue);
                             setIsCreatingNewTag(false);
                             setNewTagInputValue('');
                           }
@@ -192,16 +382,19 @@ export function SaveLinkDialog() {
                     </div>
                   </div>
                 ) : (
-                  <Popover open={openTagPopover} onOpenChange={setOpenTagPopover}>
+                  <Popover open={openTagPopover} onOpenChange={setOpenTagPopover} modal={true}>
                     <PopoverTrigger asChild>
                       <button className={`${styles.tagAddTrigger} focus:ring-2 focus:ring-violet-200 focus:border-violet-400`}>
                         <span className="material-symbols-outlined !text-[14px]">add</span> Add tag...
                       </button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-[200px] p-2 bg-white rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] border border-slate-100 z-50" 
+                      className="w-[200px] p-2 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-slate-200 z-[100]" 
                       align="start" 
-                      sideOffset={6}
+                      side="bottom" // [수정] 아래로 여는 것을 선호하지만
+                      sideOffset={8}
+                      avoidCollisions={true} // [수정] 공간이 정말 부족하다면 위로 띄워 깨짐을 방지
+                      collisionPadding={10}  // 화면 끝에 너무 딱 붙지 않게 여유를 줌
                     >
                     <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-2.5 py-1.5 focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-200 transition-all bg-slate-50/50">
                       <span className="material-symbols-outlined !text-[14px] text-slate-400">search</span>
@@ -234,12 +427,26 @@ export function SaveLinkDialog() {
                       </button>
                     </div>
 
-                    <div className="mt-2 flex flex-col gap-0.5 max-h-[160px] overflow-y-auto custom-scrollbar">
-                      {existingTagsList.filter(tag => tag.toLowerCase().includes(tagInput.toLowerCase())).map(tag => (
-                        <div 
-                          key={tag} 
-                          className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-slate-50 text-[#1e293b] font-medium text-[11px] cursor-pointer transition-colors"
+                    {/* [수정] 화면이 깨지지 않도록 최대 높이를 220px -> 160px로 적절히 조절 */}
+                    <div 
+                      className="mt-2 flex flex-col gap-0.5 max-h-[160px] overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin"
+                      style={{ 
+                        scrollbarWidth: 'thin', // 너무 굵지 않게 조절
+                        msOverflowStyle: 'auto'
+                      }}
+                    >
+                      {/* 
+                        'Add tag' 버튼을 눌렀을 때는 필터링 없이 
+                        (검색어가 있을 때만 제외하고) 모든 기존 태그 목록을 다 보여줍니다.
+                      */}
+                      {existingTagsList
+                        .filter(tag => tag.toLowerCase().includes(tagInput.toLowerCase()))
+                        .map(tag => (
+                        <div
+                          key={tag}
+                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-slate-50 font-medium text-[11px] cursor-pointer transition-colors ${selectedTags.includes(tag) ? 'text-violet-700 bg-violet-50' : 'text-[#1e293b]'}`}
                           onClick={() => {
+                            toggleTagSelection(tag);
                             setTagInput('');
                             setOpenTagPopover(false);
                           }}
@@ -266,10 +473,12 @@ export function SaveLinkDialog() {
                   Generate AI Summary
                 </button>
               </div>
-              <textarea 
-                className="w-full bg-white border border-[#e2e8f0] hover:border-slate-300 focus:border-violet-400 rounded-lg p-2.5 text-xs text-[#1e293b] placeholder-slate-400 resize-none outline-none focus:ring-1 focus:ring-violet-100 transition-all font-normal shadow-sm" 
-                placeholder="Add a personal note or key takeaway..." 
+              <textarea
+                className="w-full bg-white border border-[#e2e8f0] hover:border-slate-300 focus:border-violet-400 rounded-lg p-2.5 text-xs text-[#1e293b] placeholder-slate-400 resize-none outline-none focus:ring-1 focus:ring-violet-100 transition-all font-normal shadow-sm"
+                placeholder="Add a personal note or key takeaway..."
                 rows={2}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
               ></textarea>
             </div>
 
@@ -281,8 +490,12 @@ export function SaveLinkDialog() {
               >
                 Cancel
               </button>
-              <button className={`${styles.btnGradient} text-xs font-bold px-5 py-2 rounded-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0`}>
-                Save to Workspace
+              <button
+                onClick={handleSave}
+                disabled={!url.trim() || createBookmarkMutation.isPending}
+                className={`${styles.btnGradient} text-xs font-bold px-5 py-2 rounded-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {createBookmarkMutation.isPending ? 'Saving...' : 'Save to Workspace'}
               </button>
             </div>
 
