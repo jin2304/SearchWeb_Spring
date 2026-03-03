@@ -32,6 +32,9 @@ public interface BookmarkService {
     
     // 북마크 존재 여부 확인 (URL 기반)
     boolean checkBookmarkExistsByUrl(Long memberId, String url);
+
+    // URL로부터 페이지 제목 추출
+    String extractTitle(String url);
     
     // ========== Legacy Board-Bookmark Methods ==========
     

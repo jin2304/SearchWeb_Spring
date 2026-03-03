@@ -19,8 +19,14 @@ import com.web.SearchWeb.config.BusinessException;
 import com.web.SearchWeb.config.CommonErrorCode;
 
 import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -78,7 +84,7 @@ public class BookmarkServiceImpl implements BookmarkService {
             }
             throw BusinessException.from(CommonErrorCode.INTERNAL_SERVER_ERROR);
         } catch (DataIntegrityViolationException e) {
-            log.warn("북마크 중복 저장 시도: memberId={}, folderId={}, linkId={}", memberId, memberFolderId, link.getLinkId());
+            log.warn("북마크 중복 저장 시도: memberId={}, folderId={}, linkId={}", memberId, memberFolderId, (link != null ? link.getLinkId() : "null"));
             throw BusinessException.from(BookmarkErrorCode.DUPLICATE_BOOKMARK);
         }
     }
@@ -182,8 +188,8 @@ public class BookmarkServiceImpl implements BookmarkService {
         // URL 정규화 (canonical URL 생성)
         String canonicalUrl = normalizeUrl(url);
 
-        // 기존 링크 조회
-        Link existingLink = bookmarkDao.selectLinkByUrl(url);
+        // 정규화된 URL로 기존 링크가 있는지 확인 (데이터 정합성 보장)
+        Link existingLink = bookmarkDao.selectLinkByCanonicalUrl(canonicalUrl);
         if (existingLink != null) {
             return existingLink;
         }
@@ -210,7 +216,7 @@ public class BookmarkServiceImpl implements BookmarkService {
     public boolean checkBookmarkExistsByUrl(Long memberId, String url) {
         String canonicalUrl = normalizeUrl(url);
         // Link가 존재하는지 먼저 확인 (최적화)
-        Link link = bookmarkDao.selectLinkByUrl(url);
+        Link link = bookmarkDao.selectLinkByCanonicalUrl(canonicalUrl);
         if (link == null) {
             return false;
         }
@@ -219,24 +225,127 @@ public class BookmarkServiceImpl implements BookmarkService {
     }
 
 
-     /**
+    /**
      * URL 정규화 (canonical URL 생성)
+     * 식별에 필요한 핵심 파라미터(예: 유튜브 v)는 보존하고 나머지는 제거함
      */
     private String normalizeUrl(String url) {
+        if (url == null || url.isBlank()) return "";
         try {
-            URI uri = new URI(url);
-            // 프로토콜 + 호스트 + 경로 (쿼리스트링, 프래그먼트 제거)
-            String normalized = uri.getScheme() + "://" + uri.getHost();
-            if (uri.getPath() != null && !uri.getPath().isEmpty()) {
-                normalized += uri.getPath();
+            URI uri = new URI(url.trim()).normalize();
+            
+            String scheme = (uri.getScheme() != null) ? uri.getScheme().toLowerCase() : "https";
+            String host = (uri.getHost() != null) ? uri.getHost().toLowerCase() : "";
+            String path = uri.getPath();
+            String query = uri.getQuery();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(scheme).append("://").append(host);
+
+            if (path != null && !path.isEmpty()) {
+                if (path.length() > 1 && path.endsWith("/")) {
+                    path = path.substring(0, path.length() - 1);
+                }
+                sb.append(path);
             }
-            // 끝의 슬래시 제거
-            return normalized.endsWith("/") ? normalized.substring(0, normalized.length() - 1) : normalized;
+
+            // 식별 파라미터 처리 (Whitelisting)
+            if (query != null && !query.isEmpty()) {
+                String[] params = query.split("&");
+                StringBuilder filteredQuery = new StringBuilder();
+                
+                for (String param : params) {
+                    // 유튜브 동영상 고유 ID (v) 보존
+                    if (param.startsWith("v=")) {
+                        if (filteredQuery.length() > 0) filteredQuery.append("&");
+                        filteredQuery.append(param);
+                    }
+                    // 추가적인 식별 파라미터가 필요하면 여기에 추가 가능
+                }
+
+                if (filteredQuery.length() > 0) {
+                    sb.append("?").append(filteredQuery.toString());
+                }
+            }
+
+            return sb.toString();
         } catch (Exception e) {
-            return url;  // 정규화 실패 시 원본 반환
+            return url.trim();
         }
     }
 
+
+    @Override
+    public String extractTitle(String url) {
+        log.info("[제목 추출 시작] URL: {}", url);
+        
+        // 유튜브 전용 처리
+        if (url.contains("youtube.com") || url.contains("youtu.be")) {
+            String youtubeTitle = extractYoutubeTitle(url);
+            if (youtubeTitle != null) {
+                log.info("[유튜브 제목 추출 성공] Title: {}", youtubeTitle);
+                return youtubeTitle;
+            }
+        }
+
+        try {
+            Document doc = Jsoup.connect(url)
+                    .timeout(5000)
+                    .followRedirects(true)
+                    .maxBodySize(512 * 1024) // 512KB만 읽기 (title은 <head>에 있으므로 충분)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
+                    .referrer("https://www.google.com/")
+                    .get();
+
+            // Fallback 체인: og:title → twitter:title → <title> → 도메인
+            String ogTitle = doc.select("meta[property=og:title]").attr("content");
+            if (ogTitle != null && !ogTitle.isBlank()) {
+                log.info("[제목 추출 성공] Source: og:title, Title: {}", ogTitle.trim());
+                return ogTitle.trim();
+            }
+
+            String twitterTitle = doc.select("meta[name=twitter:title]").attr("content");
+            if (twitterTitle != null && !twitterTitle.isBlank()) {
+                log.info("[제목 추출 성공] Source: twitter:title, Title: {}", twitterTitle.trim());
+                return twitterTitle.trim();
+            }
+
+            String pageTitle = doc.title();
+            if (pageTitle != null && !pageTitle.isBlank()) {
+                log.info("[제목 추출 성공] Source: <title> tag, Title: {}", pageTitle.trim());
+                return pageTitle.trim();
+            }
+
+            String domain = extractDomain(url);
+            log.info("[제목 추출 결과] 메타데이터 없음, 도메인 사용: {}", domain);
+            return domain;
+        } catch (Exception e) {
+            log.warn("[제목 추출 실패] URL: {}, 사유: {}", url, e.getMessage());
+            return extractDomain(url);
+        }
+    }
+
+    /**
+     * 유튜브 oEmbed API를 이용한 제목 추출
+     */
+    private String extractYoutubeTitle(String url) {
+        try {
+            String oEmbedUrl = "https://www.youtube.com/oembed?url=" + url + "&format=json";
+            Document doc = Jsoup.connect(oEmbedUrl)
+                    .ignoreContentType(true)
+                    .timeout(3000)
+                    .get();
+            
+            String json = doc.text();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(json);
+            return root.path("title").asText();
+        } catch (Exception e) {
+            log.warn("[유튜브 oEmbed 추출 실패] URL: {}, 사유: {}", url, e.getMessage());
+            return null;
+        }
+    }
 
     /**
      * URL에서 도메인 추출
@@ -244,9 +353,10 @@ public class BookmarkServiceImpl implements BookmarkService {
     private String extractDomain(String url) {
         try {
             URI uri = new URI(url);
-            return uri.getHost();
+            String host = uri.getHost();
+            return host != null ? host : url;
         } catch (Exception e) {
-            return null;
+            return url;
         }
     }
     
