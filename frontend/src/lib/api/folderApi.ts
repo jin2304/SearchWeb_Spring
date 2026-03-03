@@ -1,45 +1,45 @@
-import { useQuery } from '@tanstack/react-query';
-import type { ApiResponse, FolderResponse } from '@/lib/types/folder';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchClient } from './fetchClient';
+import type { FolderResponse, CreateFolderRequest } from '@/lib/types/folder';
 
-// ──────────────────────────────────────
-// API 호출 함수 (fetch 래퍼)
-// ──────────────────────────────────────
 
 /**
  * 루트 폴더 목록을 백엔드에서 가져옵니다.
- * 
- * [백엔드 매핑]
- *   Controller : MemberFolderController.listRoot()
- *   URL        : GET /api/folders/owners/{ownerMemberId}/root
- *   응답       : ApiResponse<List<MemberFolderResponses>>
+ * GET /api/folders/owners/{ownerMemberId}/root
  */
 async function fetchRootFolders(ownerMemberId: number): Promise<FolderResponse[]> {
-  const response = await fetch(`/api/folders/owners/${ownerMemberId}/root`);
-
-  if (!response.ok) {
-    throw new Error(`폴더 목록 조회 실패 (HTTP ${response.status})`);
-  }
-
-  const json: ApiResponse<FolderResponse[]> = await response.json();
-
-  if (!json.success) {
-    throw new Error(json.error?.message ?? '알 수 없는 에러');
-  }
-
-  return json.data;
+  return fetchClient<FolderResponse[]>(`/api/folders/owners/${ownerMemberId}/root`);
 }
 
-// ──────────────────────────────────────
-// React Query 커스텀 Hook
-// ──────────────────────────────────────
+/**
+ * 새로운 폴더를 생성합니다.
+ * POST /api/folders
+ */
+async function createFolder(data: CreateFolderRequest): Promise<number> {
+  return fetchClient<number>('/api/folders', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
 
 /**
- * 루트 폴더 목록을 가져오는 Hook.
- * 
- * 사용법:
- *   const { data: folders, isLoading, error } = useFolders(1);
- * 
- * @param ownerMemberId 폴더 소유자의 memberId (추후 로그인 사용자 ID로 대체)
+ * 특정 폴더를 삭제합니다.
+ * DELETE /api/folders/{folderId}
+ */
+async function deleteFolder(folderId: number): Promise<void> {
+  return fetchClient<void>(`/api/folders/${folderId}`, {
+    method: 'DELETE',
+  });
+}
+
+
+// ──────────────────────────────────────────────
+// React Query Hooks (UI 연동)
+// ──────────────────────────────────────────────
+
+/**
+ * [조회 Hook] 특정 사용자의 루트 폴더 목록을 가져옵니다.
+ * @param ownerMemberId 사용자 ID
  */
 export function useFolders(ownerMemberId: number) {
   return useQuery({
@@ -47,3 +47,33 @@ export function useFolders(ownerMemberId: number) {
     queryFn: () => fetchRootFolders(ownerMemberId),
   });
 }
+
+/**
+ * [생성 Hook] 새로운 폴더를 생성합니다.
+ * 성공 시 'folders' 캐시를 무효화하여 목록을 자동 갱신합니다.
+ */
+export function useCreateFolder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createFolder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['folders'] });
+    },
+  });
+}
+
+/**
+ * [삭제 Hook] 특정 폴더를 삭제합니다.
+ * 성공 시 'folders' 캐시를 무효화하여 목록을 자동 갱신합니다.
+ */
+export function useDeleteFolder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteFolder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['folders'] });
+    },
+  });
+}
+
+
