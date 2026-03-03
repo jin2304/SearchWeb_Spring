@@ -1,22 +1,19 @@
-// ──────────────────────────────────────
-// 백엔드 공통 응답 래퍼 (ApiResponse<T>)
-// ──────────────────────────────────────
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  error: {
-    code: string;
-    message: string;
-  } | null;
-}
+// 공통 ApiResponse는 apiResponse.ts에서 관리, 호환성을 위해 re-export
+export type { ApiResponse } from './apiResponse';
 
-// ──────────────────────────────────────
 // 백엔드 MemberFolderResponses DTO 대응
-// ──────────────────────────────────────
 export interface FolderResponse {
   memberFolderId: number;
   ownerMemberId: number;
   parentFolderId: number | null;
   folderName: string;
   description: string | null;
+}
+
+// POST /api/folders 요청 바디
+export interface CreateFolderRequest {
+  ownerMemberId: number;
+  parentFolderId?: number | null;
+  folderName: string;
+  description?: string;
 }
