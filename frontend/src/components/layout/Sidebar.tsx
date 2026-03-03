@@ -4,9 +4,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/lib/store/uiStore';
+import { useFolders } from '@/lib/api/folderApi';
+import { useFolderStore } from '@/lib/store/folderStore';
+import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
+
+const PINNED_DOT_COLORS = ['bg-blue-500', 'bg-purple-500', 'bg-teal-500', 'bg-amber-500', 'bg-emerald-500'];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: folders } = useFolders(TEMP_MEMBER_ID);
+  const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
+  const pinnedFolders = folders?.slice(0, 5) ?? [];
 
   const navItems = [
     { name: 'My Links', href: '/my-links', icon: 'bookmark_border', activeClass: 'bg-primary/20 text-violet-300' },
@@ -70,14 +78,16 @@ export function Sidebar() {
           </button>
         </div>
         
-        <Link href="#" className="flex items-center space-x-2 px-3 py-1.5 text-[10px] text-gray-400 hover:text-white transition-colors">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-          <span className="truncate">UI Design</span>
-        </Link>
-        <Link href="#" className="flex items-center space-x-2 px-3 py-1.5 text-[10px] text-gray-400 hover:text-white transition-colors">
-          <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-          <span className="truncate">Research</span>
-        </Link>
+        {pinnedFolders.map((folder, idx) => (
+          <button
+            key={folder.memberFolderId}
+            onClick={() => setSelectedFolderId(folder.memberFolderId)}
+            className="flex items-center space-x-2 px-3 py-1.5 text-[10px] text-gray-400 hover:text-white transition-colors w-full text-left"
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${PINNED_DOT_COLORS[idx % PINNED_DOT_COLORS.length]} shrink-0`}></span>
+            <span className="truncate">{folder.folderName}</span>
+          </button>
+        ))}
       </nav>
       
     </aside>

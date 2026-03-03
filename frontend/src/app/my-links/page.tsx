@@ -3,13 +3,17 @@
 import { RightPanel } from '@/components/my-links/RightPanel';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useFolders } from '@/lib/api/folderApi';
+import { useFolderStore } from '@/lib/store/folderStore';
+import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
 
+const PINNED_COLORS = ['bg-blue-600', 'bg-indigo-500', 'bg-teal-500', 'bg-amber-500', 'bg-emerald-600'];
 
 export default function MyLinksPage() {
   const { toggleRightPanel } = useUIStore();
+  const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
 
-  // TODO: ownerMemberId는 추후 로그인 사용자 ID로 대체
-  const { data: folders, isLoading, error } = useFolders(1);
+  const { data: folders, isLoading, error } = useFolders(TEMP_MEMBER_ID);
+  const pinnedFolders = folders?.slice(0, 5) ?? [];
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -56,73 +60,33 @@ export default function MyLinksPage() {
         </div>
 
         {/* Pinned Folders Top Section - Strictly 5 Columns Desktop */}
-        <div className="mb-5">
-          <h2 className="text-xs font-bold text-gray-800 dark:text-gray-100 mb-3 ml-1">Pinned</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
-            
-            {/* 1 */}
-            <div className="bg-blue-600 text-white rounded-lg p-2.5 flex flex-col justify-between h-20 shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-transform cursor-pointer">
-              <div className="flex justify-between items-start z-10 w-full gap-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-md shrink-0"><span className="material-symbols-outlined text-[14px]">folder_zip</span></div>
-                <button className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white shrink-0"><span className="material-symbols-outlined text-[14px]">more_vert</span></button>
-              </div>
-              <div className="z-10 mt-1 min-w-0 w-full">
-                <h3 className="font-semibold text-[10px] xl:text-[11px] truncate w-full">Design Assets</h3>
-                <p className="text-[8px] mt-0.5 opacity-80 truncate w-full">1.2k Links</p>
-              </div>
-              <div className="absolute -right-4 -bottom-4 w-10 h-10 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
+        {pinnedFolders.length > 0 && (
+          <div className="mb-5">
+            <h2 className="text-xs font-bold text-gray-800 dark:text-gray-100 mb-3 ml-1">Pinned</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+              {pinnedFolders.map((folder, idx) => (
+                <div
+                  key={folder.memberFolderId}
+                  onClick={() => setSelectedFolderId(folder.memberFolderId)}
+                  className={`${PINNED_COLORS[idx % PINNED_COLORS.length]} text-white rounded-lg p-2.5 flex flex-col justify-between h-20 shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-transform cursor-pointer`}
+                >
+                  <div className="flex justify-between items-start z-10 w-full gap-1">
+                    <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-md shrink-0">
+                      <span className="material-symbols-outlined text-[14px]">folder</span>
+                    </div>
+                    <button className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white shrink-0">
+                      <span className="material-symbols-outlined text-[14px]">more_vert</span>
+                    </button>
+                  </div>
+                  <div className="z-10 mt-1 min-w-0 w-full">
+                    <h3 className="font-semibold text-[10px] xl:text-[11px] truncate w-full">{folder.folderName}</h3>
+                  </div>
+                  <div className="absolute -right-4 -bottom-4 w-10 h-10 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
+                </div>
+              ))}
             </div>
-
-            {/* 2 */}
-            <div className="bg-indigo-500 text-white rounded-lg p-2.5 flex flex-col justify-between h-20 shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-transform cursor-pointer">
-              <div className="flex justify-between items-start z-10 w-full gap-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-md shrink-0"><span className="material-symbols-outlined text-[14px]">menu_book</span></div>
-                <button className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white shrink-0"><span className="material-symbols-outlined text-[14px]">more_vert</span></button>
-              </div>
-              <div className="z-10 mt-1 min-w-0 w-full">
-                <h3 className="font-semibold text-[10px] xl:text-[11px] truncate w-full">Reading List</h3>
-                <p className="text-[8px] mt-0.5 opacity-80 truncate w-full">85 Saved</p>
-              </div>
-            </div>
-
-            {/* 3 */}
-            <div className="bg-teal-500 text-white rounded-lg p-2.5 flex flex-col justify-between h-20 shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-transform cursor-pointer">
-              <div className="flex justify-between items-start z-10 w-full gap-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-md shrink-0"><span className="material-symbols-outlined text-[14px]">work</span></div>
-                <button className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white shrink-0"><span className="material-symbols-outlined text-[14px]">more_vert</span></button>
-              </div>
-              <div className="z-10 mt-1 min-w-0 w-full">
-                <h3 className="font-semibold text-[10px] xl:text-[11px] truncate w-full">Projects</h3>
-                <p className="text-[8px] mt-0.5 opacity-80 truncate w-full">12 Active</p>
-              </div>
-            </div>
-
-            {/* 4 */}
-            <div className="bg-amber-500 text-white rounded-lg p-2.5 flex flex-col justify-between h-20 shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-transform cursor-pointer">
-              <div className="flex justify-between items-start z-10 w-full gap-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-md shrink-0"><span className="material-symbols-outlined text-[14px]">star</span></div>
-                <button className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white shrink-0"><span className="material-symbols-outlined text-[14px]">more_vert</span></button>
-              </div>
-              <div className="z-10 mt-1 min-w-0 w-full">
-                <h3 className="font-semibold text-[10px] xl:text-[11px] truncate w-full">Inspiration</h3>
-                <p className="text-[8px] mt-0.5 opacity-80 truncate w-full">42 Favorites</p>
-              </div>
-            </div>
-
-            {/* 5 / New Item Replaced */}
-            <div className="bg-emerald-600 text-white rounded-lg p-2.5 flex flex-col justify-between h-20 shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-transform cursor-pointer">
-              <div className="flex justify-between items-start z-10 w-full gap-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-md shrink-0"><span className="material-symbols-outlined text-[14px]">inventory_2</span></div>
-                <button className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white shrink-0"><span className="material-symbols-outlined text-[14px]">more_vert</span></button>
-              </div>
-              <div className="z-10 mt-1 min-w-0 w-full">
-                <h3 className="font-semibold text-[10px] xl:text-[11px] truncate w-full">Resources</h3>
-                <p className="text-[8px] mt-0.5 opacity-80 truncate w-full">156 Items</p>
-              </div>
-            </div>
-
           </div>
-        </div>
+        )}
 
         <div className="flex justify-between items-center mb-3 ml-1">
           <div className="flex items-center gap-2">
@@ -202,7 +166,8 @@ export default function MyLinksPage() {
           {folders?.map((folder) => (
             <div
               key={folder.memberFolderId}
-              className="bg-white dark:bg-card-dark rounded-lg p-2.5 border border-gray-100 dark:border-gray-800 hover:shadow-sm hover:border-purple-200 dark:hover:border-purple-800 transition-all group cursor-pointer h-[100px] flex flex-col justify-between"
+              onClick={() => setSelectedFolderId(folder.memberFolderId)}
+              className="bg-white dark:bg-card-dark rounded-lg p-2.5 border border-gray-100 dark:border-gray-800 hover:shadow-sm hover:border-purple-200 dark:hover:border-purple-800 transition-all group cursor-pointer h-[90px] flex flex-col justify-between"
             >
               <div className="flex justify-between items-start">
                 <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-500 rounded-md flex items-center justify-center w-8 h-8">
@@ -216,9 +181,6 @@ export default function MyLinksPage() {
                 <h4 className="font-semibold text-[10px] xl:text-[11px] text-gray-800 dark:text-gray-200 truncate mt-1.5">
                   {folder.folderName}
                 </h4>
-                <p className="text-[8px] text-gray-500 mt-0.5 truncate">
-                  {folder.description ?? '설명 없음'}
-                </p>
               </div>
             </div>
           ))}
