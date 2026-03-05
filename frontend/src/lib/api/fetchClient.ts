@@ -1,9 +1,13 @@
 import type { ApiResponse } from '@/lib/types/apiResponse';
 
+/**
+ * API 통신용 제네릭 Fetch 클라이언트
+ */
 export async function fetchClient<T>(
   url: string,
   options?: RequestInit,
 ): Promise<T> {
+  // 기본 설정 (인증 포함, JSON 형식)
   const response = await fetch(url, {
     credentials: 'include',
     ...options,
@@ -13,6 +17,7 @@ export async function fetchClient<T>(
     },
   });
 
+  // 2xx 외 응답 처리 (에러)
   if (!response.ok) {
     const text = await response.text().catch(() => '');
     let message = `HTTP ${response.status}`;
@@ -25,11 +30,22 @@ export async function fetchClient<T>(
     throw new Error(message);
   }
 
-  const json: ApiResponse<T> = await response.json();
+  // 204 No Content 및 빈 응답 처리 (text 변환)
+  const text = await response.text();
+  
+  // 빈 본문 통과
+  if (!text) {
+    return undefined as unknown as T;
+  }
 
+  // JSON 파싱
+  const json: ApiResponse<T> = JSON.parse(text);
+
+  // API 비즈니스 에러 예외 처리
   if (!json.success) {
     throw new Error(json.error?.message ?? '알 수 없는 에러');
   }
 
+  // 데이터 반환
   return json.data;
 }
