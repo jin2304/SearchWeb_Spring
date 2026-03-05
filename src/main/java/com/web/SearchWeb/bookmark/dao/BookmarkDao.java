@@ -32,8 +32,8 @@ public interface BookmarkDao {
     //북마크 링크 중복 확인 (동일 폴더에 동일 링크)
     int checkBookmarkExists(Long memberId, Long folderId, Long linkId);
 
-    //링크 조회 (url로)
-    Link selectLinkByUrl(String url);
+    //상세 링크 조회 (정규화된 URL 기반)
+    Link selectLinkByCanonicalUrl(String url);
     
     //링크 추가 (link 테이블)
     int insertLink(Link link);

@@ -531,6 +531,7 @@ CREATE INDEX IF NOT EXISTS idx_category_active ON "category_master" ("is_active"
 CREATE INDEX IF NOT EXISTS idx_category_deleted_at ON "category_master" ("deleted_at");
 
 CREATE INDEX IF NOT EXISTS idx_link_domain ON "link" ("domain");
+CREATE INDEX IF NOT EXISTS idx_link_original_url ON "link" ("original_url");
 CREATE INDEX IF NOT EXISTS idx_link_title ON "link" ("title");
 CREATE INDEX IF NOT EXISTS idx_link_content_type ON "link" ("content_type");
 CREATE INDEX IF NOT EXISTS idx_link_primary_category ON "link" ("primary_category_id");

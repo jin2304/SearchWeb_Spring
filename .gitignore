@@ -40,3 +40,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Claude AI ###
+.claude/
+CLAUDE.md
+
+### HTTP Tests ###
+*.http
