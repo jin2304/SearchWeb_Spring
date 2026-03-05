@@ -85,9 +85,10 @@ export function CreateFolderDialog() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Folder Name</label>
+                <label htmlFor="folder-name-input" className="text-sm font-semibold text-gray-700 dark:text-gray-200">Folder Name</label>
               </div>
               <input 
+                id="folder-name-input"
                 type="text"
                 className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-gray-400" 
                 placeholder="e.g., Design Resources"
