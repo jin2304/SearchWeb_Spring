@@ -46,8 +46,15 @@
   --color-primary-light: var(--primary-light);
   --color-background-light: var(--background-light);
   --color-background-dark: var(--background-dark);
+  --color-sidebar-dark: var(--sidebar-dark);
+  --color-card-light: var(--card-light);
+  --color-card-dark: var(--card-dark);
   --color-text-main: var(--text-main);
   --color-text-sub: var(--text-sub);
+  --color-text-primary-light: var(--text-primary-light);
+  --color-text-secondary-light: var(--text-secondary-light);
+  --color-text-primary-dark: var(--text-primary-dark);
+  --color-text-secondary-dark: var(--text-secondary-dark);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -122,23 +129,7 @@
   --ring: oklch(0.55 0.18 250);
 }
 
-@theme inline {
-  --color-primary: var(--primary);
-  --color-primary-content: var(--primary-content);
-  --color-primary-dark: var(--primary-dark);
-  --color-primary-light: var(--primary-light);
-  --color-background-light: var(--background-light);
-  --color-background-dark: var(--background-dark);
-  --color-sidebar-dark: var(--sidebar-dark);
-  --color-card-light: var(--card-light);
-  --color-card-dark: var(--card-dark);
-  --color-text-main: var(--text-main);
-  --color-text-sub: var(--text-sub);
-  --color-text-primary-light: var(--text-primary-light);
-  --color-text-secondary-light: var(--text-secondary-light);
-  --color-text-primary-dark: var(--text-primary-dark);
-  --color-text-secondary-dark: var(--text-secondary-dark);
-}
+
 
 /* Animations for Login Page */
 @keyframes orbit {

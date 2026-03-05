@@ -33,27 +33,27 @@ export default function MyLinksPage() {
                 placeholder="Search folders or links" 
                 type="text"
               />
-              <button className="flex items-center justify-center h-7 w-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-full transition-colors mr-0.5">
+              <button type="button" className="flex items-center justify-center h-7 w-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-full transition-colors mr-0.5">
                 <span className="material-symbols-outlined text-lg">search</span>
               </button>
             </div>
           </div>
           
           <div className="flex items-center flex-wrap gap-1 pb-1 pl-1">
-            <button className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+            <button type="button" className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
               <span className="material-symbols-outlined !text-[12px]">tune</span> Filter
             </button>
             <div className="h-2.5 w-px bg-gray-300 dark:bg-gray-700 mx-0.5"></div>
-            <button className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+            <button type="button" className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
               <span className="material-symbols-outlined !text-[12px] text-rose-400">inventory_2</span> Unorganized
             </button>
-            <button className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+            <button type="button" className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
               <span className="material-symbols-outlined !text-[12px] text-blue-500">mark_email_unread</span> Unread
             </button>
-            <button className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+            <button type="button" className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
               <span className="material-symbols-outlined !text-[12px] text-amber-500">priority_high</span> High Priority
             </button>
-            <button className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+            <button type="button" className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
               <span className="material-symbols-outlined !text-[12px] text-green-500">today</span> Saved today
             </button>
           </div>
@@ -67,14 +67,22 @@ export default function MyLinksPage() {
               {pinnedFolders.map((folder, idx) => (
                 <div
                   key={folder.memberFolderId}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setSelectedFolderId(folder.memberFolderId)}
-                  className={`${PINNED_COLORS[idx % PINNED_COLORS.length]} text-white rounded-lg p-2.5 flex flex-col justify-between h-20 shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-transform cursor-pointer`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedFolderId(folder.memberFolderId);
+                    }
+                  }}
+                  className={`${PINNED_COLORS[idx % PINNED_COLORS.length]} text-white rounded-lg p-2.5 flex flex-col justify-between h-20 shadow-sm relative overflow-hidden group hover:scale-[1.01] transition-all duration-300 cursor-pointer focus:ring-1 focus:ring-offset-2 focus:ring-purple-300 outline-none hover:shadow-md`}
                 >
                   <div className="flex justify-between items-start z-10 w-full gap-1">
                     <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-md shrink-0">
                       <span className="material-symbols-outlined text-[14px]">folder</span>
                     </div>
-                    <button className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white shrink-0">
+                    <button type="button" className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white shrink-0">
                       <span className="material-symbols-outlined text-[14px]">more_vert</span>
                     </button>
                   </div>
@@ -95,6 +103,7 @@ export default function MyLinksPage() {
           
           <div className="flex items-center gap-1.5 focus-within:z-20 relative">
             <button 
+              type="button"
               onClick={() => useUIStore.getState().toggleCreateFolderDialog(true)}
               className="flex items-center space-x-1 text-[10px] font-medium text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-100 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md px-2 py-1 transition-colors"
             >
@@ -102,25 +111,26 @@ export default function MyLinksPage() {
               <span>Create Folder</span>
             </button>
             <div className="relative group">
-              <button className="flex items-center space-x-1 text-[10px] font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+              <button type="button" className="flex items-center space-x-1 text-[10px] font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
                 <span className="material-symbols-outlined !text-[12px] !leading-none">filter_list</span>
                 <span>Sort by: Recently</span>
                 <span className="material-symbols-outlined !text-[12px] !leading-none mt-0.5">expand_more</span>
               </button>
               <div className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-card-dark border border-gray-100 dark:border-gray-700 shadow-xl rounded-lg py-1 hidden group-focus-within:block z-30">
-                <button className="w-full text-left px-3 py-1.5 text-[10px] text-primary font-medium bg-blue-50 dark:bg-blue-900/20 flex items-center justify-between">
+                <button type="button" className="w-full text-left px-3 py-1.5 text-[10px] text-primary font-medium bg-blue-50 dark:bg-blue-900/20 flex items-center justify-between">
                   <span>Recently Added</span>
                   <span className="material-symbols-outlined text-[12px]">check</span>
                 </button>
-                <button className="w-full text-left px-3 py-1.5 text-[10px] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <button type="button" className="w-full text-left px-3 py-1.5 text-[10px] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   Name (A-Z)
                 </button>
-                <button className="w-full text-left px-3 py-1.5 text-[10px] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <button type="button" className="w-full text-left px-3 py-1.5 text-[10px] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   Link Count
                 </button>
               </div>
             </div>
             <button 
+              type="button"
               onClick={() => useUIStore.getState().toggleSaveLinkDialog(true)}
               className="flex items-center space-x-1 text-[10px] font-bold text-white bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] hover:opacity-90 border-none rounded-md px-2.5 py-1 transition-all shadow-md shadow-purple-500/20 hover:scale-[1.02]"
             >
@@ -166,14 +176,22 @@ export default function MyLinksPage() {
           {folders?.map((folder) => (
             <div
               key={folder.memberFolderId}
+              role="button"
+              tabIndex={0}
               onClick={() => setSelectedFolderId(folder.memberFolderId)}
-              className="bg-white dark:bg-card-dark rounded-lg p-2.5 border border-gray-100 dark:border-gray-800 hover:shadow-sm hover:border-purple-200 dark:hover:border-purple-800 transition-all group cursor-pointer h-[90px] flex flex-col justify-between"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSelectedFolderId(folder.memberFolderId);
+                }
+              }}
+              className="bg-white dark:bg-card-dark rounded-lg p-2.5 border border-gray-100 dark:border-gray-800 hover:shadow-sm hover:border-purple-200 dark:hover:border-purple-900/50 transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between focus:ring-1 focus:ring-purple-300 outline-none hover:bg-purple-50/50 dark:hover:bg-purple-900/10"
             >
               <div className="flex justify-between items-start">
                 <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-500 rounded-md flex items-center justify-center w-8 h-8">
                   <span className="material-symbols-outlined text-[16px]">folder_open</span>
                 </div>
-                <button className="text-gray-300 hover:text-purple-500">
+                <button type="button" className="text-gray-300 hover:text-purple-500">
                   <span className="material-symbols-outlined text-sm">more_horiz</span>
                 </button>
               </div>

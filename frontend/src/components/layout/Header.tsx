@@ -13,10 +13,11 @@ export function Header({ title = 'My Links' }: HeaderProps) {
       </div>
 
       <div className="ml-auto flex items-center space-x-2">
-        <button className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+        <button type="button" className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
           <span className="material-symbols-outlined !text-[16px]">notifications</span>
         </button>
         <button 
+          type="button"
           className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" 
           onClick={() => document.documentElement.classList.toggle('dark')}
         >
