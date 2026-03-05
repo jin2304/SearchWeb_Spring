@@ -2,6 +2,7 @@ package com.web.SearchWeb.folder.service;
 
 import com.web.SearchWeb.folder.dao.MemberFolderJpaDao;
 import com.web.SearchWeb.folder.domain.MemberFolder;
+import com.web.SearchWeb.folder.error.FolderErrorCode;
 import com.web.SearchWeb.folder.error.FolderException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     @Transactional(readOnly = true)
     public MemberFolder get(Long memberFolderId) {
         return memberFolderJpaRepository.findById(memberFolderId)
-            .orElseThrow(FolderException.NotFound::new);
+            .orElseThrow(() ->new FolderException(FolderErrorCode.FOLDER_NOT_FOUND));
     }
 
     @Override
@@ -54,7 +55,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
         validateFolderName(folderName);
 
         MemberFolder folder = memberFolderJpaRepository.findById(memberFolderId)
-            .orElseThrow(FolderException.NotFound::new);
+            .orElseThrow(() ->new FolderException(FolderErrorCode.FOLDER_NOT_FOUND));
 
         folder.changeInfo(folderName,description);
         // TODO : 수정 로직 좀 더 생각해보기
@@ -64,7 +65,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     @Transactional
     public void move(Long memberFolderId, Long newParentFolderId) {
         MemberFolder folder = memberFolderJpaRepository.findById(memberFolderId)
-            .orElseThrow(FolderException.NotFound::new);
+            .orElseThrow(() ->new FolderException(FolderErrorCode.FOLDER_NOT_FOUND));
         folder.changeParent(newParentFolderId);
     }
 
