@@ -7,14 +7,16 @@ export async function fetchClient<T>(
   url: string,
   options?: RequestInit,
 ): Promise<T> {
+  const headers = new Headers(options?.headers);
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   // 기본 설정 (인증 포함, JSON 형식)
   const response = await fetch(url, {
     credentials: 'include',
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
   });
 
   // 2xx 외 응답 처리 (에러)
