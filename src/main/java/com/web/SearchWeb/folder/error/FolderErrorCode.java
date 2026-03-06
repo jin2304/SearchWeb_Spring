@@ -1,6 +1,6 @@
 package com.web.SearchWeb.folder.error;
 
-import com.web.SearchWeb.config.ErrorCode;
+import com.web.SearchWeb.config.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
