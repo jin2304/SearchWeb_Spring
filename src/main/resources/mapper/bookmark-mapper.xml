@@ -228,4 +228,13 @@
         DO UPDATE SET deleted_at = NULL, updated_at = now()
     </insert>
 
+    <select id="existsActiveBookmarkInFolder" parameterType="long" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM member_saved_link
+            WHERE member_folder_id = #{memberFolderId}
+              AND deleted_at IS NULL
+        )
+    </select>
+
 </mapper>
