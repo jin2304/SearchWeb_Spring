@@ -2,6 +2,9 @@ package com.web.SearchWeb.config.ai;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -29,15 +32,20 @@ import java.util.Map;
  * @Qualifier("groqChatClient")
  * private ChatClient groqChatClient;
  */
+@Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class AiConfig {
 
+    private final ObjectMapper mapper;
+
+    
     /**
      * OpenAI ChatClient
-     * 활성화: spring.ai.enabled.openai=true (기본값: true)
+     * 활성화: spring.ai.enabled.openai=true (기본값: false)
      */
     @Bean("openaiChatClient")
-    @ConditionalOnProperty(name = "spring.ai.enabled.openai", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(name = "spring.ai.enabled.openai", havingValue = "true", matchIfMissing = false)
     public ChatClient openaiChatClient(@Qualifier("openAiChatModel") ChatModel chatModel) {
         return ChatClient.builder(chatModel).build();
     }
@@ -56,26 +64,28 @@ public class AiConfig {
 
     /**
      * Groq ChatClient
-     * 활성화: spring.ai.enabled.groq=true (기본값: false)
+     * 활성화: spring.ai.enabled.groq=true (기본값: true)
      */
     @Bean("groqChatClient")
-    @ConditionalOnProperty(name = "spring.ai.enabled.groq", havingValue = "true")
+    @ConditionalOnProperty(name = "spring.ai.enabled.groq", havingValue = "true", matchIfMissing = true)
     public ChatClient groqChatClient(
             @Value("${spring.ai.groq.api-key}") String apiKey,
             @Value("${spring.ai.groq.chat.options.model}") String model,
             @Value("${spring.ai.groq.chat.options.temperature}") double temperature) {
 
-        ObjectMapper mapper = new ObjectMapper();
 
         // Groq API는 extra_body 프로퍼티를 지원하지 않으므로 요청에서 제거
         RestClient.Builder groqRestClientBuilder = RestClient.builder()
                 .requestInterceptor((request, body, execution) -> {
                     try {
                         Map<String, Object> map = mapper.readValue(body, new TypeReference<>() {});
-                        map.remove("extra_body");
-                        body = mapper.writeValueAsBytes(map);
-                        request.getHeaders().setContentLength(body.length);
-                    } catch (Exception ignored) {
+                        if (map != null && map.containsKey("extra_body")) {
+                            map.remove("extra_body");
+                            body = mapper.writeValueAsBytes(map);
+                            request.getHeaders().setContentLength(body.length);
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to remove extra_body from Groq request. The request might fail: {}", e.getMessage());
                     }
                     return execution.execute(request, body);
                 });
