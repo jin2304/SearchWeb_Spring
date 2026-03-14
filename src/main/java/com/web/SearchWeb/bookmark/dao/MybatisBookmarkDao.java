@@ -136,4 +136,9 @@ public class MybatisBookmarkDao implements BookmarkDao {
     public int insertBookmarkTags(Long bookmarkId, List<Long> tagIds) {
         return mapper.insertBookmarkTags(bookmarkId, tagIds);
     }
+
+    @Override
+    public boolean existsActiveBookmarkInFolder(Long memberFolderId) {
+        return mapper.existsActiveBookmarkInFolder(memberFolderId);
+    }
 }

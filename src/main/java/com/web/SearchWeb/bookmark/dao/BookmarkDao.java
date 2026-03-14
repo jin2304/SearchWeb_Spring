@@ -46,4 +46,7 @@ public interface BookmarkDao {
 
     // 북마크-태그 연결 일괄 추가 (Bulk Insert)
     int insertBookmarkTags(Long bookmarkId, List<Long> tagIds);
+
+    // 폴더 내 활성 북마크 존재 여부
+    boolean existsActiveBookmarkInFolder(Long memberFolderId);
 }

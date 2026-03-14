@@ -1,4 +1,4 @@
-package com.web.SearchWeb.config;
+package com.web.SearchWeb.config.security;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

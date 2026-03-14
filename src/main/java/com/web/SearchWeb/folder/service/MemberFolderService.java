@@ -6,17 +6,17 @@ import java.util.Optional;
 
 public interface MemberFolderService {
 
-    Long create(Long ownerMemberId, Long parentFolderId, String folderName, String description);
+    Long create(Long loginId, Long parentFolderId, String folderName, String description);
 
-    MemberFolder get(Long memberFolderId);
+    MemberFolder get(Long loginId, Long memberFolderId);
 
-    List<MemberFolder> listRootFolders(Long ownerMemberId);
+    List<MemberFolder> listRootFolders(Long loginId, Long ownerMemberId);
 
-    List<MemberFolder> listChildren(Long ownerMemberId, Long parentFolderId);
+    List<MemberFolder> listChildren(Long loginId, Long ownerMemberId, Long parentFolderId);
 
-    void update(Long memberFolderId, String folderName, String description);
+    void update(Long loginId, Long memberFolderId, String folderName, String description);
 
-    void move(Long memberFolderId, Long newParentFolderId);
+    void move(Long loginId, Long memberFolderId, Long newParentFolderId);
 
-    void delete(Long memberFolderId);
+    void delete(Long loginId, Long memberFolderId);
 }

@@ -5,7 +5,7 @@ import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
-import com.web.SearchWeb.config.ApiResponse;
+import com.web.SearchWeb.config.common.ApiResponse;
 import com.web.SearchWeb.member.domain.Member;
 import com.web.SearchWeb.member.dto.MemberUpdateDto;
 import com.web.SearchWeb.member.service.MemberService;

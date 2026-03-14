@@ -4,7 +4,7 @@ package com.web.SearchWeb.bookmark.controller;
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
-import com.web.SearchWeb.config.ApiResponse;
+import com.web.SearchWeb.config.common.ApiResponse;
 import com.web.SearchWeb.member.dto.CustomOAuth2User;
 import com.web.SearchWeb.member.dto.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
