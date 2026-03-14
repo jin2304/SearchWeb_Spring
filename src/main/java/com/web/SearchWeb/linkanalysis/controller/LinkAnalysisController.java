@@ -1,6 +1,6 @@
 package com.web.SearchWeb.linkanalysis.controller;
 
-import com.web.SearchWeb.config.ApiResponse;
+import com.web.SearchWeb.config.common.ApiResponse;
 import com.web.SearchWeb.linkanalysis.controller.dto.LinkAnalysisDto;
 import com.web.SearchWeb.linkanalysis.domain.LinkAnalysisResult;
 import com.web.SearchWeb.linkanalysis.service.LinkAnalysisService;
@@ -81,6 +81,8 @@ public class LinkAnalysisController {
         } else if (currentUser instanceof OAuth2User) {
             return ((CustomOAuth2User) currentUser).getMemberId();
         }
-        return null;
+        
+        // SecurityUtils의 정책과 동일하게 1L 반환 (테스트용)
+        return 1L;
     }
 }

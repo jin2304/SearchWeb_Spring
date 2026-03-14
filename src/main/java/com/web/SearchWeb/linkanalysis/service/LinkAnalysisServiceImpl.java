@@ -80,7 +80,7 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
         PageContent page = linkMetadataExtractor.extract(url);
 
         // 2. 사용자 기존 폴더/태그 조회 (AI 프롬프트에 포함하여 기존 데이터와 매칭)
-        List<MemberFolder> folders = folderService.listRootFolders(memberId);
+        List<MemberFolder> folders = folderService.listRootFolders(memberId, memberId);
         List<MemberTag> tags = tagService.listByOwner(memberId);
 
         // 3. AI 분석 (실패 시 크롤링 데이터만으로 폴백)

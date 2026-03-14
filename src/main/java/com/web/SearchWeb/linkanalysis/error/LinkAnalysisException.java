@@ -1,12 +1,14 @@
 package com.web.SearchWeb.linkanalysis.error;
 
-import com.web.SearchWeb.config.BusinessException;
+import com.web.SearchWeb.config.exception.BusinessException;
+import com.web.SearchWeb.config.exception.ErrorCode;
+
 import lombok.Getter;
 
 @Getter
 public class LinkAnalysisException extends BusinessException {
 
-    private LinkAnalysisException(LinkAnalysisErrorCode errorCode) {
+    private LinkAnalysisException(ErrorCode errorCode) {
         super(errorCode);
     }
 
