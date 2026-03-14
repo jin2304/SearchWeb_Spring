@@ -26,6 +26,9 @@ public class PageContent {
     /** 도메인명 (예: "www.example.com") */
     private final String domain;
 
+    /** 전체 URL */
+    private final String url;
+
     /** 콘텐츠 유형 (JSON-LD @type 또는 og:type, 예: "Article", "Product") */
     private final String contentType;
 

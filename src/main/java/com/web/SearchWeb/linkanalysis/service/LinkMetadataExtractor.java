@@ -12,6 +12,8 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -81,6 +83,7 @@ public class LinkMetadataExtractor {
                     .description(description)
                     .mainTextSnippet(mainText)
                     .domain(domain)
+                    .url(url)
                     .contentType(contentType)
                     .keywords(keywords)
                     .headings(headings)
@@ -92,6 +95,7 @@ public class LinkMetadataExtractor {
             return PageContent.builder()
                     .title(domain)
                     .domain(domain)
+                    .url(url)
                     .build();
         }
     }
@@ -117,7 +121,8 @@ public class LinkMetadataExtractor {
      */
     private PageContent extractYoutubeContent(String url, String domain) {
         try {
-            String oEmbedUrl = "https://www.youtube.com/oembed?url=" + url + "&format=json";
+            String encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8);
+            String oEmbedUrl = "https://www.youtube.com/oembed?url=" + encodedUrl + "&format=json";
             Document doc = Jsoup.connect(oEmbedUrl)
                     .ignoreContentType(true)  // JSON 응답 수신용
                     .timeout(3000)
@@ -133,6 +138,7 @@ public class LinkMetadataExtractor {
                     .title(title)
                     .description(author.isBlank() ? null : "YouTube - " + author)
                     .domain(domain)
+                    .url(url)
                     .build();
         } catch (Exception e) {
             log.warn("\n┌─────── [유튜브 oEmbed 추출 실패] ───────\n│ URL:  {}\n│ 사유: {}\n└────────────────────────────────────────", url, e.getMessage());
@@ -304,7 +310,7 @@ public class LinkMetadataExtractor {
             }
         }
 
-        List<String> result = keywords.size() > 10 ? keywords.subList(0, 10) : keywords;
+        List<String> result = keywords.size() > 10 ? new ArrayList<>(keywords.subList(0, 10)) : keywords;
 
         log.debug("\n│ ┌── [키워드 추출] ─────────────\n│ │ meta keywords: {}개 {}\n│ │ article:tag:   {}개\n│ │ 최종:          {}개 {}\n│ └──────────────────────────────",
                 metaCount, metaKeywords.isEmpty() ? "" : "[" + metaKeywords + "]",
