@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.web.SearchWeb.bookmark.error.BookmarkErrorCode;
-import com.web.SearchWeb.config.exception.BusinessException;
+import com.web.SearchWeb.bookmark.error.BookmarkException;
 import com.web.SearchWeb.config.exception.CommonErrorCode;
 
 import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
