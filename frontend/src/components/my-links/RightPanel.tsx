@@ -258,11 +258,6 @@ function LinkItem({
             ) : (
               <h4
                 className="text-[10.5px] font-semibold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:whitespace-normal group-hover:line-clamp-2 transition-colors cursor-pointer w-full border border-transparent flex items-center px-0 leading-tight"
-                onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  setIsTitleEditing(true);
-                }}
-                title="더블클릭으로 제목 수정"
               >{titleContent}</h4>
             )}
           </div>

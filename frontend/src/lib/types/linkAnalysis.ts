@@ -1,9 +1,8 @@
 export interface LinkAnalysisResponse {
   title: string;
   description: string | null;
-  suggestedTags: TagSuggestion[];
+  suggestedTags: TagSuggestion[] | null;
   suggestedFolder: FolderSuggestion | null;
-  faviconUrl: string | null;
 }
 
 export interface TagSuggestion {

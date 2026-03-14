@@ -152,11 +152,13 @@ export function SaveLinkDialog() {
           setNote(result.description);
         }
 
-        // 태그 자동 선택
-        if (result.suggestedTags?.length) {
-          const newTagNames = new Set<string>();
-          const tagsToSelect: string[] = [...selectedTags];
+        // 태그: 이전 AI 추천 태그를 제거하고 새 추천 적용 (재분석 시 이전 상태 초기화)
+        const prevAiTags = aiSuggestedTags;
+        const baseTags = selectedTags.filter(tag => !prevAiTags.has(tag)); // 수동 선택 태그만 남김
+        const newTagNames = new Set<string>();
 
+        if (result.suggestedTags?.length) {
+          const tagsToSelect = [...baseTags];
           for (const tag of result.suggestedTags) {
             if (!tagsToSelect.includes(tag.tagName)) {
               tagsToSelect.push(tag.tagName);
@@ -166,16 +168,20 @@ export function SaveLinkDialog() {
             }
           }
           setSelectedTags(tagsToSelect);
-          setAiSuggestedTags(newTagNames);
+        } else {
+          setSelectedTags(baseTags);
         }
+        setAiSuggestedTags(newTagNames);
+
+        // 폴더: 이전 AI 추천 상태 초기화 후 새 추천 적용
+        setPinnedFolderId(null);
+        setPendingNewFolderName(null);
 
         if (result.suggestedFolder) {
           if (result.suggestedFolder.isExisting && result.suggestedFolder.memberFolderId) {
             // 1. 기존 폴더 → 바로 선택
             const aiId = result.suggestedFolder.memberFolderId;
-            setSelectedFolderId(aiId);     // 추천된 폴더를 선택 상태로 변경
-            setPendingNewFolderName(null); // '새 폴더 생성' 이름은 지움
-            // AI 추천 폴더가 자연 top3에 없으면 고정
+            setSelectedFolderId(aiId);
             const top3 = (folders ?? []).slice(0, 3).map(f => f.memberFolderId);
             if (!top3.includes(aiId)) setPinnedFolderId(aiId);
           } else if (!result.suggestedFolder.isExisting && result.suggestedFolder.folderName) {
@@ -186,16 +192,17 @@ export function SaveLinkDialog() {
             if (existingMatch) {
               // 3. 같은 이름의 기존 폴더가 있으면 그 폴더를 선택
               setSelectedFolderId(existingMatch.memberFolderId);
-              setPendingNewFolderName(null);
               const top3 = (folders ?? []).slice(0, 3).map(f => f.memberFolderId);
               if (!top3.includes(existingMatch.memberFolderId)) setPinnedFolderId(existingMatch.memberFolderId);
             } else {
               // 진짜 새 폴더 → 저장 시점까지 생성 보류, UI에만 표시
               setPendingNewFolderName(result.suggestedFolder.folderName);
               setSelectedFolderId(null);
-              setPinnedFolderId(null);
             }
           }
+        } else {
+          // AI 폴더 추천 없음 → 선택 상태 초기화
+          setSelectedFolderId(null);
         }
       },
     });
@@ -226,7 +233,8 @@ export function SaveLinkDialog() {
    * AI 추천 새 폴더가 있으면 폴더 생성 → 북마크 저장 순서로 처리
    */
   const handleSave = () => {
-    if (!url.trim()) return;
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl || !(trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://'))) return;
 
     if (pendingNewFolderName) {
       // 새 폴더 생성 후 해당 폴더에 북마크 저장
@@ -432,7 +440,8 @@ export function SaveLinkDialog() {
                     ? !!pendingNewFolderName // pending 폴더는 존재 자체가 선택 상태
                     : selectedFolderId === folder.memberFolderId;
                   return (
-                      <div
+                      <button
+                        type="button"
                         key={folder.memberFolderId}
                         onClick={() => {
                           if (isPending) {
@@ -452,14 +461,15 @@ export function SaveLinkDialog() {
                       )}
                       <span className={`material-symbols-outlined !text-[20px] mb-0.5 transition-colors ${isActive ? 'text-violet-500 drop-shadow-sm' : 'text-gray-400 group-hover:text-violet-400'}`}>{isPending ? 'create_new_folder' : 'folder'}</span>
                       <span className={`text-[10px] leading-tight truncate w-full ${isActive ? 'font-bold text-violet-900' : 'text-slate-500 group-hover:text-slate-800 font-medium'}`}>{folder.folderName}</span>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="relative flex-1" ref={folderBrowserRef}>
-                  <div
+                  <button
+                    type="button"
                     className={`w-full flex items-center justify-between bg-white border rounded-lg px-2.5 py-2 text-xs text-[#1e293b] cursor-pointer transition-all shadow-sm ${
                       openFolderBrowser ? 'border-violet-400 ring-1 ring-violet-200' : 'border-[#e2e8f0] hover:border-violet-300 hover:bg-slate-50'
                     }`}
@@ -473,7 +483,7 @@ export function SaveLinkDialog() {
                           : 'Browse all folders...'}
                     </span>
                     <span className={`material-symbols-outlined !text-[16px] text-slate-400 transition-transform duration-200 ${openFolderBrowser ? 'rotate-180' : ''}`}>expand_more</span>
-                  </div>
+                    </button>
 
                   {/* 폴더 브라우저 드롭다운 */}
                   {openFolderBrowser && (
@@ -544,14 +554,15 @@ export function SaveLinkDialog() {
                 {selectedTags
                   .filter(tag => aiSuggestedTags.has(tag) && !existingTagsList.includes(tag))
                   .map((tag) => (
-                    <div
+                    <button
+                      type="button"
                       key={`ai-${tag}`}
                       onClick={() => toggleTagSelection(tag)}
                       className={`${styles.tagChip} bg-violet-50 text-violet-700 border-violet-300 shadow-sm font-semibold cursor-pointer ring-1 ring-violet-200`}
                     >
                       <span className="material-symbols-outlined !text-[12px] mr-1">auto_awesome</span>
                       {tag}
-                    </div>
+                    </button>
                   ))}
                 {/* 기존 태그 목록 */}
                 {existingTagsList
@@ -563,13 +574,14 @@ export function SaveLinkDialog() {
                   const isSelected = selectedTags.includes(tag);
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={tag}
                       onClick={() => toggleTagSelection(tag)}
                       className={`${styles.tagChip} ${isSelected ? styles.tagChipSelected : styles.tagChipExisting} cursor-pointer`}
                     >
                       {tag}
-                    </div>
+                    </button>
                   );
                 })}
 
@@ -678,7 +690,8 @@ export function SaveLinkDialog() {
                       {existingTagsList
                         .filter(tag => tag.toLowerCase().includes(tagInput.toLowerCase()))
                         .map(tag => (
-                        <div
+                        <button
+                          type="button"
                           key={tag}
                           className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-slate-50 font-medium text-[11px] cursor-pointer transition-colors ${selectedTags.includes(tag) ? 'text-violet-700 bg-violet-50' : 'text-[#1e293b]'}`}
                           onClick={() => {
@@ -688,7 +701,7 @@ export function SaveLinkDialog() {
                           }}
                         >
                           <span className="text-slate-400 font-extrabold pb-0.5">#</span> {tag}
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </PopoverContent>
@@ -734,7 +747,7 @@ export function SaveLinkDialog() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={!url.trim() || createBookmarkMutation.isPending || createFolderMutation.isPending}
+                disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending || createFolderMutation.isPending}
                 className={`${styles.btnGradient} text-xs font-bold px-5 py-2 rounded-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {(createBookmarkMutation.isPending || createFolderMutation.isPending) ? 'Saving...' : 'Save to Workspace'}
