@@ -1,7 +1,8 @@
 package com.web.SearchWeb.linkanalysis.controller;
 
 import com.web.SearchWeb.config.common.ApiResponse;
-import com.web.SearchWeb.linkanalysis.controller.dto.LinkAnalysisDto;
+import com.web.SearchWeb.linkanalysis.controller.dto.LinkAnalysisRequests;
+import com.web.SearchWeb.linkanalysis.controller.dto.LinkAnalysisResponses;
 import com.web.SearchWeb.linkanalysis.domain.LinkAnalysisResult;
 import com.web.SearchWeb.linkanalysis.service.LinkAnalysisService;
 import com.web.SearchWeb.member.dto.CustomOAuth2User;
@@ -36,32 +37,32 @@ public class LinkAnalysisController {
      * - 인증 사용자 ID 추출 → 분석 서비스 호출 → 응답 DTO 변환
      */
     @PostMapping("/analyze")
-    public ResponseEntity<ApiResponse<LinkAnalysisDto.Response>> analyze(
+    public ResponseEntity<ApiResponse<LinkAnalysisResponses.Result>> analyze(
             @AuthenticationPrincipal Object currentUser,
-            @Valid @RequestBody LinkAnalysisDto.Request request) {
+            @Valid @RequestBody LinkAnalysisRequests.Analyze request) {
 
         Long memberId = getMemberId(currentUser);  // 인증 사용자 ID 추출
-        LinkAnalysisResult result = linkAnalysisService.analyze(memberId, request.getUrl());
+        LinkAnalysisResult result = linkAnalysisService.analyze(memberId, request.url);
 
-        LinkAnalysisDto.Response response = toResponse(result);  // 도메인 → DTO 변환
+        LinkAnalysisResponses.Result response = toResponse(result);  // 도메인 → DTO 변환
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /** 도메인 결과 → 응답 DTO 변환 */
-    private LinkAnalysisDto.Response toResponse(LinkAnalysisResult result) {
-        return LinkAnalysisDto.Response.builder()
+    private LinkAnalysisResponses.Result toResponse(LinkAnalysisResult result) {
+        return LinkAnalysisResponses.Result.builder()
                 .title(result.getTitle())
                 .description(result.getDescription())
                 .suggestedTags(result.getSuggestedTags() != null  // 추천 태그 변환
                         ? result.getSuggestedTags().stream()
-                        .map(t -> LinkAnalysisDto.Response.TagSuggestion.builder()
+                        .map(t -> LinkAnalysisResponses.Result.TagSuggestion.builder()
                                 .tagName(t.getTagName())
                                 .isExisting(t.isExisting())
                                 .build())
                         .collect(Collectors.toList())
                         : null)
                 .suggestedFolder(result.getSuggestedFolder() != null  // 추천 폴더 변환
-                        ? LinkAnalysisDto.Response.FolderSuggestion.builder()
+                        ? LinkAnalysisResponses.Result.FolderSuggestion.builder()
                         .memberFolderId(result.getSuggestedFolder().getMemberFolderId())
                         .folderName(result.getSuggestedFolder().getFolderName())
                         .isExisting(result.getSuggestedFolder().isExisting())
