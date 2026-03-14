@@ -53,7 +53,6 @@ export function SaveLinkDialog() {
   // --- 폼 기반 입력 상태 (실제 서버로 전송될 데이터) ---
   const [url, setUrl] = useState('');                                            // 저장할 링크 URL
   const [displayTitle, setDisplayTitle] = useState('');                          // 표시될 제목
-  const [isTitleEdited, setIsTitleEdited] = useState(false);                     // 사용자가 제목을 직접 편집했는지 여부
   const [note, setNote] = useState('');                                          // 사용자의 메모
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null); // 선택된 폴더 ID
   const [selectedTags, setSelectedTags] = useState<string[]>([]);                // 선택된 태그 목록 (이름 리스트)
@@ -73,12 +72,10 @@ export function SaveLinkDialog() {
   // --- URL 입력 시 제목 자동 생성 및 실시간 분석 로직 ---
   useEffect(() => {
     if (!url || !(url.startsWith('http://') || url.startsWith('https://'))) {
-      if (!isTitleEdited) setDisplayTitle('');
+      setDisplayTitle('');
       return;
     }
 
-    // 이미 수동으로 편집 중이면 자동 변경 안 함
-    if (isTitleEdited) return;
 
     // 1단계: 즉시 도메인으로 임시 제목 설정
     const domain = url.replace(/^https?:\/\//, '').split('/')[0];
@@ -87,25 +84,21 @@ export function SaveLinkDialog() {
     // 2단계: 실제 페이지 제목(Title) 요청 (복사-붙여넣기 위주이므로 즉시 요청)
     analyzeUrlMutation.mutate(url, {
       onSuccess: (realTitle: string) => {
-        if (!isTitleEdited && realTitle) {
+        if (realTitle) {
           setDisplayTitle(realTitle);
         }
       }
     });
-  }, [url, isTitleEdited]);
+  }, [url]);
 
   
   // --- 팝업이 열고 닫힐 때마다 모든 입력 상태 초기화 ---
   useEffect(() => {
-    if (saveLinkDialogOpen) {
-      setSelectedFolderId(null);
-      setPinnedFolderId(null);
-    } else {
+    if (!saveLinkDialogOpen) {
       // 팝업이 닫힐 때: 모든 입력 상태 초기화
       setOpenFolderBrowser(false);
       setUrl('');
       setDisplayTitle('');
-      setIsTitleEdited(false);
       setNote('');
       setSelectedFolderId(null);
       setSelectedTags([]);
@@ -149,13 +142,13 @@ export function SaveLinkDialog() {
 
     analyzeLinkMutation.mutate(url.trim(), {
       onSuccess: (result: LinkAnalysisResponse) => {
-        // 제목: 사용자가 미편집 시만 덮어쓰기
-        if (!isTitleEdited && result.title) {
+        // 제목 → displayTitle 필드에 무조건 매핑 (AI 분석 시 최신 제목으로 덮어씀)
+        if (result.title) {
           setDisplayTitle(result.title);
         }
 
-        // 설명 → note 필드에 매핑 (사용자가 이미 작성한 메모가 있으면 덮어쓰지 않음)
-        if (result.description && !note.trim()) {
+        // 설명 → note 필드에 무조건 매핑 (AI 분석 시 최신 요약으로 덮어씀)
+        if (result.description) {
           setNote(result.description);
         }
 
@@ -388,11 +381,10 @@ export function SaveLinkDialog() {
               <input
                 className={styles.minimalInput}
                 type="text"
-                placeholder="Enter link title"
+                placeholder="Link Title"
                 value={displayTitle}
                 onChange={(e) => {
                   setDisplayTitle(e.target.value);
-                  setIsTitleEdited(true); // 직접 수정했음을 표시
                 }}
               />
             </div>
