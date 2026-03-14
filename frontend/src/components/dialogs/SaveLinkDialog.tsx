@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUIStore } from '@/lib/store/uiStore';
+import { useFolderStore } from '@/lib/store/folderStore';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useFolders } from '@/lib/api/folderApi';
+import { useFolders, useCreateFolder } from '@/lib/api/folderApi';
 import { useTags, useCreateTag } from '@/lib/api/tagApi';
 import { useCreateBookmark, useAnalyzeUrl } from '@/lib/api/bookmarkApi';
+import { useAnalyzeLink } from '@/lib/api/linkAnalysisApi';
 import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
+import type { LinkAnalysisResponse } from '@/lib/types/linkAnalysis';
 
 // 디자인 시안에서 추출한 커스텀 테마 매핑
 const theme = {
@@ -44,6 +47,8 @@ export function SaveLinkDialog() {
   const [openTagPopover, setOpenTagPopover] = useState(false);     // 태그 선택창 열림 여부
   const [isCreatingNewTag, setIsCreatingNewTag] = useState(false); // 새 태그 생성 모드 여부
   const [newTagInputValue, setNewTagInputValue] = useState('');    // 새 태그 입력값
+  const [openFolderBrowser, setOpenFolderBrowser] = useState(false); // 폴더 브라우저 드롭다운 열림 여부
+  const folderBrowserRef = useRef<HTMLDivElement>(null); // 폴더 브라우저 외부 클릭 감지용
 
   // --- 폼 기반 입력 상태 (실제 서버로 전송될 데이터) ---
   const [url, setUrl] = useState('');                                            // 저장할 링크 URL
@@ -52,17 +57,22 @@ export function SaveLinkDialog() {
   const [note, setNote] = useState('');                                          // 사용자의 메모
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null); // 선택된 폴더 ID
   const [selectedTags, setSelectedTags] = useState<string[]>([]);                // 선택된 태그 목록 (이름 리스트)
+  const [pinnedFolderId, setPinnedFolderId] = useState<number | null>(null);     // 외부에서 끌어온 폴더 (타일 1번 자리에 고정)
+  const [pendingNewFolderName, setPendingNewFolderName] = useState<string | null>(null); // AI 추천 새 폴더 (저장 시 생성)
 
   // --- API 연동 (React Query Hooks) ---
   const { data: folders } = useFolders(TEMP_MEMBER_ID);    // 기존 폴더 목록 조회
   const { data: tagsData } = useTags(TEMP_MEMBER_ID);      // 기존 태그 목록 조회
   const createBookmarkMutation = useCreateBookmark();      // 북마크 생성 API 연동
+  const createFolderMutation = useCreateFolder();          // 폴더 생성 API 연동
   const createTagMutation = useCreateTag();                // 태그 생성 API 연동
   const analyzeUrlMutation = useAnalyzeUrl();              // URL 분석(제목 추출) API 연동
+  const analyzeLinkMutation = useAnalyzeLink();            // AI 링크 분석 API 연동
+  const [aiSuggestedTags, setAiSuggestedTags] = useState<Set<string>>(new Set()); // AI가 새로 추천한 태그 추적
 
   // --- URL 입력 시 제목 자동 생성 및 실시간 분석 로직 ---
   useEffect(() => {
-    if (!url || !url.startsWith('http')) {
+    if (!url || !(url.startsWith('http://') || url.startsWith('https://'))) {
       if (!isTitleEdited) setDisplayTitle('');
       return;
     }
@@ -87,9 +97,12 @@ export function SaveLinkDialog() {
   
   // --- 팝업이 열고 닫힐 때마다 모든 입력 상태 초기화 ---
   useEffect(() => {
-    // 팝업이 닫힐 때 뿐만 아니라 열릴 때도 깨끗한 상태를 보장하기 위해
-    // saveLinkDialogOpen의 상태가 변경될 때 필드들을 초기화합니다.
-    if (!saveLinkDialogOpen) {
+    if (saveLinkDialogOpen) {
+      setSelectedFolderId(null);
+      setPinnedFolderId(null);
+    } else {
+      // 팝업이 닫힐 때: 모든 입력 상태 초기화
+      setOpenFolderBrowser(false);
       setUrl('');
       setDisplayTitle('');
       setIsTitleEdited(false);
@@ -99,8 +112,22 @@ export function SaveLinkDialog() {
       setTagInput('');
       setNewTagInputValue('');
       setIsCreatingNewTag(false);
+      setAiSuggestedTags(new Set());
+      setPendingNewFolderName(null);
     }
   }, [saveLinkDialogOpen]);
+
+  // 폴더 브라우저 외부 클릭 시 닫기
+  useEffect(() => {
+    if (!openFolderBrowser) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (folderBrowserRef.current && !folderBrowserRef.current.contains(e.target as Node)) {
+        setOpenFolderBrowser(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openFolderBrowser]);
 
   // 단순 표시용 태그 이름 리스트 추출
   const existingTagsList = tagsData?.map((t) => t.tagName) ?? [];
@@ -115,33 +142,115 @@ export function SaveLinkDialog() {
   };
 
   /**
+   * [핸들러] AI 분석 요청
+   */
+  const handleAiAnalysis = () => {
+    if (!url.trim() || !(url.startsWith('http://') || url.startsWith('https://'))) return;
+
+    analyzeLinkMutation.mutate(url.trim(), {
+      onSuccess: (result: LinkAnalysisResponse) => {
+        // 제목: 사용자가 미편집 시만 덮어쓰기
+        if (!isTitleEdited && result.title) {
+          setDisplayTitle(result.title);
+        }
+
+        // 설명 → note 필드에 매핑 (사용자가 이미 작성한 메모가 있으면 덮어쓰지 않음)
+        if (result.description && !note.trim()) {
+          setNote(result.description);
+        }
+
+        // 태그 자동 선택
+        if (result.suggestedTags?.length) {
+          const newTagNames = new Set<string>();
+          const tagsToSelect: string[] = [...selectedTags];
+
+          for (const tag of result.suggestedTags) {
+            if (!tagsToSelect.includes(tag.tagName)) {
+              tagsToSelect.push(tag.tagName);
+            }
+            if (!tag.isExisting) {
+              newTagNames.add(tag.tagName);
+            }
+          }
+          setSelectedTags(tagsToSelect);
+          setAiSuggestedTags(newTagNames);
+        }
+
+        if (result.suggestedFolder) {
+          if (result.suggestedFolder.isExisting && result.suggestedFolder.memberFolderId) {
+            // 1. 기존 폴더 → 바로 선택
+            const aiId = result.suggestedFolder.memberFolderId;
+            setSelectedFolderId(aiId);     // 추천된 폴더를 선택 상태로 변경
+            setPendingNewFolderName(null); // '새 폴더 생성' 이름은 지움
+            // AI 추천 폴더가 자연 top3에 없으면 고정
+            const top3 = (folders ?? []).slice(0, 3).map(f => f.memberFolderId);
+            if (!top3.includes(aiId)) setPinnedFolderId(aiId);
+          } else if (!result.suggestedFolder.isExisting && result.suggestedFolder.folderName) {
+            // 2. AI가 새 폴더라고 했지만, 기존 폴더에 같은 이름이 있는지 확인
+            const existingMatch = (folders ?? []).find(
+              f => f.folderName.trim().toLowerCase() === result.suggestedFolder!.folderName.trim().toLowerCase()
+            );
+            if (existingMatch) {
+              // 3. 같은 이름의 기존 폴더가 있으면 그 폴더를 선택
+              setSelectedFolderId(existingMatch.memberFolderId);
+              setPendingNewFolderName(null);
+              const top3 = (folders ?? []).slice(0, 3).map(f => f.memberFolderId);
+              if (!top3.includes(existingMatch.memberFolderId)) setPinnedFolderId(existingMatch.memberFolderId);
+            } else {
+              // 진짜 새 폴더 → 저장 시점까지 생성 보류, UI에만 표시
+              setPendingNewFolderName(result.suggestedFolder.folderName);
+              setSelectedFolderId(null);
+              setPinnedFolderId(null);
+            }
+          }
+        }
+      },
+    });
+  };
+
+  /**
+   * [핸들러] 북마크 생성 공통 로직
+   */
+  const saveBookmark = (folderId: number | null) => {
+    createBookmarkMutation.mutate(
+      {
+        url: url.trim(),
+        displayTitle: displayTitle.trim() || url.trim(),
+        memberFolderId: folderId,
+        note: note.trim() || undefined,
+        tags: selectedTags.length > 0 ? selectedTags.join(',') : undefined,
+      },
+      {
+        onSuccess: () => {
+          toggleSaveLinkDialog(false);
+        },
+      }
+    );
+  };
+
+  /**
    * [핸들러] 최종 저장 버튼 클릭 시 실행
+   * AI 추천 새 폴더가 있으면 폴더 생성 → 북마크 저장 순서로 처리
    */
   const handleSave = () => {
     if (!url.trim()) return;
 
-    // 북마크 생성 API 호출
-    createBookmarkMutation.mutate(
-      {
-        url: url.trim(),
-        displayTitle: displayTitle.trim() || url.trim(), // 편집된 제목 사용, 없으면 URL 사용
-        memberFolderId: selectedFolderId,
-        note: note.trim() || undefined,
-        tags: selectedTags.length > 0 ? selectedTags.join(',') : undefined, // 태그를 콤마로 구분된 문자열로 변환
-      },
-      {
-        onSuccess: () => {
-          // 저장 성공 시: 알림 닫고 입력 필드 초기화
-          toggleSaveLinkDialog(false);
-          setUrl('');
-          setDisplayTitle('');
-          setIsTitleEdited(false);
-          setNote('');
-          setSelectedFolderId(null);
-          setSelectedTags([]);
+    if (pendingNewFolderName) {
+      // 새 폴더 생성 후 해당 폴더에 북마크 저장
+      createFolderMutation.mutate(
+        {
+          ownerMemberId: TEMP_MEMBER_ID,
+          folderName: pendingNewFolderName,
         },
-      }
-    );
+        {
+          onSuccess: (newFolderId: number) => {
+            saveBookmark(newFolderId);
+          },
+        }
+      );
+    } else {
+      saveBookmark(selectedFolderId);
+    }
   };
 
   
@@ -162,6 +271,36 @@ export function SaveLinkDialog() {
     );
   };
 
+  // 상단에 표시할 폴더 목록 (최대 3개)
+  // pinnedFolderId가 있으면 그 폴더를 1번 자리에 고정하고 나머지를 채움
+  const PENDING_FOLDER_SENTINEL_ID = -1; // AI 추천 새 폴더의 가상 ID
+  const displayFolders = (() => {
+    const realFolders = folders ?? [];
+    const naturalTop3 = realFolders.slice(0, 3);
+
+    // AI 추천 새 폴더가 있으면 1번 자리에 가상 타일 표시
+    if (pendingNewFolderName) {
+      const pendingVirtual = {
+        memberFolderId: PENDING_FOLDER_SENTINEL_ID,
+        ownerMemberId: TEMP_MEMBER_ID,
+        parentFolderId: null,
+        folderName: pendingNewFolderName,
+        description: null,
+      };
+      return [pendingVirtual, ...naturalTop3.slice(0, 2)];
+    }
+
+    if (pinnedFolderId) {
+      const pinned = realFolders.find(f => f.memberFolderId === pinnedFolderId);
+      if (pinned) {
+        const rest = naturalTop3.filter(f => f.memberFolderId !== pinnedFolderId).slice(0, 2);
+        return [pinned, ...rest];
+      }
+    }
+
+    return naturalTop3;
+  })();
+
 
   return (
     <Dialog open={saveLinkDialogOpen} onOpenChange={toggleSaveLinkDialog}>
@@ -169,9 +308,9 @@ export function SaveLinkDialog() {
         기존 shadcn 다이얼로그의 배경/패딩, 자체 닫기버튼(&>button:hidden) 무력화 
         투명 배경 위에서 우리의 커스텀 UI 박스(z-10 bg-white rounded-2xl...)가 완전히 덮도록 구성
       */}
-      <DialogContent className="sm:max-w-[480px] p-0 bg-transparent border-0 shadow-none [&>button]:hidden overflow-visible">
+      <DialogContent className="sm:max-w-[540px] sm:left-[calc(50%+90px)] p-0 bg-transparent border-0 shadow-none [&>button]:hidden overflow-visible">
         
-        <div className={`relative z-10 w-full max-w-[480px] bg-white rounded-2xl ${theme.softModalShadow} border border-slate-100 overflow-visible mx-auto`}>
+        <div className={`relative z-10 w-full max-w-[540px] bg-white rounded-2xl ${theme.softModalShadow} border border-slate-100 overflow-visible mx-auto`}>
           
           {/* Header & Close */}
           <div className="relative flex items-center justify-between px-5 pt-5 pb-2 z-10">
@@ -224,6 +363,12 @@ export function SaveLinkDialog() {
                   onChange={(e) => setUrl(e.target.value)}
                 />
               </div>
+              {url.trim() && !(url.startsWith('http://') || url.startsWith('https://')) && (
+                <p className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-1 ml-10">
+                  <span className="material-symbols-outlined !text-[12px]">error</span>
+                  URL은 http:// 또는 https://로 시작해야 합니다.
+                </p>
+              )}
             </div>
 
             {/* Title Input (새로 추가) */}
@@ -254,9 +399,22 @@ export function SaveLinkDialog() {
 
             {/* AI Analysis Button */}
             <div className="flex justify-center w-full">
-              <button className={`w-full py-2.5 px-5 rounded-lg ${theme.premiumGradient} text-white font-bold text-xs ${theme.elevatedShadow} hover:shadow-lg hover:brightness-105 transition-all duration-300 flex items-center justify-center gap-2 group border-t border-white/20`}>
-                <span className="material-symbols-outlined !text-[16px] group-hover:scale-110 transition-transform fill-1">auto_awesome</span>
-                Request AI Analysis
+              <button
+                onClick={handleAiAnalysis}
+                disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || analyzeLinkMutation.isPending}
+                className={`w-full py-2.5 px-5 rounded-lg ${theme.premiumGradient} text-white font-bold text-xs ${theme.elevatedShadow} hover:shadow-lg hover:brightness-105 transition-all duration-300 flex items-center justify-center gap-2 group border-t border-white/20 disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {analyzeLinkMutation.isPending ? (
+                  <>
+                    <span className="material-symbols-outlined !text-[16px] animate-spin">progress_activity</span>
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined !text-[16px] group-hover:scale-110 transition-transform fill-1">auto_awesome</span>
+                    Request AI Analysis
+                  </>
+                )}
               </button>
             </div>
 
@@ -267,23 +425,40 @@ export function SaveLinkDialog() {
                   <span className={`material-symbols-outlined !text-[12px] ${theme.accentPurple}`}>folder</span>
                   <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Folder</label>
                 </div>
-                {/* AI Recommended Badge */}
-                <span className="text-[8px] text-violet-600 flex items-center gap-1 font-bold bg-white px-1.5 py-0.5 rounded-full border border-violet-100 shadow-sm">
-                  <span className="material-symbols-outlined !text-[10px]">smart_toy</span>
-                  AI Recommended
-                </span>
+                {analyzeLinkMutation.isSuccess && analyzeLinkMutation.data?.suggestedFolder && (
+                  <span className="text-[8px] text-violet-600 flex items-center gap-1 font-bold bg-white px-1.5 py-0.5 rounded-full border border-violet-100 shadow-sm animate-in fade-in zoom-in duration-300">
+                    <span className="material-symbols-outlined !text-[10px]">smart_toy</span>
+                    AI Recommended
+                  </span>
+                )}
               </div>
               
               <div className="grid grid-cols-3 gap-2">
-                {folders?.slice(0, 6).map((folder) => {
-                  const isActive = selectedFolderId === folder.memberFolderId;
+                {displayFolders.map((folder) => {
+                  const isPending = folder.memberFolderId === PENDING_FOLDER_SENTINEL_ID;
+                  const isActive = isPending
+                    ? !!pendingNewFolderName // pending 폴더는 존재 자체가 선택 상태
+                    : selectedFolderId === folder.memberFolderId;
                   return (
-                    <div
-                      key={folder.memberFolderId}
-                      onClick={() => setSelectedFolderId(isActive ? null : folder.memberFolderId)}
-                      className={`${styles.folderTile} ${isActive ? styles.folderTileActive : ''} group`}
-                    >
-                      <span className={`material-symbols-outlined !text-[20px] mb-0.5 transition-colors ${isActive ? 'text-violet-600 drop-shadow-sm' : 'text-slate-400 group-hover:text-violet-500'}`}>folder</span>
+                      <div
+                        key={folder.memberFolderId}
+                        onClick={() => {
+                          if (isPending) {
+                            // pending 폴더 클릭 → 해제하면 AI 추천 취소
+                            setPendingNewFolderName(null);
+                          } else {
+                            // 기존 폴더 클릭 → pending 해제, 기존 폴더 선택
+                            setPendingNewFolderName(null);
+                            setSelectedFolderId(isActive ? null : folder.memberFolderId);
+                          }
+                        }}
+                        className={`${styles.folderTile} ${isActive ? styles.folderTileActive : ''} group`}
+                      >
+                      {/* AI 추천 새 폴더 뱃지 */}
+                      {isPending && (
+                        <span className={styles.matchBadge}>NEW</span>
+                      )}
+                      <span className={`material-symbols-outlined !text-[20px] mb-0.5 transition-colors ${isActive ? 'text-violet-500 drop-shadow-sm' : 'text-gray-400 group-hover:text-violet-400'}`}>{isPending ? 'create_new_folder' : 'folder'}</span>
                       <span className={`text-[10px] leading-tight truncate w-full ${isActive ? 'font-bold text-violet-900' : 'text-slate-500 group-hover:text-slate-800 font-medium'}`}>{folder.folderName}</span>
                     </div>
                   );
@@ -291,13 +466,68 @@ export function SaveLinkDialog() {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="relative flex-1 group">
-                  <div className="w-full flex items-center justify-between bg-white border border-[#e2e8f0] rounded-lg px-2.5 py-2 text-xs text-[#1e293b] cursor-pointer hover:border-violet-300 hover:bg-slate-50 transition-all shadow-sm" tabIndex={0}>
-                    <span className="text-slate-500">Browse all folders...</span>
-                    <span className="material-symbols-outlined !text-[16px] text-slate-400">expand_more</span>
+                <div className="relative flex-1" ref={folderBrowserRef}>
+                  <div
+                    className={`w-full flex items-center justify-between bg-white border rounded-lg px-2.5 py-2 text-xs text-[#1e293b] cursor-pointer transition-all shadow-sm ${
+                      openFolderBrowser ? 'border-violet-400 ring-1 ring-violet-200' : 'border-[#e2e8f0] hover:border-violet-300 hover:bg-slate-50'
+                    }`}
+                    onClick={() => setOpenFolderBrowser(!openFolderBrowser)}
+                  >
+                    <span className={(selectedFolderId || pendingNewFolderName) ? 'text-[#1e293b] font-medium' : 'text-slate-500'}>
+                      {pendingNewFolderName
+                        ? pendingNewFolderName
+                        : selectedFolderId
+                          ? folders?.find(f => f.memberFolderId === selectedFolderId)?.folderName ?? 'Browse all folders...'
+                          : 'Browse all folders...'}
+                    </span>
+                    <span className={`material-symbols-outlined !text-[16px] text-slate-400 transition-transform duration-200 ${openFolderBrowser ? 'rotate-180' : ''}`}>expand_more</span>
                   </div>
+
+                  {/* 폴더 브라우저 드롭다운 */}
+                  {openFolderBrowser && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 z-[60] max-h-[200px] overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-200">
+                      <div className="px-3 py-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 sticky top-0 bg-white rounded-t-xl flex items-center gap-1.5">
+                        <span className="material-symbols-outlined !text-[12px] text-violet-400">folder</span>
+                        All Folders ({folders?.length ?? 0})
+                      </div>
+
+                      {folders?.map((folder) => {
+                        const isActive = selectedFolderId === folder.memberFolderId;
+                        return (
+                          <button
+                            key={folder.memberFolderId}
+                            className={`w-full text-left px-3 py-2 text-[11px] font-medium transition-colors flex items-center gap-2 ${
+                              isActive ? 'text-violet-700 bg-violet-50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                            }`}
+                            onClick={() => {
+                              const newId = isActive ? null : folder.memberFolderId;
+                              setSelectedFolderId(newId);
+                              setPendingNewFolderName(null); // 기존 폴더 선택 시 AI 추천 새 폴더 해제
+                              // 원래 top3에 없는 폴더만 고정 (맨 앞으로 이동)
+                              if (newId !== null) {
+                                const top3 = (folders ?? []).slice(0, 3).map(f => f.memberFolderId);
+                                if (!top3.includes(newId)) {
+                                  setPinnedFolderId(newId);
+                                }
+                              } else {
+                                setPinnedFolderId(null);
+                              }
+                              setOpenFolderBrowser(false);
+                            }}
+                          >
+                            <span className={`material-symbols-outlined !text-[16px] ${isActive ? 'text-violet-400' : 'text-gray-300'}`}>folder</span>
+                            <span className="truncate">{folder.folderName}</span>
+                            {isActive && <span className="material-symbols-outlined !text-[12px] ml-auto text-violet-400">check</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-                <button className="flex-none w-8 h-8 flex items-center justify-center rounded-lg border border-[#e2e8f0] bg-white hover:bg-slate-50 hover:border-violet-300 text-slate-400 hover:text-violet-600 transition-all shadow-sm">
+                <button
+                  className="flex-none w-8 h-8 flex items-center justify-center rounded-lg border border-[#e2e8f0] bg-white hover:bg-slate-50 hover:border-violet-300 text-slate-400 hover:text-violet-600 transition-all shadow-sm"
+                  onClick={() => useUIStore.getState().toggleCreateFolderDialog(true)}
+                >
                   <span className="material-symbols-outlined !text-[18px]">add</span>
                 </button>
               </div>
@@ -318,14 +548,28 @@ export function SaveLinkDialog() {
                   2. '선택하지 않은' 기존 태그들은 앞의 8개까지만 "추천"으로 보여줍니다.
                   3. 나머지는 'Add tag' 버튼을 통해 검색해서 찾도록 유도합니다.
                 */}
+                {/* AI 추천 태그 (새 태그, isExisting: false) 먼저 표시 */}
+                {selectedTags
+                  .filter(tag => aiSuggestedTags.has(tag) && !existingTagsList.includes(tag))
+                  .map((tag) => (
+                    <div
+                      key={`ai-${tag}`}
+                      onClick={() => toggleTagSelection(tag)}
+                      className={`${styles.tagChip} bg-violet-50 text-violet-700 border-violet-300 shadow-sm font-semibold cursor-pointer ring-1 ring-violet-200`}
+                    >
+                      <span className="material-symbols-outlined !text-[12px] mr-1">auto_awesome</span>
+                      {tag}
+                    </div>
+                  ))}
+                {/* 기존 태그 목록 */}
                 {existingTagsList
-                  .filter(tag => 
+                  .filter(tag =>
                     selectedTags.includes(tag) ||     // 선택된 태그거나
                     existingTagsList.indexOf(tag) < 8 // 상위 8개인 경우만 노출
                   )
                   .map((tag) => {
                   const isSelected = selectedTags.includes(tag);
-                  
+
                   return (
                     <div
                       key={tag}
@@ -468,10 +712,16 @@ export function SaveLinkDialog() {
                   <span className={`material-symbols-outlined !text-[12px] ${theme.accentPurple}`}>edit</span>
                   <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">NOTE</label>
                 </div>
-                <button className="flex items-center gap-1 text-[8.5px] text-violet-600 hover:text-violet-500 transition-colors font-bold group">
-                  <span className="material-symbols-outlined !text-[11px] text-violet-600">auto_awesome</span>
-                  Generate AI Summary
-                </button>
+                {(analyzeLinkMutation.isPending || analyzeLinkMutation.isSuccess) && (
+                  <button
+                    onClick={handleAiAnalysis}
+                    disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || analyzeLinkMutation.isPending}
+                    className="flex items-center gap-1 text-[8.5px] text-violet-600 hover:text-violet-500 transition-colors font-bold group disabled:opacity-50 disabled:cursor-not-allowed animate-in fade-in slide-in-from-right-2 duration-300"
+                  >
+                    <span className="material-symbols-outlined !text-[11px] text-violet-600">auto_awesome</span>
+                    {analyzeLinkMutation.isPending ? 'Generating...' : 'Regenerate AI Summary'}
+                  </button>
+                )}
               </div>
               <textarea
                 className="w-full bg-white border border-[#e2e8f0] hover:border-slate-300 focus:border-violet-400 rounded-lg p-2.5 text-xs text-[#1e293b] placeholder-slate-400 resize-none outline-none focus:ring-1 focus:ring-violet-100 transition-all font-normal shadow-sm"
@@ -492,10 +742,10 @@ export function SaveLinkDialog() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={!url.trim() || createBookmarkMutation.isPending}
+                disabled={!url.trim() || createBookmarkMutation.isPending || createFolderMutation.isPending}
                 className={`${styles.btnGradient} text-xs font-bold px-5 py-2 rounded-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {createBookmarkMutation.isPending ? 'Saving...' : 'Save to Workspace'}
+                {(createBookmarkMutation.isPending || createFolderMutation.isPending) ? 'Saving...' : 'Save to Workspace'}
               </button>
             </div>
 
