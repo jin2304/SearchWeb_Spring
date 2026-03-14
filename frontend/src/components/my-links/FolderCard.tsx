@@ -11,28 +11,28 @@ interface FolderCardProps {
 
 const COLOR_MAPS = {
   blue: {
-    bg: 'bg-blue-500',
-    groupHover: 'group-hover:bg-blue-500'
+    bg: 'bg-blue-400',
+    groupHover: 'group-hover:bg-blue-400'
   },
   purple: {
-    bg: 'bg-purple-500',
-    groupHover: 'group-hover:bg-purple-500'
+    bg: 'bg-purple-400',
+    groupHover: 'group-hover:bg-purple-400'
   },
   green: {
-    bg: 'bg-green-500',
-    groupHover: 'group-hover:bg-green-500'
+    bg: 'bg-green-400',
+    groupHover: 'group-hover:bg-green-400'
   },
   amber: {
-    bg: 'bg-amber-500',
-    groupHover: 'group-hover:bg-amber-500'
+    bg: 'bg-amber-400',
+    groupHover: 'group-hover:bg-amber-400'
   },
   rose: {
-    bg: 'bg-rose-500',
-    groupHover: 'group-hover:bg-rose-500'
+    bg: 'bg-rose-400',
+    groupHover: 'group-hover:bg-rose-400'
   },
   indigo: {
-    bg: 'bg-indigo-500',
-    groupHover: 'group-hover:bg-indigo-500'
+    bg: 'bg-indigo-400',
+    groupHover: 'group-hover:bg-indigo-400'
   }
 };
 

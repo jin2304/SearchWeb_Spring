@@ -203,7 +203,7 @@ function LinkItem({
   return (
     <div 
       ref={itemRef}
-      className={`group relative flex items-center p-3 rounded-xl transition-all cursor-pointer border ${(isBulkEditMode && isSelected) || (isTitleEditing || isNoteEditing || isTagEditing) ? 'bg-purple-50/50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800' : 'border-transparent hover:border-purple-200/50 dark:hover:border-purple-800/50 hover:bg-purple-50/60 dark:hover:bg-purple-900/10'}`}
+      className={`group relative z-0 hover:z-20 flex items-center p-3 rounded-xl transition-all duration-300 cursor-pointer border ${(isBulkEditMode && isSelected) || (isTitleEditing || isNoteEditing || isTagEditing) ? 'bg-purple-50/40 dark:bg-purple-900/10 border-purple-200/60 dark:border-purple-800/60' : 'border-transparent hover:border-purple-200/30 dark:hover:border-purple-800/30 hover:bg-purple-50/40 dark:hover:bg-purple-900/5'}`}
       onClick={() => {
         if (isBulkEditMode && onToggleSelect) {
           onToggleSelect(data.bookmarkId);
@@ -241,9 +241,9 @@ function LinkItem({
         )}
       </div>
       <div className="ml-3 flex-1 flex flex-col min-w-0">
-        <div className="flex items-center gap-12">
+        <div className="flex items-center w-full">
           {/* Title Area | 제목 영역 (호버 시 전체 제목 및 URL 표시) */}
-          <div className="w-[240px] shrink-0 flex items-center h-[28px]">
+          <div className="flex-1 flex items-center min-w-0 h-[28px]">
             {isTitleEditing ? (
                 <input
                 ref={titleInputRef}
@@ -256,49 +256,15 @@ function LinkItem({
                 onClick={(e) => e.stopPropagation()}
               />
             ) : (
-              <>
-                <h4
-                  className="text-[10.5px] font-semibold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:whitespace-normal group-hover:line-clamp-2 transition-colors cursor-pointer w-full border border-transparent flex items-center px-0 leading-tight"
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    setIsTitleEditing(true);
-                  }}
-                  title="더블클릭으로 제목 수정"
-                >{titleContent}</h4>
-              </>
+              <h4
+                className="text-[10.5px] font-semibold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:whitespace-normal group-hover:line-clamp-2 transition-colors cursor-pointer w-full border border-transparent flex items-center px-0 leading-tight"
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  setIsTitleEditing(true);
+                }}
+                title="더블클릭으로 제목 수정"
+              >{titleContent}</h4>
             )}
-          </div>
-
-          {/* Note Area | 메모/설명 영역 */}
-          <div className="flex-1 flex items-center h-[28px] relative group/note overflow-hidden">
-            <div className={`w-full flex items-center gap-1.5 text-gray-400 dark:text-gray-500 pointer-events-auto h-full px-0.5
-              ${isNoteEditing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isNoteEditing) setIsNoteEditing(true);
-              }}
-            >
-              <div className="flex items-center justify-center h-full shrink-0 mr-1.5">
-                <span 
-                  className="material-symbols-outlined !text-[15px] hover:text-purple-500 transition-colors flex items-center justify-center"
-                  style={{ fontVariationSettings: "'wght' 300" }}
-                >edit_note</span>
-              </div>
-              {isNoteEditing ? (
-                <input
-                  ref={noteInputRef}
-                  type="text"
-                  className="flex-1 text-[10.5px] font-medium bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/50 rounded-md outline-none text-gray-900 dark:text-gray-100 px-2 h-full py-0 leading-none focus:border-gray-300 dark:focus:border-gray-600"
-                  value={noteContent}
-                  onChange={(e) => setNoteContent(e.target.value)}
-                  onBlur={(e) => handleNoteEditComplete(e)}
-                  onKeyDown={handleNoteKeyDown}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              ) : (
-                <p className="flex-1 text-[10.5px] font-medium truncate hover:text-gray-600 dark:hover:text-gray-300 border border-transparent h-full flex items-center px-0 py-0 leading-none">{noteContent || 'Add description...'}</p>
-              )}
-            </div>
           </div>
         </div>
         
@@ -316,9 +282,9 @@ function LinkItem({
                   }}
                   title="폴더 이동"
                 >
-                  <span className="material-symbols-outlined !text-[11px] scale-90">folder</span>
+                  <span className="material-symbols-outlined !text-[11px] scale-90 text-slate-400">folder</span>
                   <span>{folders?.find(f => f.memberFolderId === data.memberFolderId)?.folderName ?? 'Unordered'}</span>
-                  <span className={`material-symbols-outlined !text-[10px] transition-transform ${isFolderDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                  <span className={`material-symbols-outlined !text-[10px] text-slate-400 transition-transform ${isFolderDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
                 </button>
 
                 {isFolderDropdownOpen && (
@@ -386,6 +352,31 @@ function LinkItem({
           </div>
         </div>
       </div>
+
+      {/* Note Edit Input | 메모 편집창 (편집 모드 시에만 나타남) */}
+      {isNoteEditing && (
+        <div className="flex-1 min-w-0 ml-4 h-[28px] z-10">
+          <input
+            ref={noteInputRef}
+            type="text"
+            className="w-full text-[10.5px] font-medium bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/50 rounded-md outline-none text-gray-900 dark:text-gray-100 px-2 h-full py-0 leading-none focus:border-gray-300 dark:focus:border-gray-600"
+            value={noteContent}
+            onChange={(e) => setNoteContent(e.target.value)}
+            onBlur={(e) => handleNoteEditComplete(e)}
+            onKeyDown={handleNoteKeyDown}
+            onClick={(e) => e.stopPropagation()}
+            autoFocus
+          />
+        </div>
+      )}
+
+      {/* Tooltip for full note content (위치 우측 복구 & 꼬리만 왼쪽 유지) */}
+      {!isNoteEditing && noteContent && !isDropdownOpen && (
+        <div className="absolute right-12 top-1/2 -translate-y-1/2 mr-2 w-max max-w-[280px] z-[60] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 bg-white/95 dark:bg-gray-800/90 backdrop-blur-md text-gray-700 dark:text-gray-200 text-[11px] font-medium p-3 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700/50 whitespace-normal break-words leading-relaxed pointer-events-none translate-x-1 group-hover:translate-x-0 text-left">
+          <div className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 bg-white/95 dark:bg-gray-800/90 transform rotate-45 border-b border-l border-gray-100 dark:border-gray-700/50"></div>
+          <div className="relative z-10 break-all xl:break-words">{noteContent}</div>
+        </div>
+      )}
 
       <div className="shrink-0 ml-4 flex items-center justify-end w-8 relative" ref={dropdownRef}>
         {!isBulkEditMode && !(isNoteEditing || isTitleEditing) && (
@@ -630,7 +621,7 @@ export function RightPanel() {
           {/* Left: Title and Count | 좌측: 폴더명 및 링크 개수 */}
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-500 rounded-md flex items-center justify-center w-8 h-8">
+              <div className="p-1.5 bg-slate-50 dark:bg-slate-900/20 text-slate-400 rounded-md flex items-center justify-center w-8 h-8">
                 <span className="material-symbols-outlined text-[16px] block">folder_open</span>
               </div>
               <h2 className="text-sm font-bold text-gray-900 dark:text-white">{currentFolderName}</h2>
@@ -920,7 +911,7 @@ export function RightPanel() {
               {/* All Folders Section | 모든 폴더 목록 섹션 */}
               <div className="pt-1 pb-2">
                 <div className="px-3 py-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined !text-[14px] text-[#7c3aed]">folder</span>
+                  <span className="material-symbols-outlined !text-[14px] text-slate-400">folder</span>
                   All Folders
                 </div>
                 
@@ -940,7 +931,7 @@ export function RightPanel() {
                         }}
                         className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-gray-800 transition-all text-left group bg-white/50"
                       >
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 shrink-0 bg-slate-100 group-hover:bg-violet-50 group-hover:text-violet-500 transition-colors">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 shrink-0 bg-slate-100 group-hover:bg-slate-200 group-hover:text-slate-500 transition-colors">
                           <span className="material-symbols-outlined !text-[18px]">folder_open</span>
                         </div>
                         <div className="flex-1 min-w-0">

@@ -188,7 +188,7 @@ export default function MyLinksPage() {
               className="bg-white dark:bg-card-dark rounded-lg p-2.5 border border-gray-100 dark:border-gray-800 hover:shadow-sm hover:border-purple-200 dark:hover:border-purple-900/50 transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between focus:ring-1 focus:ring-purple-300 outline-none hover:bg-purple-50/50 dark:hover:bg-purple-900/10"
             >
               <div className="flex justify-between items-start">
-                <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-500 rounded-md flex items-center justify-center w-8 h-8">
+                <div className="p-1.5 bg-purple-50/80 dark:bg-purple-900/15 text-gray-400 rounded-md flex items-center justify-center w-8 h-8">
                   <span className="material-symbols-outlined text-[16px]">folder_open</span>
                 </div>
                 <button type="button" className="text-gray-300 hover:text-purple-500">
