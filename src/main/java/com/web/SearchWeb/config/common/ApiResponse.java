@@ -1,5 +1,6 @@
-package com.web.SearchWeb.config;
+package com.web.SearchWeb.config.common;
 
+import com.web.SearchWeb.config.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

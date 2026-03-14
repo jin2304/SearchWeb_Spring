@@ -14,4 +14,10 @@ public interface MemberFolderJpaDao extends JpaRepository<MemberFolder, Long> {
 
     // 사용자 전체 폴더
     List<MemberFolder> findAllByOwnerMemberId(Long ownerMemberId);
+
+    boolean existsByParentFolderId(Long parentFolderId);
+
+    boolean existsByOwnerMemberIdAndParentFolderIdAndFolderName(Long loginId, Long parentFolderId, String normalizedFolderName);
+
+    boolean existsByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(Long loginId, String normalizedFolderName);
 }

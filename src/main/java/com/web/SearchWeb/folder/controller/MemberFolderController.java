@@ -1,15 +1,18 @@
 package com.web.SearchWeb.folder.controller;
 
-import com.web.SearchWeb.config.ApiResponse;
+import com.web.SearchWeb.config.common.ApiResponse;
+import com.web.SearchWeb.config.security.SecurityUtils;
 import com.web.SearchWeb.folder.controller.dto.MemberFolderRequests;
 import com.web.SearchWeb.folder.controller.dto.MemberFolderResponses;
 import com.web.SearchWeb.folder.domain.MemberFolder;
 import com.web.SearchWeb.folder.service.MemberFolderService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,9 +31,10 @@ public class MemberFolderController {
 
     // 생성 (201 Created 응답)
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> create(@RequestBody MemberFolderRequests.Create req) {
+    public ResponseEntity<ApiResponse<Long>> create(Authentication authentication, @Valid @RequestBody MemberFolderRequests.Create req) {
+        Long loginId = SecurityUtils.extractMemberId(authentication);
         Long folderId = memberFolderService.create(
-            req.ownerMemberId,
+            loginId,
             req.parentFolderId,
             req.folderName,
             req.description
@@ -40,17 +44,22 @@ public class MemberFolderController {
             .body(ApiResponse.success(folderId));
     }
 
-    // 단건 조회
+    // 폴더 정보 단건 조회
     @GetMapping("/{folderId}")
-    public ResponseEntity<ApiResponse<MemberFolderResponses>> get(@PathVariable Long folderId) {
-        MemberFolder folder = memberFolderService.get(folderId);
+    public ResponseEntity<ApiResponse<MemberFolderResponses>> get(Authentication authentication, @PathVariable Long folderId) {
+        Long loginId = SecurityUtils.extractMemberId(authentication);
+        MemberFolder folder = memberFolderService.get(loginId, folderId);
         return ResponseEntity.ok(ApiResponse.success(MemberFolderResponses.from(folder)));
     }
 
     // 루트 폴더 조회
     @GetMapping("/owners/{ownerMemberId}/root")
-    public ResponseEntity<ApiResponse<List<MemberFolderResponses>>> listRoot(@PathVariable Long ownerMemberId) {
-        List<MemberFolderResponses> responses = memberFolderService.listRootFolders(ownerMemberId)
+    public ResponseEntity<ApiResponse<List<MemberFolderResponses>>> listRoot(
+        Authentication authentication,
+        @PathVariable Long ownerMemberId
+    ) {
+        Long loginId = SecurityUtils.extractMemberId(authentication);
+        List<MemberFolderResponses> responses = memberFolderService.listRootFolders(loginId, ownerMemberId)
             .stream()
             .map(MemberFolderResponses::from)
             .collect(Collectors.toList());
@@ -61,10 +70,12 @@ public class MemberFolderController {
     // 하위 폴더 조회
     @GetMapping("/owners/{ownerMemberId}/children/{parentFolderId}")
     public ResponseEntity<ApiResponse<List<MemberFolderResponses>>> listChildren(
+        Authentication authentication,
         @PathVariable Long ownerMemberId,
         @PathVariable Long parentFolderId
     ) {
-        List<MemberFolderResponses> responses = memberFolderService.listChildren(ownerMemberId, parentFolderId)
+        Long loginId = SecurityUtils.extractMemberId(authentication);
+        List<MemberFolderResponses> responses = memberFolderService.listChildren(loginId, ownerMemberId, parentFolderId)
             .stream()
             .map(MemberFolderResponses::from)
             .collect(Collectors.toList());
@@ -74,22 +85,27 @@ public class MemberFolderController {
 
     // 수정 (200 OK)
     @PutMapping("/{folderId}")
-    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Long folderId, @RequestBody MemberFolderRequests.Update req) {
-        memberFolderService.update(folderId, req.folderName, req.description);
+    public ResponseEntity<ApiResponse<Void>> update(Authentication authentication, @PathVariable Long folderId,
+        @Valid @RequestBody MemberFolderRequests.Update req) {
+        Long loginId = SecurityUtils.extractMemberId(authentication);
+        memberFolderService.update(loginId, folderId, req.folderName, req.description);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     // 이동(부모 변경)
     @PutMapping("/{folderId}/move")
-    public ResponseEntity<ApiResponse<Void>> move(@PathVariable Long folderId, @RequestBody MemberFolderRequests.Move req) {
-        memberFolderService.move(folderId, req.newParentFolderId);
+    public ResponseEntity<ApiResponse<Void>> move(Authentication authentication, @PathVariable Long folderId,
+        @Valid @RequestBody MemberFolderRequests.Move req) {
+        Long loginId = SecurityUtils.extractMemberId(authentication);
+        memberFolderService.move(loginId, folderId, req.newParentFolderId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     // 삭제
     @DeleteMapping("/{folderId}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long folderId) {
-        memberFolderService.delete(folderId);
+    public ResponseEntity<ApiResponse<Void>> delete(Authentication authentication, @PathVariable Long folderId) {
+        Long loginId = SecurityUtils.extractMemberId(authentication);
+        memberFolderService.delete(loginId, folderId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

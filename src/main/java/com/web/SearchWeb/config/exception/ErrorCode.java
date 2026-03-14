@@ -1,4 +1,4 @@
-package com.web.SearchWeb.config;
+package com.web.SearchWeb.config.exception;
 
 import org.springframework.http.HttpStatus;
 

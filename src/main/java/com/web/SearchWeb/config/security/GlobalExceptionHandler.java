@@ -1,5 +1,9 @@
-package com.web.SearchWeb.config;
+package com.web.SearchWeb.config.security;
 
+import com.web.SearchWeb.config.common.ApiResponse;
+import com.web.SearchWeb.config.exception.BusinessException;
+import com.web.SearchWeb.config.exception.CommonErrorCode;
+import com.web.SearchWeb.config.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.web.SearchWeb.config;
+package com.web.SearchWeb.config.security;
 
 import com.web.SearchWeb.member.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;

@@ -1,6 +1,6 @@
 package com.web.SearchWeb.tag.controller;
 
-import com.web.SearchWeb.config.ApiResponse;
+import com.web.SearchWeb.config.common.ApiResponse;
 import com.web.SearchWeb.tag.controller.dto.MemberTagDto;
 import com.web.SearchWeb.tag.domain.MemberTag;
 import com.web.SearchWeb.tag.service.MemberTagService;
