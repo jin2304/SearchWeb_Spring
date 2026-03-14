@@ -15,6 +15,9 @@ public enum LinkAnalysisErrorCode implements ErrorCode {
     /** URL null/빈값/http(s) 아닌 경우 */
     INVALID_URL(HttpStatus.BAD_REQUEST, "LA001", "유효하지 않은 URL입니다."),
 
+    /** 내부망(loopback/link-local/private) 주소 접근 차단 */
+    BLOCKED_HOST(HttpStatus.BAD_REQUEST, "LA005", "접근이 허용되지 않는 호스트입니다."),
+
     /** 페이지 크롤링 실패 (타임아웃, 접근 거부 등) */
     URL_FETCH_FAILED(HttpStatus.BAD_GATEWAY, "LA002", "URL 콘텐츠를 가져올 수 없습니다."),
 

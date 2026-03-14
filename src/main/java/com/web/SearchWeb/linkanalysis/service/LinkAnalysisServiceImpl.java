@@ -21,6 +21,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -128,8 +129,12 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
     }
 
 
-    /** 
-     * URL 유효성 검증 (null/빈값/http(s) 스킴 체크)
+    /**
+     * URL 유효성 검증
+     * - null/빈값 체크
+     * - 스킴이 정확히 http 또는 https인지 확인 (startsWith 대신 equals 사용)
+     * - 호스트 null/blank 체크
+     * - DNS 해석 후 loopback·link-local·private 대역 차단 (SSRF 방어)
      */
     private void validateUrl(String url) {
         if (url == null || url.isBlank()) {
@@ -137,8 +142,24 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
         }
         try {
             URI uri = new URI(url);
-            if (uri.getScheme() == null || !uri.getScheme().startsWith("http")) {
+            String scheme = uri.getScheme();
+            if (!"http".equals(scheme) && !"https".equals(scheme)) {
                 throw LinkAnalysisException.of(LinkAnalysisErrorCode.INVALID_URL);
+            }
+
+            String host = uri.getHost();
+            if (host == null || host.isBlank()) {
+                throw LinkAnalysisException.of(LinkAnalysisErrorCode.INVALID_URL);
+            }
+
+            // InetAddress: DNS 해석(도메인 → IP) + IP 주소 유형 판별 유틸리티
+            // getByName()이 실제 DNS 조회를 수행하므로 존재하지 않는 호스트는 여기서 예외 발생
+            InetAddress address = InetAddress.getByName(host);
+            if (address.isLoopbackAddress()           // 127.x.x.x, ::1
+                    || address.isLinkLocalAddress()   // 169.254.x.x (AWS/GCP 메타데이터), fe80::/10
+                    || address.isSiteLocalAddress()   // 10.x.x.x, 172.16-31.x.x, 192.168.x.x
+                    || address.isAnyLocalAddress()) { // 0.0.0.0, ::
+                throw LinkAnalysisException.of(LinkAnalysisErrorCode.BLOCKED_HOST);
             }
         } catch (LinkAnalysisException e) {
             throw e;
@@ -170,7 +191,7 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
         return userPromptTemplate.render(Map.of(
                 "tags", tagNames,
                 "folders", folderNames,
-                "url", page.getDomain(),
+                "url", page.getUrl(),
                 "title", page.getTitle() != null ? page.getTitle() : "",
                 "description", page.getDescription() != null ? page.getDescription() : "",
                 "contentType", page.getContentType() != null ? page.getContentType() : "알 수 없음",
@@ -207,7 +228,11 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
                 int maxTags = 5;
                 for (JsonNode tagNode : tagsNode) {
                     if (suggestedTags.size() >= maxTags) break;
-                    String tagName = tagNode.asText();
+                    String tagName = tagNode.asText().trim();  // 앞뒤 공백 제거
+                    if (tagName.isBlank()) continue;           // 빈 값 스킵
+                    boolean isDuplicate = suggestedTags.stream()
+                            .anyMatch(t -> t.getTagName().equalsIgnoreCase(tagName));
+                    if (isDuplicate) continue;                 // 중복 스킵
                     boolean isExisting = tags.stream()
                             .anyMatch(t -> t.getTagName().equalsIgnoreCase(tagName));
 
@@ -219,7 +244,7 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
             }
 
             // 추천 폴더 → 기존 폴더와 매칭 (대소문자 무시)
-            String suggestedFolderName = root.path("suggestedFolder").asText("");
+            String suggestedFolderName = root.path("suggestedFolder").asText("").trim();  // 앞뒤 공백 제거
             LinkAnalysisResult.SuggestedFolder suggestedFolder = null;
             if (!suggestedFolderName.isBlank()) {
                 MemberFolder matchedFolder = folders.stream()
