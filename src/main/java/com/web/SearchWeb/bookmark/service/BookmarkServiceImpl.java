@@ -15,18 +15,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.web.SearchWeb.bookmark.error.BookmarkErrorCode;
-import com.web.SearchWeb.config.exception.BusinessException;
+import com.web.SearchWeb.bookmark.error.BookmarkException;
 import com.web.SearchWeb.config.exception.CommonErrorCode;
 
 import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+import com.web.SearchWeb.linkanalysis.service.LinkMetadataExtractor;
 import java.net.URI;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,10 +33,12 @@ import java.util.stream.Collectors;
 public class BookmarkServiceImpl implements BookmarkService {
 
     private final BookmarkDao bookmarkDao;
+    private final LinkMetadataExtractor linkMetadataExtractor;
 
     @Autowired
-    public BookmarkServiceImpl(BookmarkDao bookmarkDao) {
+    public BookmarkServiceImpl(BookmarkDao bookmarkDao, LinkMetadataExtractor linkMetadataExtractor) {
         this.bookmarkDao = bookmarkDao;
+        this.linkMetadataExtractor = linkMetadataExtractor;
     }
 
 
@@ -82,10 +80,10 @@ public class BookmarkServiceImpl implements BookmarkService {
                 }
                 return bookmark.getBookmarkId();
             }
-            throw BusinessException.from(CommonErrorCode.INTERNAL_SERVER_ERROR);
+            throw BookmarkException.of(CommonErrorCode.INTERNAL_SERVER_ERROR);
         } catch (DataIntegrityViolationException e) {
             log.warn("북마크 중복 저장 시도: memberId={}, folderId={}, linkId={}", memberId, memberFolderId, (link != null ? link.getLinkId() : "null"));
-            throw BusinessException.from(BookmarkErrorCode.DUPLICATE_BOOKMARK);
+            throw BookmarkException.of(BookmarkErrorCode.DUPLICATE_BOOKMARK);
         }
     }
 
@@ -97,7 +95,7 @@ public class BookmarkServiceImpl implements BookmarkService {
     public Bookmark selectBookmark(Long memberId, Long bookmarkId) {
         Bookmark bookmark = bookmarkDao.selectBookmark(memberId, bookmarkId);
         if (bookmark == null) {
-            throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+            throw BookmarkException.of(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
         }
         return bookmark;
     }
@@ -134,7 +132,7 @@ public class BookmarkServiceImpl implements BookmarkService {
             int result = bookmarkDao.updateBookmark(bookmark);
 
             if (result == 0) {
-                throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+                throw BookmarkException.of(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
             }
 
             // 3. 태그 수정
@@ -151,7 +149,7 @@ public class BookmarkServiceImpl implements BookmarkService {
             return bookmarkId;
         } catch (DataIntegrityViolationException e) {
             log.error("북마크 수정 중 데이터 무결성 위반: bookmarkId={}, memberId={}", bookmarkId, memberId, e);
-            throw BusinessException.from(BookmarkErrorCode.DUPLICATE_BOOKMARK);
+            throw BookmarkException.of(BookmarkErrorCode.DUPLICATE_BOOKMARK);
         }
     }
 
@@ -166,7 +164,7 @@ public class BookmarkServiceImpl implements BookmarkService {
         int result = bookmarkDao.deleteBookmark(memberId, bookmarkId);
 
         if (result == 0) {
-            throw BusinessException.from(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+            throw BookmarkException.of(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
         }
 
         // 2. 관련 태그 관계 삭제 (Soft Delete)
@@ -274,77 +272,13 @@ public class BookmarkServiceImpl implements BookmarkService {
         }
     }
 
-
+    
+    /**
+     *  URL 제목 분석
+     */
     @Override
     public String extractTitle(String url) {
-        log.info("[제목 추출 시작] URL: {}", url);
-        
-        // 유튜브 전용 처리
-        if (url.contains("youtube.com") || url.contains("youtu.be")) {
-            String youtubeTitle = extractYoutubeTitle(url);
-            if (youtubeTitle != null) {
-                log.info("[유튜브 제목 추출 성공] Title: {}", youtubeTitle);
-                return youtubeTitle;
-            }
-        }
-
-        try {
-            Document doc = Jsoup.connect(url)
-                    .timeout(5000)
-                    .followRedirects(true)
-                    .maxBodySize(512 * 1024) // 512KB만 읽기 (title은 <head>에 있으므로 충분)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
-                    .referrer("https://www.google.com/")
-                    .get();
-
-            // Fallback 체인: og:title → twitter:title → <title> → 도메인
-            String ogTitle = doc.select("meta[property=og:title]").attr("content");
-            if (ogTitle != null && !ogTitle.isBlank()) {
-                log.info("[제목 추출 성공] Source: og:title, Title: {}", ogTitle.trim());
-                return ogTitle.trim();
-            }
-
-            String twitterTitle = doc.select("meta[name=twitter:title]").attr("content");
-            if (twitterTitle != null && !twitterTitle.isBlank()) {
-                log.info("[제목 추출 성공] Source: twitter:title, Title: {}", twitterTitle.trim());
-                return twitterTitle.trim();
-            }
-
-            String pageTitle = doc.title();
-            if (pageTitle != null && !pageTitle.isBlank()) {
-                log.info("[제목 추출 성공] Source: <title> tag, Title: {}", pageTitle.trim());
-                return pageTitle.trim();
-            }
-
-            String domain = extractDomain(url);
-            log.info("[제목 추출 결과] 메타데이터 없음, 도메인 사용: {}", domain);
-            return domain;
-        } catch (Exception e) {
-            log.warn("[제목 추출 실패] URL: {}, 사유: {}", url, e.getMessage());
-            return extractDomain(url);
-        }
-    }
-
-    /**
-     * 유튜브 oEmbed API를 이용한 제목 추출
-     */
-    private String extractYoutubeTitle(String url) {
-        try {
-            String oEmbedUrl = "https://www.youtube.com/oembed?url=" + url + "&format=json";
-            Document doc = Jsoup.connect(oEmbedUrl)
-                    .ignoreContentType(true)
-                    .timeout(3000)
-                    .get();
-            
-            String json = doc.text();
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(json);
-            return root.path("title").asText();
-        } catch (Exception e) {
-            log.warn("[유튜브 oEmbed 추출 실패] URL: {}, 사유: {}", url, e.getMessage());
-            return null;
-        }
+        return linkMetadataExtractor.extract(url).getTitle();
     }
 
     /**
