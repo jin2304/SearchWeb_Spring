@@ -1,15 +1,15 @@
-package com.web.SearchWeb.comment.dto;
+// package com.web.SearchWeb.comment.dto;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+// import lombok.Getter;
+// import lombok.Setter;
+// import lombok.ToString;
 
-@Getter
-@Setter
-@ToString
-public class CommentDto {
-    private Long board_boardId;
-    private Long member_memberId;
-    private String member_nickname;
-    private String content;
-}
+// @Getter
+// @Setter
+// @ToString
+// public class CommentDto {
+//     private Long board_boardId;
+//     private Long member_memberId;
+//     private String member_nickname;
+//     private String content;
+// }

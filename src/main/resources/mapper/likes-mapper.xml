@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<!-- <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<!-- Likes Mapper (Legacy - PostgreSQL) -->
+    <!~~ Likes Mapper (Legacy - PostgreSQL) ~~>
 <mapper namespace="com.web.SearchWeb.likes.dao.LikesDao">
 
-    <!-- 게시글 좋아요 상태 확인 -->
+    <!~~ 게시글 좋아요 상태 확인 ~~>
     <select id="isLikedByMember" resultType="boolean">
         SELECT is_liked FROM likes
         WHERE board_board_id = #{boardId}
@@ -13,7 +13,7 @@
     </select>
 
 
-    <!-- 게시글 좋아요 추가 -->
+    <!~~ 게시글 좋아요 추가 ~~>
     <insert id="likeBoard">
         INSERT INTO likes (board_board_id, member_member_id, is_liked)
         VALUES (#{boardId}, #{memberId}, TRUE)
@@ -21,7 +21,7 @@
     </insert>
 
 
-    <!-- 게시글 좋아요 취소 -->
+    <!~~ 게시글 좋아요 취소 ~~>
     <update id="unlikeBoard">
         UPDATE likes
         SET is_liked = FALSE
@@ -30,11 +30,11 @@
     </update>
 
 
-    <!-- 게시글 좋아요 수 조회 -->
+    <!~~ 게시글 좋아요 수 조회 ~~>
     <select id="countLikes" resultType="int">
         SELECT COUNT(*) FROM likes
         WHERE board_board_id = #{boardId}
         AND is_liked = TRUE
     </select>
 
-</mapper>
+</mapper> -->
