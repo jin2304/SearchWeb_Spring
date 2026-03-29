@@ -4,7 +4,7 @@ import { useFolders } from '@/lib/api/folderApi';
 import { useBookmarks, useDeleteBookmark, useUpdateBookmark } from '@/lib/api/bookmarkApi';
 import { useTags } from '@/lib/api/tagApi';
 import { useFolderStore } from '@/lib/store/folderStore';
-import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
+import { useAuthStore } from '@/lib/store/authStore';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
 
 /**
@@ -447,10 +447,11 @@ export function RightPanel() {
   // --- Central State (Zustand) | 중앙 상태 관리 ---
   const { rightPanelOpen } = useUIStore(); // 패널 오픈 여부
   const selectedFolderId = useFolderStore((s) => s.selectedFolderId); // 현재 선택된 폴더 ID
+  const memberId = useAuthStore((s) => s.member?.memberId);
 
   // --- API Data Fetching (React Query) | 서버 데이터 조회 ---
-  const { data: myFolders, isLoading: isFoldersLoading } = useFolders(TEMP_MEMBER_ID); // 폴더 목록
-  const { data: tagsData } = useTags(TEMP_MEMBER_ID); // 전체 태그 목록
+  const { data: myFolders, isLoading: isFoldersLoading } = useFolders(memberId); // 폴더 목록
+  const { data: tagsData } = useTags(memberId); // 전체 태그 목록
 
   // --- Local UI State | UI 전용 로컬 상태 ---
   const [selectedTags, setSelectedTags] = useState<string[]>([]);    // 선택된 필터 태그

@@ -29,10 +29,11 @@ async function createTag(data: CreateTagRequest): Promise<number> {
 /**
  * [조회 Hook] 특정 사용자의 태그 목록을 가져옵니다.
  */
-export function useTags(ownerMemberId: number) {
+export function useTags(ownerMemberId: number | undefined) {
   return useQuery({
     queryKey: ['tags', ownerMemberId],
-    queryFn: () => fetchTags(ownerMemberId),
+    queryFn: () => fetchTags(ownerMemberId!),
+    enabled: !!ownerMemberId,
   });
 }
 

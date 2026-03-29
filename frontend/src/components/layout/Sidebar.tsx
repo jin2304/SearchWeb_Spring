@@ -6,13 +6,17 @@ import { cn } from '@/lib/utils';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useFolders } from '@/lib/api/folderApi';
 import { useFolderStore } from '@/lib/store/folderStore';
-import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
+import { useAuthStore } from '@/lib/store/authStore';
+import { useRouter } from 'next/navigation';
 
 const PINNED_DOT_COLORS = ['bg-blue-500', 'bg-purple-500', 'bg-teal-500', 'bg-amber-500', 'bg-emerald-500'];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { data: folders } = useFolders(TEMP_MEMBER_ID);
+  const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
+  const member = useAuthStore((s) => s.member);
+  const { data: folders } = useFolders(member?.memberId);
   const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
   const pinnedFolders = folders?.slice(0, 5) ?? [];
 
@@ -34,13 +38,26 @@ export function Sidebar() {
 
       {/* User Profile Outline */}
       <div className="px-3 mb-4">
-        <div className="flex items-center space-x-2 p-2 bg-white/5 rounded-lg border border-white/10">
-          <div className="h-7 w-7 rounded-full bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-300">
-            <span className="material-symbols-outlined text-[16px]!">person</span>
+        <div className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/10">
+          <div className="flex items-center space-x-2 min-w-0">
+            <div className="h-7 w-7 rounded-full bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-300">
+              <span className="material-symbols-outlined text-[16px]!">person</span>
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-xs truncate">{member?.name || 'My Profile'}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="font-medium text-xs truncate">My Profile</p>
-          </div>
+          <button 
+            type="button"
+            onClick={async () => {
+              await logout();
+              router.push('/login');
+            }}
+            className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+            title="로그아웃"
+          >
+            <span className="material-symbols-outlined text-[16px]!">logout</span>
+          </button>
         </div>
       </div>
 

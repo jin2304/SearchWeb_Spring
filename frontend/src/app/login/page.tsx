@@ -3,6 +3,7 @@
 import React from "react";
 import NextLink from "next/link";
 import { Input } from "@/components/ui/input";
+import { buildBackendUrl } from "@/lib/config/backend";
 
 export default function LoginPage() {
   return (
@@ -137,7 +138,8 @@ export default function LoginPage() {
               </div>
 
               {/* Google Sign In - Purple Gradient Background */}
-              <button type="button" className="group relative mb-6 flex h-11 w-full items-center justify-center gap-3 rounded-lg border-t border-white/20 bg-[linear-gradient(135deg,#6d28d9,#8b5cf6)] text-white shadow-md transition-all hover:brightness-110 hover:shadow-primary/25">
+              {/* 소셜 로그인 시작도 백엔드 직통으로 보내야 OAuth 콜백과 쿠키 발급 주체가 일관된다. */}
+              <button type="button" onClick={() => { window.location.href = buildBackendUrl('/oauth2/authorization/google'); }} className="group relative mb-6 flex h-11 w-full items-center justify-center gap-3 rounded-lg border-t border-white/20 bg-[linear-gradient(135deg,#6d28d9,#8b5cf6)] text-white shadow-md transition-all hover:brightness-110 hover:shadow-primary/25">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white p-1">
                   <svg className="h-full w-full" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <title>Google Logo</title>

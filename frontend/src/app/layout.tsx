@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SaveLinkDialog } from "@/components/dialogs/SaveLinkDialog";
 import { CreateFolderDialog } from "@/components/dialogs/CreateFolderDialog";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 
 
@@ -31,11 +32,13 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} font-sans antialiased bg-background-light dark:bg-background-dark text-text-main h-screen overflow-hidden flex transition-colors duration-200`}>
         <QueryProvider>
-          <AppLayout>
-            {children}
-            <SaveLinkDialog />
-            <CreateFolderDialog />
-          </AppLayout>
+          <AuthProvider>
+            <AppLayout>
+              {children}
+            </AppLayout>
+          </AuthProvider>
+          <SaveLinkDialog />
+          <CreateFolderDialog />
         </QueryProvider>
       </body>
     </html>

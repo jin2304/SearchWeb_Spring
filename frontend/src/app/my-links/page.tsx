@@ -4,15 +4,16 @@ import { RightPanel } from '@/components/my-links/RightPanel';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useFolders } from '@/lib/api/folderApi';
 import { useFolderStore } from '@/lib/store/folderStore';
-import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
+import { useAuthStore } from '@/lib/store/authStore';
 
 const PINNED_COLORS = ['bg-blue-600', 'bg-indigo-500', 'bg-teal-500', 'bg-amber-500', 'bg-emerald-600'];
 
 export default function MyLinksPage() {
   const { toggleRightPanel } = useUIStore();
   const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
+  const memberId = useAuthStore((s) => s.member?.memberId);
 
-  const { data: folders, isLoading, error } = useFolders(TEMP_MEMBER_ID);
+  const { data: folders, isLoading, error } = useFolders(memberId);
   const pinnedFolders = folders?.slice(0, 5) ?? [];
 
   return (

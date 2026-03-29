@@ -9,7 +9,7 @@ import { useFolders, useCreateFolder } from '@/lib/api/folderApi';
 import { useTags, useCreateTag } from '@/lib/api/tagApi';
 import { useCreateBookmark, useAnalyzeUrl } from '@/lib/api/bookmarkApi';
 import { useAnalyzeLink } from '@/lib/api/linkAnalysisApi';
-import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
+import { useAuthStore } from '@/lib/store/authStore';
 import type { LinkAnalysisResponse } from '@/lib/types/linkAnalysis';
 
 // 디자인 시안에서 추출한 커스텀 테마 매핑
@@ -60,8 +60,9 @@ export function SaveLinkDialog() {
   const [pendingNewFolderName, setPendingNewFolderName] = useState<string | null>(null); // AI 추천 새 폴더 (저장 시 생성)
 
   // --- API 연동 (React Query Hooks) ---
-  const { data: folders } = useFolders(TEMP_MEMBER_ID);    // 기존 폴더 목록 조회
-  const { data: tagsData } = useTags(TEMP_MEMBER_ID);      // 기존 태그 목록 조회
+  const memberId = useAuthStore((s) => s.member?.memberId);
+  const { data: folders } = useFolders(memberId);          // 기존 폴더 목록 조회
+  const { data: tagsData } = useTags(memberId);            // 기존 태그 목록 조회
   const createBookmarkMutation = useCreateBookmark();      // 북마크 생성 API 연동
   const createFolderMutation = useCreateFolder();          // 폴더 생성 API 연동
   const createTagMutation = useCreateTag();                // 태그 생성 API 연동
@@ -235,12 +236,13 @@ export function SaveLinkDialog() {
   const handleSave = () => {
     const trimmedUrl = url.trim();
     if (!trimmedUrl || !(trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://'))) return;
+    if (!memberId) return; // 방어 코드: 실제 memberId가 없는 경우 실행 방지
 
     if (pendingNewFolderName) {
       // 새 폴더 생성 후 해당 폴더에 북마크 저장
       createFolderMutation.mutate(
         {
-          ownerMemberId: TEMP_MEMBER_ID,
+          ownerMemberId: memberId!,
           folderName: pendingNewFolderName,
         },
         {
@@ -259,10 +261,10 @@ export function SaveLinkDialog() {
    * [핸들러] 새로운 태그를 직접 생성할 때 호출
    */
   const handleCreateNewTag = (tagName: string) => {
-    if (!tagName.trim()) return;
+    if (!tagName.trim() || !memberId) return;
 
     createTagMutation.mutate(
-      { ownerMemberId: TEMP_MEMBER_ID, tagName: tagName.trim() },
+      { ownerMemberId: memberId!, tagName: tagName.trim() },
       {
         onSuccess: () => {
           // 태그가 서버에 생성되면, 현재 선택된 태그 목록에도 추가
@@ -283,7 +285,7 @@ export function SaveLinkDialog() {
     if (pendingNewFolderName) {
       const pendingVirtual = {
         memberFolderId: PENDING_FOLDER_SENTINEL_ID,
-        ownerMemberId: TEMP_MEMBER_ID,
+        ownerMemberId: memberId || -1,
         parentFolderId: null,
         folderName: pendingNewFolderName,
         description: null,
