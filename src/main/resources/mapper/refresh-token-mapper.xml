@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.SearchWeb.auth.dao.RefreshTokenDao">
+
+    <resultMap id="refreshTokenMap" type="com.web.SearchWeb.auth.domain.RefreshToken">
+        <id property="id" column="id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="tokenHash" column="token_hash"/>
+        <result property="expiresAt" column="expires_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="rotatedAt" column="rotated_at"/>
+    </resultMap>
+
+    <insert id="insertRefreshToken" parameterType="com.web.SearchWeb.auth.domain.RefreshToken">
+        INSERT INTO refresh_token (member_id, token_hash, expires_at, created_at)
+        VALUES (#{memberId}, #{tokenHash}, #{expiresAt}, NOW())
+    </insert>
+
+    <select id="findByTokenHash" resultMap="refreshTokenMap">
+        SELECT id, member_id, token_hash, expires_at, created_at, rotated_at
+        FROM refresh_token
+        WHERE token_hash = #{tokenHash}
+    </select>
+
+    <select id="findByTokenHashForUpdate" resultMap="refreshTokenMap">
+        SELECT id, member_id, token_hash, expires_at, created_at, rotated_at
+        FROM refresh_token
+        WHERE token_hash = #{tokenHash}
+        FOR UPDATE
+    </select>
+
+    <delete id="deleteByTokenHash">
+        DELETE FROM refresh_token WHERE token_hash = #{tokenHash}
+    </delete>
+
+    <delete id="deleteByMemberId">
+        DELETE FROM refresh_token WHERE member_id = #{memberId}
+    </delete>
+
+    <delete id="deleteExpired">
+        DELETE FROM refresh_token
+        WHERE expires_at &lt; NOW()
+           OR (rotated_at IS NOT NULL AND rotated_at &lt; NOW() - INTERVAL '1 minute')
+    </delete>
+
+    <update id="updateRotatedAt">
+        UPDATE refresh_token
+        SET rotated_at = NOW()
+        WHERE token_hash = #{tokenHash}
+    </update>
+
+</mapper>
