@@ -1,18 +1,14 @@
 package com.web.SearchWeb.linkanalysis.controller;
 
 import com.web.SearchWeb.config.common.ApiResponse;
+import com.web.SearchWeb.config.security.CurrentMemberId;
 import com.web.SearchWeb.linkanalysis.controller.dto.LinkAnalysisRequests;
 import com.web.SearchWeb.linkanalysis.controller.dto.LinkAnalysisResponses;
 import com.web.SearchWeb.linkanalysis.domain.LinkAnalysisResult;
 import com.web.SearchWeb.linkanalysis.service.LinkAnalysisService;
-import com.web.SearchWeb.member.dto.CustomOAuth2User;
-import com.web.SearchWeb.member.dto.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,10 +34,9 @@ public class LinkAnalysisController {
      */
     @PostMapping("/analyze")
     public ResponseEntity<ApiResponse<LinkAnalysisResponses.Result>> analyze(
-            @AuthenticationPrincipal Object currentUser,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody LinkAnalysisRequests.Analyze request) {
 
-        Long memberId = getMemberId(currentUser);  // 인증 사용자 ID 추출
         LinkAnalysisResult result = linkAnalysisService.analyze(memberId, request.url);
 
         LinkAnalysisResponses.Result response = toResponse(result);  // 도메인 → DTO 변환
@@ -69,21 +64,5 @@ public class LinkAnalysisController {
                         .build()
                         : null)
                 .build();
-    }
-
-    /**
-     * 인증 사용자 객체에서 회원 ID 추출
-     * - UserDetails: 일반 로그인
-     * - OAuth2User: 소셜 로그인
-     */
-    private Long getMemberId(Object currentUser) {
-        if (currentUser instanceof UserDetails) {
-            return ((CustomUserDetails) currentUser).getMemberId();
-        } else if (currentUser instanceof OAuth2User) {
-            return ((CustomOAuth2User) currentUser).getMemberId();
-        }
-        
-        // SecurityUtils의 정책과 동일하게 1L 반환 (테스트용)
-        return 1L;
     }
 }

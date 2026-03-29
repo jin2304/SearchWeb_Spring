@@ -2,8 +2,8 @@ package com.web.SearchWeb.bookmark.service;
 
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
-import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
-import com.web.SearchWeb.bookmark.dto.BookmarkDto;
+// import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
+// import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 
 import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 import java.util.List;
@@ -36,8 +36,9 @@ public interface BookmarkService {
     // URL로부터 페이지 제목 추출
     String extractTitle(String url);
     
-    // ========== Legacy Board-Bookmark Methods ==========
+    // ========== Legacy Board-Bookmark Methods (Commented Out) ==========
     
+    /*
     //게시글 북마크 확인
     int checkBoardBookmark(BoardBookmarkCheckDto checkDto);
     
@@ -49,4 +50,5 @@ public interface BookmarkService {
     
     //게시글 북마크 삭제
     int deleteBookmarkBoard(BoardBookmarkCheckDto checkDto);
+    */
 }

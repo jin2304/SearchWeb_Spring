@@ -2,12 +2,18 @@ package com.web.SearchWeb.member.domain;
 
 
 import com.web.SearchWeb.common.domain.BaseEntity;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString(callSuper = true)
 public class Member extends BaseEntity {
     private Long memberId;           // 회원 고유 ID (PK)

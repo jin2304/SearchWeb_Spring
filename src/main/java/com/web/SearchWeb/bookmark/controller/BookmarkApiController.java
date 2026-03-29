@@ -5,14 +5,10 @@ import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.config.common.ApiResponse;
-import com.web.SearchWeb.member.dto.CustomOAuth2User;
-import com.web.SearchWeb.member.dto.CustomUserDetails;
+import com.web.SearchWeb.config.security.CurrentMemberId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,20 +34,8 @@ public class BookmarkApiController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> insertBookmark(
-            @AuthenticationPrincipal Object currentUser,
+            @CurrentMemberId Long memberId,
             @RequestBody BookmarkRequests.CreateDto request) {
-
-        // TODO: AOP 처리
-        // 로그인 되지 않은 경우 (임시 바이패스: 1L 사용)
-        Long memberId;
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            memberId = 1L;
-        } else {
-            memberId = getMemberId(currentUser);
-            if (memberId == null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
         
         Long bookmarkId = bookmarkService.insertBookmark(
             memberId, 
@@ -74,20 +58,8 @@ public class BookmarkApiController {
      */
     @GetMapping("/{bookmarkId}")
     public ResponseEntity<ApiResponse<Bookmark>> selectBookmark(
-            @AuthenticationPrincipal Object currentUser,
+            @CurrentMemberId Long memberId,
             @PathVariable Long bookmarkId) {
-
-        // TODO: AOP 처리
-        // 로그인 되지 않은 경우 (임시 바이패스: 1L 사용)
-        Long memberId;
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            memberId = 1L;
-        } else {
-            memberId = getMemberId(currentUser);
-            if (memberId == null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
 
         Bookmark bookmark = bookmarkService.selectBookmark(memberId, bookmarkId);
         return ResponseEntity.ok(ApiResponse.success(bookmark));
@@ -99,20 +71,8 @@ public class BookmarkApiController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<Bookmark>>> selectBookmarkList(
-            @AuthenticationPrincipal Object currentUser,
+            @CurrentMemberId Long memberId,
             @ModelAttribute BookmarkRequests.SearchDto searchDto) {
-        
-        // TODO: AOP 처리
-        // 로그인 되지 않은 경우 (임시 바이패스: 1L 사용)
-        Long memberId;
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            memberId = 1L;
-        } else {
-            memberId = getMemberId(currentUser);
-            if (memberId == null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
         
         List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
         return ResponseEntity.ok(ApiResponse.success(bookmarks));
@@ -124,21 +84,9 @@ public class BookmarkApiController {
      */
     @PutMapping("/{bookmarkId}")
     public ResponseEntity<ApiResponse<Long>> updateBookmark(
-            @AuthenticationPrincipal Object currentUser,
+            @CurrentMemberId Long memberId,
             @PathVariable Long bookmarkId,
             @RequestBody BookmarkRequests.UpdateDto request) {
-        
-        // TODO: AOP 처리
-        // 로그인 되지 않은 경우 (임시 바이패스: 1L 사용)
-        Long memberId;
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            memberId = 1L;
-        } else {
-            memberId = getMemberId(currentUser);
-            if (memberId == null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
         
         Long updatedBookmarkId = bookmarkService.updateBookmark(
             memberId, 
@@ -158,21 +106,9 @@ public class BookmarkApiController {
      */
     @DeleteMapping("/{bookmarkId}")
     public ResponseEntity<ApiResponse<Long>> deleteBookmark(
-            @AuthenticationPrincipal Object currentUser,
+            @CurrentMemberId Long memberId,
             @PathVariable Long bookmarkId) {
-        
-        // TODO: AOP 처리
-        // 로그인 되지 않은 경우 (임시 바이패스: 1L 사용)
-        Long memberId;
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            memberId = 1L;
-        } else {
-            memberId = getMemberId(currentUser);
-            if (memberId == null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
-        
+
         Long deletedId = bookmarkService.deleteBookmark(memberId, bookmarkId);
         return ResponseEntity.ok(ApiResponse.success(deletedId));
     }
@@ -182,14 +118,7 @@ public class BookmarkApiController {
      *  북마크 확인
      */
     @GetMapping("/check")
-    public ResponseEntity<Boolean> checkBookmark(@AuthenticationPrincipal Object currentUser, @RequestParam String url) {
-        // 로그인 되지 않은 경우 (임시 바이패스: 1L 사용)
-        Long memberId;
-        if (currentUser == null || "anonymousUser".equals(currentUser)) {
-            memberId = 1L;
-        } else {
-            memberId = getMemberId(currentUser);
-        }
+    public ResponseEntity<Boolean> checkBookmark(@CurrentMemberId Long memberId, @RequestParam String url) {
 
         // 북마크 존재 여부 확인
         boolean exists = bookmarkService.checkBookmarkExistsByUrl(memberId, url);
@@ -206,15 +135,4 @@ public class BookmarkApiController {
     }
 
 
-    /**
-     * 현재 사용자의 memberId 추출
-     */
-    private Long getMemberId(Object currentUser) {
-        if (currentUser instanceof UserDetails) {
-            return ((CustomUserDetails) currentUser).getMemberId();
-        } else if (currentUser instanceof OAuth2User) {
-            return ((CustomOAuth2User) currentUser).getMemberId();
-        }
-        return null;
-    }
 }
