@@ -22,7 +22,10 @@ async function refreshAccessToken(): Promise<boolean> {
       const json = await response.json();
       useAuthStore.getState().setAccessToken(json.data.accessToken);
       return true;
-    } catch {
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[Token Refresh Error]:', error);
+      }
       return false;
     } finally {
       refreshPromise = null; // 완료 후 초기화해 다음 갱신 가능하게

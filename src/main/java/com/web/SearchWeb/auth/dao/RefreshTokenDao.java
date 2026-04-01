@@ -13,6 +13,9 @@ public interface RefreshTokenDao {
     // 토큰 해시값으로 리프레시 토큰 조회 (비관적 락 적용)
     RefreshToken findByTokenHashForUpdate(String tokenHash);
 
+    // 세션 ID + 버전으로 후속 토큰 조회
+    RefreshToken findBySessionIdAndVersion(String sessionId, int version);
+
     // 특정 토큰 해시값 삭제
     void deleteByTokenHash(String tokenHash);
 
@@ -22,6 +25,6 @@ public interface RefreshTokenDao {
     // 만료된 토큰 일괄 삭제
     void deleteExpired();
 
-    // 토큰 로테이션 시 갱신 시간 업데이트
-    void updateRotatedAt(String tokenHash);
+    // 토큰 로테이션 시 후속 버전 / grace 정보 저장
+    int markRotated(RefreshToken refreshToken);
 }
