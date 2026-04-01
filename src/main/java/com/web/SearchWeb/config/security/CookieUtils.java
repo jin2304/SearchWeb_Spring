@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -78,30 +79,30 @@ public class CookieUtils {
     }
 
     // 객체 -> JSON 문자열 -> Base64 URL Safe 인코딩 (쿠키에 저장 가능한 문자열로 변환)
-    public static String serialize(Object object) {
+    public static Optional<String> serialize(Object object) {
         try {
             // Jackson을 사용하여 객체를 JSON 문자열로 변환
             String json = objectMapper.writeValueAsString(object);
-            // 해당 JSON을 Base64로 인코딩하여 바이너리 데이터를 텍스트화함
-            return Base64.getUrlEncoder().encodeToString(json.getBytes());
+            // 해당 JSON을 UTF-8 바이트로 변환 후 Base64로 인코딩하여 바이너리 데이터를 텍스트화함
+            return Optional.of(Base64.getUrlEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {
             log.error("직렬화 실패: {}", e.getMessage());
-            throw new RuntimeException("직렬화 실패", e);
+            return Optional.empty();
         }
     }
 
 
     // Base64 문자열 -> JSON 데이터 -> 자바 객체 (쿠키 값을 다시 객체로 복원)
-    public static <T> T deserialize(Cookie cookie, Class<T> cls) {
+    public static <T> Optional<T> deserialize(Cookie cookie, Class<T> cls) {
         try {
             // 1. Base64 디코딩 수행
             byte[] data = Base64.getUrlDecoder().decode(cookie.getValue());
             // 2. 디코딩된 JSON 데이터를 Jackson으로 읽어서 클래스 객체로 변환
-            return objectMapper.readValue(data, cls);
+            return Optional.ofNullable(objectMapper.readValue(data, cls));
         } catch (Exception e) {
-            // 역직렬화 도중 에러가 나더라도 서비스를 중단시키지 않고 null을 반환
+            // 역직렬화 도중 에러가 나더라도 서비스를 중단시키지 않고 empty를 반환
             log.error("쿠키 역직렬화 실패: {}", e.getMessage());
-            return null;
+            return Optional.empty();
         }
     }
 }

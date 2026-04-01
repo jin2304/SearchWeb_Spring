@@ -37,7 +37,8 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
         }
 
         // 인증 요청 정보 쿠키에 저장
-        CookieUtils.addCookie(response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, CookieUtils.serialize(authorizationRequest), COOKIE_EXPIRE_SECONDS, cookieSecure);
+        CookieUtils.serialize(authorizationRequest)
+                .ifPresent(s -> CookieUtils.addCookie(response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, s, COOKIE_EXPIRE_SECONDS, cookieSecure));
         
         // 로그인 성공 후 최종 이동할 경로(redirect_uri)가 파라미터로 넘어왔다면 별도 쿠키에 보관
         String redirectUriAfterLogin = request.getParameter(REDIRECT_URI_PARAM_COOKIE_NAME);
@@ -54,7 +55,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
         return CookieUtils.getCookie(request, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME)
-                .map(cookie -> CookieUtils.deserialize(cookie, OAuth2AuthorizationRequest.class))
+                .flatMap(cookie -> CookieUtils.deserialize(cookie, OAuth2AuthorizationRequest.class))
                 .orElse(null);
     }
 

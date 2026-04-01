@@ -9,6 +9,7 @@ import com.web.SearchWeb.member.dto.CustomOAuth2Member;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
@@ -27,6 +28,7 @@ import java.util.Optional;
  * OAuth2 로그인 성공 시 호출되는 핸들러.
  * 인증 성공 후 JWT 리프레시 토큰을 발급하고 쿠키에 저장한 뒤, 프론트엔드로 리다이렉트합니다.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -52,19 +54,27 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
+        String targetUrl;
+        try {
+            // 1. 리다이렉트 URI 결정 및 검증 (실패 시 예외 발생)
+            targetUrl = determineTargetUrl(request, response, authentication);
+        } finally {
+            // 2. 성공/실패 여부와 상관없이 무조건 임시 쿠키 삭제 (보안 강화)
+            authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+        }
+
+        // 3. 검증 통과 시에만 토큰 발급 (실패 시 이 아래는 실행되지 않음)
         CustomOAuth2Member oAuth2Member = (CustomOAuth2Member) authentication.getPrincipal();
         Long memberId = oAuth2Member.getMemberId();
-
-        // Refresh Token 발급 (고아 토큰 정리 + 생성 + DB 저장을 AuthService에 위임)
         String refreshToken = authService.issueRefreshToken(memberId);
 
-        // 💡 [E2E 테스트용 임시 로그] 터미널 콘솔에서 복사해서 .http 파일에 붙여넣으세요.
-        System.out.println("\n" + "=".repeat(80));
-        System.out.println("[E2E TEST] Generated Refresh Token:");
-        System.out.println(refreshToken);
-        System.out.println("=".repeat(80) + "\n");
+        // 보안: 원본 토큰 노출 방지를 위해 마스킹 처리된 로그만 남김
+        if (log.isDebugEnabled()) {
+            log.debug("OAuth2 인증 성공: memberId={}, Refresh Token(일부)={}...", 
+                      memberId, refreshToken.substring(0, 10));
+        }
 
-        // Refresh Token Cookie 설정
+        // 4. Refresh Token Cookie 설정
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(cookieSecure)
@@ -74,13 +84,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
 
-        // 4. 리다이렉트 경로 결정 (쿠키 확인 및 검증)
-        String targetUrl = determineTargetUrl(request, response, authentication);
-
-        // 인증 요청 임시 쿠키 삭제 (Stateless 유지)
-        authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
-
-        // 프론트엔드 콜백 URL로 redirect
+        // 5. 프론트엔드 콜백 URL로 redirect
         response.sendRedirect(targetUrl);
     }
 
