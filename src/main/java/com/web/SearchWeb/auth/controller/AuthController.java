@@ -57,8 +57,7 @@ public class AuthController {
             throw AuthException.of(AuthErrorCode.AUTH_REFRESH_TOKEN_NOT_FOUND);
         }
 
-        log.debug("[RefreshController] refreshToken cookie received, prefix: {}",
-                refreshToken.substring(0, Math.min(12, refreshToken.length())));
+        log.debug("[RefreshController] refreshToken cookie received");
 
         AuthResponses.TokenPair tokenPair = authService.refresh(refreshToken);
 
@@ -71,6 +70,9 @@ public class AuthController {
                 .build();
 
         return ResponseEntity.ok()
+                // 보안 조치: Access Token이 포함된 응답이 브라우저나 중간 프록시(CDN 등)에 저장되지 않도록 설정
+                .header("Cache-Control", "no-store, no-cache, must-revalidate")
+                .header("Pragma", "no-cache") // HTTP 1.0 하위 호환성 (구형 브라우저 대응)
                 .header("Set-Cookie", cookie.toString())
                 .body(ApiResponse.success(response));
     }

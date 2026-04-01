@@ -91,8 +91,6 @@ public class CustomOAuth2MemberService extends DefaultOAuth2UserService {
                         new OAuth2Error("social_login_failed"), MemberErrorCode.MEMBER_SOCIAL_LOGIN_FAILED.getMessage()
                     );
                 }
-                // 소셜 제공자 정보가 실제로 바뀐 경우에만 최소 필드만 동기화(변경감지)
-                syncSocialIdentityIfChanged(existMember, socialName, socialEmail);
             }
         }
         else {

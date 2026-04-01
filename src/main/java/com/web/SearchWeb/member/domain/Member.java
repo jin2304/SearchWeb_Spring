@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(callSuper = true)
+@ToString(callSuper = true, exclude = {"passwordHash"})
 public class Member extends BaseEntity {
     private Long memberId;           // 회원 고유 ID (PK)
     private String email;            // 이메일 (로그인/알림용, Unique)

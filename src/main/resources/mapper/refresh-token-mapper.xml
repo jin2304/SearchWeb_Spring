@@ -6,28 +6,56 @@
     <resultMap id="refreshTokenMap" type="com.web.SearchWeb.auth.domain.RefreshToken">
         <id property="id" column="id"/>
         <result property="memberId" column="member_id"/>
+        <result property="sessionId" column="session_id"/>
+        <result property="version" column="version"/>
         <result property="tokenHash" column="token_hash"/>
         <result property="expiresAt" column="expires_at"/>
         <result property="createdAt" column="created_at"/>
         <result property="rotatedAt" column="rotated_at"/>
+        <result property="replacedByVersion" column="replaced_by_version"/>
+        <result property="graceUntil" column="grace_until"/>
     </resultMap>
 
     <insert id="insertRefreshToken" parameterType="com.web.SearchWeb.auth.domain.RefreshToken">
-        INSERT INTO refresh_token (member_id, token_hash, expires_at, created_at)
-        VALUES (#{memberId}, #{tokenHash}, #{expiresAt}, NOW())
+        INSERT INTO refresh_token (
+            member_id,
+            session_id,
+            version,
+            token_hash,
+            expires_at,
+            created_at
+        )
+        VALUES (
+            #{memberId},
+            #{sessionId},
+            #{version},
+            #{tokenHash},
+            #{expiresAt},
+            #{createdAt}
+        )
     </insert>
 
     <select id="findByTokenHash" resultMap="refreshTokenMap">
-        SELECT id, member_id, token_hash, expires_at, created_at, rotated_at
+        SELECT id, member_id, session_id, version, token_hash, expires_at, created_at, rotated_at,
+               replaced_by_version, grace_until
         FROM refresh_token
         WHERE token_hash = #{tokenHash}
     </select>
 
     <select id="findByTokenHashForUpdate" resultMap="refreshTokenMap">
-        SELECT id, member_id, token_hash, expires_at, created_at, rotated_at
+        SELECT id, member_id, session_id, version, token_hash, expires_at, created_at, rotated_at,
+               replaced_by_version, grace_until
         FROM refresh_token
         WHERE token_hash = #{tokenHash}
         FOR UPDATE
+    </select>
+
+    <select id="findBySessionIdAndVersion" resultMap="refreshTokenMap">
+        SELECT id, member_id, session_id, version, token_hash, expires_at, created_at, rotated_at,
+               replaced_by_version, grace_until
+        FROM refresh_token
+        WHERE session_id = #{sessionId}
+          AND version = #{version}
     </select>
 
     <delete id="deleteByTokenHash">
@@ -44,10 +72,14 @@
            OR (rotated_at IS NOT NULL AND rotated_at &lt; NOW() - INTERVAL '1 minute')
     </delete>
 
-    <update id="updateRotatedAt">
+    <update id="markRotated" parameterType="com.web.SearchWeb.auth.domain.RefreshToken">
         UPDATE refresh_token
-        SET rotated_at = NOW()
+        SET session_id = #{sessionId},
+            rotated_at = #{rotatedAt},
+            replaced_by_version = #{replacedByVersion},
+            grace_until = #{graceUntil}
         WHERE token_hash = #{tokenHash}
+          AND replaced_by_version IS NULL
     </update>
 
 </mapper>

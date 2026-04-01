@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 리프레시 토큰 데이터 접근 객체(DAO) 인터페이스
  */
@@ -20,7 +23,6 @@ public class MybatisRefreshTokenDao implements RefreshTokenDao {
      */
     @Override
     public void insertRefreshToken(RefreshToken refreshToken) {
-        
         sqlSession.insert(NAMESPACE + "insertRefreshToken", refreshToken);
     }
 
@@ -38,6 +40,17 @@ public class MybatisRefreshTokenDao implements RefreshTokenDao {
     @Override
     public RefreshToken findByTokenHashForUpdate(String tokenHash) {
         return sqlSession.selectOne(NAMESPACE + "findByTokenHashForUpdate", tokenHash);
+    }
+
+    /**
+     * 세션 ID + 버전으로 후속 토큰 조회
+     */
+    @Override
+    public RefreshToken findBySessionIdAndVersion(String sessionId, int version) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("sessionId", sessionId);
+        params.put("version", version);
+        return sqlSession.selectOne(NAMESPACE + "findBySessionIdAndVersion", params);
     }
 
     /**
@@ -65,10 +78,10 @@ public class MybatisRefreshTokenDao implements RefreshTokenDao {
     }
 
     /**
-     * 토큰 로테이션 시 갱신 시간 업데이트
+     * 토큰 로테이션 시 후속 버전 / grace 정보 저장
      */
     @Override
-    public void updateRotatedAt(String tokenHash) {
-        sqlSession.update(NAMESPACE + "updateRotatedAt", tokenHash);
+    public int markRotated(RefreshToken refreshToken) {
+        return sqlSession.update(NAMESPACE + "markRotated", refreshToken);
     }
 }

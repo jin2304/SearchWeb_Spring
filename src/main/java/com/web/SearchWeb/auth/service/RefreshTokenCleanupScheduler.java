@@ -19,7 +19,7 @@ public class RefreshTokenCleanupScheduler {
     /**
      * 매일 새벽 3시에 만료된 Refresh Token 삭제
      */
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void cleanupExpiredTokens() {
         log.info("[Scheduler] 만료된 Refresh Token 정리 시작");
         refreshTokenDao.deleteExpired();

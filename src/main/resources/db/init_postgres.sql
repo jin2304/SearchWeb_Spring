@@ -79,10 +79,14 @@ CREATE TABLE IF NOT EXISTS "member" (
 CREATE TABLE IF NOT EXISTS "refresh_token" (
   "id" bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   "member_id" bigint NOT NULL,
+  "session_id" varchar(36) NOT NULL,
+  "version" integer NOT NULL DEFAULT 1,
   "token_hash" varchar(64) NOT NULL,
   "expires_at" timestamptz NOT NULL,
   "created_at" timestamptz DEFAULT now() NOT NULL,
   "rotated_at" timestamptz,
+  "replaced_by_version" integer,
+  "grace_until" timestamptz,
   CONSTRAINT pk_refresh_token PRIMARY KEY ("id"),
   CONSTRAINT uq_refresh_token_hash UNIQUE ("token_hash"),
   CONSTRAINT fk_refresh_token_member_id FOREIGN KEY ("member_id") REFERENCES "member"("member_id") ON DELETE CASCADE
@@ -556,6 +560,7 @@ CREATE INDEX IF NOT EXISTS idx_member_created_at ON "member" ("created_at");
 CREATE INDEX IF NOT EXISTS idx_member_deleted_at ON "member" ("deleted_at");
 
 CREATE INDEX IF NOT EXISTS idx_refresh_token_member ON "refresh_token" ("member_id");
+CREATE INDEX IF NOT EXISTS idx_refresh_token_session_version ON "refresh_token" ("session_id", "version");
 CREATE INDEX IF NOT EXISTS idx_refresh_token_hash ON "refresh_token" ("token_hash");
 CREATE INDEX IF NOT EXISTS idx_refresh_token_expires ON "refresh_token" ("expires_at");
 
