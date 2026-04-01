@@ -44,8 +44,11 @@ async function deleteFolder(folderId: number): Promise<void> {
 export function useFolders(ownerMemberId: number | undefined) {
   return useQuery({
     queryKey: ['folders', 'root', ownerMemberId],
-    queryFn: () => fetchRootFolders(ownerMemberId!),
-    enabled: !!ownerMemberId,
+    queryFn: () => {
+      if (ownerMemberId == null) throw new Error('Owner ID is required');
+      return fetchRootFolders(ownerMemberId);
+    },
+    enabled: ownerMemberId != null,
   });
 }
 

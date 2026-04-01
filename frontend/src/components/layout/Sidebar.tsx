@@ -50,8 +50,11 @@ export function Sidebar() {
           <button 
             type="button"
             onClick={async () => {
-              await logout();
-              router.push('/login');
+              try {
+                await logout();
+              } finally {
+                router.push('/login');
+              }
             }}
             className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
             title="로그아웃"

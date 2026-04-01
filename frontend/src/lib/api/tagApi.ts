@@ -32,8 +32,11 @@ async function createTag(data: CreateTagRequest): Promise<number> {
 export function useTags(ownerMemberId: number | undefined) {
   return useQuery({
     queryKey: ['tags', ownerMemberId],
-    queryFn: () => fetchTags(ownerMemberId!),
-    enabled: !!ownerMemberId,
+    queryFn: () => {
+      if (ownerMemberId == null) throw new Error('Owner ID is required');
+      return fetchTags(ownerMemberId);
+    },
+    enabled: ownerMemberId != null,
   });
 }
 
