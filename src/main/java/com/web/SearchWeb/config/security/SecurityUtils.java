@@ -62,6 +62,10 @@ public final class SecurityUtils {
      * @return SHA-256 해싱된 16진수 문자열
      */
     public static String hashToken(String input) {
+        if (input == null || input.isBlank()) {
+            throw AuthException.of(AuthErrorCode.AUTH_INTERNAL_ERROR);
+        }
+
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));

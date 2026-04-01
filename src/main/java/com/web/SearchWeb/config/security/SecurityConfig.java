@@ -67,21 +67,18 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults());
 
-        // 페이지 별 권한 설정
+        // 페이지 별 권한 설정 (Whitelist 기반)
         http
                 .authorizeHttpRequests(auth -> auth
-                        // 인증 없이 접근 가능한 엔드포인트
+                        // 1. 인증 없이 접근 가능한 엔드포인트 (WhiteList)
                         .requestMatchers("/api/auth/refresh", "/api/auth/logout").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        // 인증 필요 엔드포인트
-                        .requestMatchers("/api/tags/**").authenticated()
-                        .requestMatchers("/api/bookmarks/**").authenticated()
-                        .requestMatchers("/api/link-analysis/**").authenticated()
-                        .requestMatchers("/api/folders/**").authenticated()
-                        .requestMatchers("/api/auth/member").authenticated()
-                        // 역할 기반 접근 제어
-                        .requestMatchers("/admin").hasRole("ADMIN")
-                        .anyRequest().permitAll()
+                        
+                        // 2. 관리자 전용 엔드포인트
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        
+                        // 3. 그 외 모든 요청 (기본 정책): 인증 필요 (보안 강화)
+                        .anyRequest().authenticated()
                 );
 
         // 인증 실패(401) 시 JSON 에러 응답을 반환하는 EntryPoint

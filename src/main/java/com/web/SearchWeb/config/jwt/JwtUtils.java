@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
@@ -35,7 +36,6 @@ public class JwtUtils {
      * @param role 사용자 권한 (예: ROLE_USER)
      * @return 생성된 Access Token 문자열
      */
-    
     public String generateAccessToken(Long memberId, String role) {
         Date now = new Date();
         return Jwts.builder()
@@ -49,17 +49,18 @@ public class JwtUtils {
     }
 
     /**
-     * Refresh Token 생성
-     * @param memberId 사용자 식별 ID
-     * @return 생성된 Refresh Token 문자열
+     * Refresh Token 생성 (회전된 토큰을 같은 값으로 재생성하기 위한 오버로드)
      */
-    public String generateRefreshToken(Long memberId) {
-        Date now = new Date();
+    public String generateRefreshToken(Long memberId, String sessionId, int version, Instant issuedAt, Instant expiresAt) {
+        // 랜덤 UUID 대신 회전에 필요한 메타데이터를 고정값으로 사용해
+        // 동일한 후속 refresh token을 다시 만들어낼 수 있게 한다.
         return Jwts.builder()
-                .id(UUID.randomUUID().toString())   // 무작위 ID 추가로 동일 시간 생성 시 중복 방지
+                .id(sessionId + ":" + version)
                 .subject(String.valueOf(memberId))
-                .issuedAt(now)
-                .expiration(new Date(now.getTime() + refreshTokenExpiry))
+                .claim("sid", sessionId)
+                .claim("ver", version)
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(expiresAt))
                 .signWith(secretKey)
                 .compact();
     }
@@ -73,6 +74,13 @@ public class JwtUtils {
         Claims claims = parseClaims(token);
         Long memberId = Long.parseLong(claims.getSubject());
         String role = claims.get("role", String.class);
+
+        // role 클레임 누락 시 에러 발생
+        if (role == null || role.isBlank()) {
+            log.error("JWT 토큰에 권한 정보(role)가 누락되었습니다. memberId: {}", memberId);
+            throw new JwtException("JWT 토큰에 권한 정보가 누락되었습니다.");
+        }
+
         return new JwtMemberPrincipal(memberId, role);
     }
 

@@ -1,6 +1,7 @@
 package com.web.SearchWeb.config.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import com.web.SearchWeb.config.common.ApiResponse;
 import com.web.SearchWeb.auth.error.AuthErrorCode;
 import com.web.SearchWeb.config.exception.ErrorCode;
@@ -18,9 +19,10 @@ import java.io.IOException;
  *  -JWT 토큰이 없거나 유효하지 않은 경우의 처리를 담당
  */
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     /**
      * 인증 예외가 발생했을 때 실행되는 메서드
