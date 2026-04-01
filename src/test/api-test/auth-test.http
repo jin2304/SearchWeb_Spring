@@ -1,0 +1,157 @@
+# ==============================================================================
+# JWT + OAuth2 End-to-End Test Collection (S1-S5)
+# ==============================================================================
+# VS Code REST Client 또는 IntelliJ HTTP Client에서 사용하세요.
+#
+# ============================================================
+# [자동화 기능 안내] 더 이상 수동 복사가 필요 없습니다!
+# ============================================================
+# 이 파일은 응답을 받으면 @accessToken 과 @refreshTokenCookie 를 
+# 자동으로 전역 변수에 저장하는 스크립트를 포함하고 있습니다.
+# (IntelliJ 및 최신 VS Code REST Client 지원)
+#
+# ★ 한번만 수동 연동하면 이후에는 Send Requst 버튼만 연속해서 누르면 됩니다.
+# ============================================================
+
+### 0. 공통 변수
+@baseUrl = http://localhost:8080
+
+# ★ [공통 필수 단계] Step 2를 수행하여 브라우저에서 복사한 쿠키를 여기에 붙여넣으세요.
+@refreshTokenCookie = eyJhbGciOiJIUzM4NCJ9.eyJqdGkiOiIxMTBiOGJlYi00NDFlLTQ4ZDQtODgyYi0yN2VhYjlkNmNjM2Y6MiIsInN1YiI6IjciLCJzaWQiOiIxMTBiOGJlYi00NDFlLTQ4ZDQtODgyYi0yN2VhYjlkNmNjM2YiLCJ2ZXIiOjIsImlhdCI6MTc3NTA1NDg0NiwiZXhwIjoxNzc2MjY0NDQ2fQ.0ppPiXZSsumHjs2a1N2h157P3guZHpSGOBsIDjutGTRfssS6nNBB5kxYun-Q_sGL
+# ★ Step 3 실행 시 자동으로 업데이트되거나, 수동으로 응답값을 복사해 넣어주세요.
+@accessToken = 
+
+# ------------------------------------------------------------------------------
+# [공통 필수 단계] 로그인 및 .http 세션 연동
+# ------------------------------------------------------------------------------
+# ★ 모든 시나리오를 테스트하기 위해 가장 먼저 수행해야 하는 단계 ★
+# 한 번 로그인하면 토큰이 만료되거나 로그아웃하기 전까지 모든 테스트에서 공유.
+
+### [Step 1] 구글 OAuth2 로그인 시작 (RT1 발급)
+# - 아래 URL을 브라우저에서 직접 여세요.  ex) http://localhost:8080/oauth2/authorization/google
+# - (동작) 백엔드: 회원가입/로그인 처리 후 임시 열쇠(RT1) 발급 및 프론트엔드 리다이렉트
+# - (동작) 프론트엔드: 진입과 동시에 RT1을 정식 열쇠(RT2)로 자동 교환 완료
+GET {{baseUrl}}/oauth2/authorization/google
+
+
+# [S1-Step 2] 브라우저에서 구글 로그인 완료
+# - 사용자가 소셜(구글) 계정으로 인증을 마칩니다.
+
+# [S1-Step 3] 백엔드: 회원가입/로그인 처리 후 임시 열쇠(RT1) 발급
+# - 로그인 성공 시 서버가 RT1 쿠키를 굽고 `/auth/callback`으로 이동합니다.
+
+# [S1-Step 4] 프론트엔드: 정식 열쇠(RT2)로 자동 갱신
+# - 페이지 진입 시 앱이 RT1을 RT2로 자동 교체합니다. (토큰 2회 생성 완료)
+# - 브라우저 쿠키(RT2)를 복사해 상단 @refreshTokenCookie 에 붙여넣으세요.
+# ★ 브라우저에서 수동으로 복사하는 것은 이 단계가 처음이자 마지막입니다.
+
+
+### [S1-Step 5] .http 세션 연동 (RT2 -> RT3 갱신)
+# @name sync
+# - (테스트 목적) 실제 프론트엔드는 RT2에서 멈추지만, 본 도구와의 세션 연동을 위해 갱신 API를 호출합니다.
+# - (동작) 서버는 RT2를 확인하고 이 도구 전용 새 열쇠(RT3)를 발급합니다.
+# - 실행 후에는 자동으로 변수가 업데이트되므로 즉시 다음 단계로 넘어가면 됩니다.
+POST {{baseUrl}}/api/auth/refresh
+Cookie: refreshToken={{refreshTokenCookie}}
+
+@accessToken = {{sync.response.body.data.accessToken}}
+
+
+### [S1-Step 6] 회원 정보 조회
+# - (테스트 목적) 실제 프론트엔드는 초기화 시 자동 조회하지만, 본 파일의 자동 연동 성검증을 위해 호출합니다.
+GET {{baseUrl}}/api/auth/member
+Authorization: Bearer {{sync.response.body.data.accessToken}}
+
+
+# ------------------------------------------------------------------------------
+# S2: 새로고침 후 인증 복구 (RT3 -> RT4)
+# ------------------------------------------------------------------------------
+
+### [S2-Step 2] 새로고침 후 refresh
+# @name s2_refresh
+POST {{baseUrl}}/api/auth/refresh
+Cookie: refreshToken={{refreshTokenCookie}}
+
+@accessToken = {{s2_refresh.response.body.data.accessToken}}
+
+### [S2-Step 3] 회원 정보 재조회
+GET {{baseUrl}}/api/auth/member
+Authorization: Bearer {{s2_refresh.response.body.data.accessToken}}
+
+
+# ------------------------------------------------------------------------------
+# S3: API 호출 중 Access Token 만료
+# ------------------------------------------------------------------------------
+
+### [S3-Step 1] 만료된 Access Token 으로 API 호출
+GET {{baseUrl}}/api/bookmarks
+Authorization: Bearer {{sync.response.body.data.accessToken}}
+
+### [S3-Step 2] Access Token 재발급
+# @name s3_refresh
+POST {{baseUrl}}/api/auth/refresh
+Cookie: refreshToken={{refreshTokenCookie}}
+
+@accessToken = {{s3_refresh.response.body.data.accessToken}}
+
+### [S3-Step 3] 새 Access Token 으로 원래 요청 재시도
+GET {{baseUrl}}/api/bookmarks
+Authorization: Bearer {{s3_refresh.response.body.data.accessToken}}
+
+
+# ------------------------------------------------------------------------------
+# S4: Refresh Token Rotation (RTR) & Grace Period
+# ------------------------------------------------------------------------------
+
+### [S4-Case 1] 정상 Rotation
+# @name rotation
+POST {{baseUrl}}/api/auth/refresh
+Cookie: refreshToken={{refreshTokenCookie}}
+
+@accessToken = {{rotation.response.body.data.accessToken}}
+
+### [S4-Case 2] Grace Period 내 재사용 (10초 이내)
+# [테스트 의도] 
+# - 네트워크 지연이나 멀티탭 동시 요청 등을 시뮬레이션합니다.
+# - Case 1에서 "이미 사용된 헌 열쇠"를 10초 이내에 다시 써도 성공하는지 확인합니다.
+# [실행 방법]
+# - Case 1 실행 직후(10초 이내)에 이 버튼을 누르세요.
+# - 중요: @refreshTokenCookie 변수가 Case 1로 업데이트되기 "이전" 값이어야 합니다.
+POST {{baseUrl}}/api/auth/refresh
+Cookie: refreshToken={{refreshTokenCookie}}
+
+### [S4-Case 3] Grace Period 초과 재사용
+# [테스트 의도] 
+# - 보안 위협(토큰 탈취 후 뒤늦은 재사용 시도)을 시뮬레이션합니다.
+# - 유예 기간(10초)이 지난 헌 열쇠는 확실히 거절되는지 확인합니다.
+# [실행 방법]
+# - Case 1 실행 후 반드시 10초 이상 기다린 뒤에 이 버튼을 누르세요.
+# - 기대 결과: 401 Unauthorized (A004) - "유효하지 않은 토큰입니다."
+POST {{baseUrl}}/api/auth/refresh
+Cookie: refreshToken={{refreshTokenCookie}}
+
+
+# ------------------------------------------------------------------------------
+# S5: 로그아웃
+# ------------------------------------------------------------------------------
+
+### [S5-Step 1] 로그아웃
+POST {{baseUrl}}/api/auth/logout
+Cookie: refreshToken={{refreshTokenCookie}}
+
+### [S5-Step 2] 로그아웃 후 refresh 재시도
+POST {{baseUrl}}/api/auth/refresh
+Cookie: refreshToken={{refreshTokenCookie}}
+
+
+# ------------------------------------------------------------------------------
+# 추가: Owner Check
+# ------------------------------------------------------------------------------
+
+### [@OwnerCheck] 내 북마크 삭제 (200 OK 예상)
+DELETE {{baseUrl}}/api/bookmarks/10
+Authorization: Bearer {{sync.response.body.data.accessToken}}
+
+### [@OwnerCheck] 다른 사용자 북마크 삭제 (403 A005 예상)
+DELETE {{baseUrl}}/api/bookmarks/99
+Authorization: Bearer {{sync.response.body.data.accessToken}}
