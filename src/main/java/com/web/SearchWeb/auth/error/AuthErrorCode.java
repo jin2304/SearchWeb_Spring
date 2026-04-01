@@ -17,7 +17,8 @@ public enum AuthErrorCode implements ErrorCode {
     AUTH_REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "A004", "Refresh Token이 없습니다."),
     AUTH_ACCESS_DENIED(HttpStatus.FORBIDDEN, "A005", "접근 권한이 없습니다."),
     AUTH_INVALID_REDIRECT_URI(HttpStatus.BAD_REQUEST, "A006", "유효하지 않은 리다이렉트 주소입니다."),
-    AUTH_UNSUPPORTED_PROVIDER(HttpStatus.BAD_REQUEST, "A007", "지원하지 않는 소셜 로그인 제공자입니다.");
+    AUTH_UNSUPPORTED_PROVIDER(HttpStatus.BAD_REQUEST, "A007", "지원하지 않는 소셜 로그인 제공자입니다."),
+    AUTH_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "A500", "서버 내부 인증 처리 오류입니다.");
 
     private final HttpStatus status;
     private final String code;

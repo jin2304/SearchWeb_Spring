@@ -8,10 +8,7 @@ import com.web.SearchWeb.auth.controller.dto.AuthResponses;
  */
 public interface AuthService {
 
-    // 토큰 발급 (Access + Refresh)
-    AuthResponses.TokenPair issueTokens(Long memberId, String role);
-
-    // OAuth2 로그인 성공 후 Refresh Token만 발급 (Access Token은 이후 /refresh로 발급)
+    // OAuth2 로그인 성공 후 리프레시 토큰만 최초 발급  
     String issueRefreshToken(Long memberId);
 
     // 토큰 갱신
