@@ -9,6 +9,8 @@ import com.web.SearchWeb.config.jwt.JwtUtils;
 import com.web.SearchWeb.config.security.SecurityUtils;
 import com.web.SearchWeb.member.dao.MemberDao;
 import com.web.SearchWeb.member.domain.Member;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -59,7 +61,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponses.TokenPair refresh(String refreshToken) {
         // 1. 토큰 서명 및 유효성 검증
-        jwtUtils.validateToken(refreshToken);
+        try {
+            jwtUtils.validateToken(refreshToken);
+        } catch (ExpiredJwtException e) {
+            log.warn("[Refresh] 만료된 리프레시 토큰");
+            throw AuthException.of(AuthErrorCode.AUTH_TOKEN_EXPIRED);
+        } catch (JwtException e) {
+            log.warn("[Refresh] 유효하지 않은 리프레시 토큰: {}", e.getMessage());
+            throw AuthException.of(AuthErrorCode.AUTH_INVALID_TOKEN);
+        }
 
         // 2. DB에서 토큰 해시로 조회 (비관적 락을 통한 동시성 확보)
         String hashedToken = SecurityUtils.hashToken(refreshToken);
