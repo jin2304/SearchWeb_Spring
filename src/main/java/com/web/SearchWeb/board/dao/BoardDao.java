@@ -1,3 +1,4 @@
+/*
 package com.web.SearchWeb.board.dao;
 
 import com.web.SearchWeb.board.domain.Board;
@@ -54,3 +55,4 @@ public interface BoardDao {
     //게시글 댓글 수 감소
     int decrementCommentCount(Long boardId);
 }
+*/

@@ -17,7 +17,7 @@ public interface MemberFolderJpaDao extends JpaRepository<MemberFolder, Long> {
 
     boolean existsByParentFolderId(Long parentFolderId);
 
-    boolean existsByOwnerMemberIdAndParentFolderIdAndFolderName(Long loginId, Long parentFolderId, String normalizedFolderName);
+    boolean existsByOwnerMemberIdAndParentFolderIdAndFolderName(Long ownerMemberId, Long parentFolderId, String normalizedFolderName);
 
-    boolean existsByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(Long loginId, String normalizedFolderName);
+    boolean existsByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(Long ownerMemberId, String normalizedFolderName);
 }

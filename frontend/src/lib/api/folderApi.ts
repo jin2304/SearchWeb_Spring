@@ -41,10 +41,14 @@ async function deleteFolder(folderId: number): Promise<void> {
  * [조회 Hook] 특정 사용자의 루트 폴더 목록을 가져옵니다.
  * @param ownerMemberId 사용자 ID
  */
-export function useFolders(ownerMemberId: number) {
+export function useFolders(ownerMemberId: number | undefined) {
   return useQuery({
     queryKey: ['folders', 'root', ownerMemberId],
-    queryFn: () => fetchRootFolders(ownerMemberId),
+    queryFn: () => {
+      if (ownerMemberId == null) throw new Error('Owner ID is required');
+      return fetchRootFolders(ownerMemberId);
+    },
+    enabled: ownerMemberId != null,
   });
 }
 

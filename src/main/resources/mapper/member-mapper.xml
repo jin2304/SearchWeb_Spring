@@ -28,15 +28,8 @@
     </resultMap>
 
 
-    <!-- 회원가입 -->
-    <insert id="joinProcess" parameterType="com.web.SearchWeb.member.dto.MemberDto">
-        INSERT INTO member (login_id, password_hash, member_name, nick_name, email, role)
-        VALUES (#{loginId}, #{password}, #{memberName}, #{nickName}, #{email}, #{role})
-    </insert>
-
-
     <!-- 소셜 회원가입 -->
-    <insert id="SocialjoinProcess" parameterType="com.web.SearchWeb.member.domain.Member" useGeneratedKeys="true" keyProperty="memberId" keyColumn="member_id">
+    <insert id="insertSocialMember" parameterType="com.web.SearchWeb.member.domain.Member" useGeneratedKeys="true" keyProperty="memberId" keyColumn="member_id">
         INSERT INTO member (login_id, password_hash, member_name, nick_name, role, email)
         VALUES (#{loginId}, #{passwordHash}, #{memberName}, #{nickName}, #{role}, #{email})
     </insert>
@@ -47,6 +40,15 @@
         SELECT * FROM member
         WHERE member_id = #{memberId}
         AND deleted_at IS NULL
+    </select>
+
+
+    <!-- 회원번호로 비관적 락(FOR UPDATE) 조회 -->
+    <select id="findByMemberIdForUpdate" parameterType="long" resultMap="MemberResultMap">
+        SELECT * FROM member
+        WHERE member_id = #{memberId}
+        AND deleted_at IS NULL
+        FOR UPDATE
     </select>
 
 
@@ -73,13 +75,10 @@
 
 
     <!-- 소셜 회원 수정 -->
-    <update id="updateSocialMember" parameterType="map">
+    <update id="updateSocialIdentity" parameterType="map">
         UPDATE member
         SET
-            login_id = #{member.loginId},
-            job = #{member.job},
-            major = #{member.major},
-            summary = #{member.summary},
+            member_name = #{member.memberName},
             email = #{member.email},
             updated_at = now()
         WHERE member_id = #{memberId}

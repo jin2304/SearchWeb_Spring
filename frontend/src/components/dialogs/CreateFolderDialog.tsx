@@ -4,7 +4,7 @@ import { useUIStore } from '@/lib/store/uiStore';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
 import { useCreateFolder } from '@/lib/api/folderApi';
-import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
+import { useAuthStore } from '@/lib/store/authStore';
 
 const COLORS = [
   { id: 'purple', base: 'bg-purple-500 hover:ring-purple-500', active: 'ring-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]' },
@@ -28,6 +28,7 @@ export function CreateFolderDialog() {
   const [selectedIcon, setSelectedIcon] = useState('work');     // 선택된 아이콘 이름
   const [selectedColor, setSelectedColor] = useState('purple'); // 선택된 색상 ID
   const [isPinned, setIsPinned] = useState(true);               // 상단 고정 여부
+  const memberId = useAuthStore((s) => s.member?.memberId);
 
   // 폴더 생성 API 연동 (React Query Mutation)
   const createFolderMutation = useCreateFolder();
@@ -38,12 +39,12 @@ export function CreateFolderDialog() {
    */
   const handleCreateFolder = () => {
     // 유효성 검사: 이름이 비어있으면 중단
-    if (!folderName.trim()) return;
+    if (!folderName.trim() || !memberId) return;
 
     // API 호출
     createFolderMutation.mutate(
       {
-        ownerMemberId: TEMP_MEMBER_ID, // 현재는 테스트용 ID 사용
+        ownerMemberId: memberId,
         folderName: folderName.trim(),
       },
       {

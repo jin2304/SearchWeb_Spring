@@ -19,7 +19,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
 
     @Override
     @Transactional
-    public Long create(Long loginId, Long parentFolderId, String folderName, String description) {
+    public Long create(Long memberId, Long parentFolderId, String folderName, String description) {
         String normalizedFolderName = normalizeFolderName(folderName);
         String normalizedDescription = normalizeDescription(description);
 
@@ -30,14 +30,14 @@ public class MemberFolderServiceImpl implements MemberFolderService {
                 .orElseThrow(() -> new FolderException(FolderErrorCode.FOLDER_NOT_FOUND));
 
             // 2. 부모 폴더 소유자 검증
-            if (!parentFolder.getOwnerMemberId().equals(loginId)) {
+            if (!parentFolder.getOwnerMemberId().equals(memberId)) {
                 throw new FolderException(FolderErrorCode.FOLDER_FORBIDDEN);
             }
 
             // 3. 같은 부모 아래 동일 이름 폴더 중복 검증
             boolean exists = memberFolderJpaRepository
                 .existsByOwnerMemberIdAndParentFolderIdAndFolderName(
-                    loginId, parentFolderId, normalizedFolderName
+                    memberId, parentFolderId, normalizedFolderName
                 );
 
             if (exists) {
@@ -47,7 +47,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
             // 4. 루트 폴더일 때 동일 이름 중복 검증
             boolean exists = memberFolderJpaRepository
                 .existsByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(
-                    loginId, normalizedFolderName
+                    memberId, normalizedFolderName
                 );
 
             if (exists) {
@@ -56,7 +56,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
         }
 
         MemberFolder folder = MemberFolder.builder()
-            .ownerMemberId(loginId)
+            .ownerMemberId(memberId)
             .parentFolderId(parentFolderId)
             .folderName(normalizedFolderName)
             .description(normalizedDescription)
@@ -92,22 +92,22 @@ public class MemberFolderServiceImpl implements MemberFolderService {
 
     @Override
     @Transactional(readOnly = true)
-    public MemberFolder get(Long loginId, Long memberFolderId) {
-        return getOwnedFolder(loginId, memberFolderId);
+    public MemberFolder get(Long memberId, Long memberFolderId) {
+        return getOwnedFolder(memberId, memberFolderId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MemberFolder> listRootFolders(Long loginId, Long ownerMemberId) {
-        validateOwner(loginId, ownerMemberId);
+    public List<MemberFolder> listRootFolders(Long memberId, Long ownerMemberId) {
+        validateOwner(memberId, ownerMemberId);
         return memberFolderJpaRepository.findAllByOwnerMemberIdAndParentFolderIdIsNull(ownerMemberId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MemberFolder> listChildren(Long loginId, Long ownerMemberId, Long parentFolderId) {
-        validateOwner(loginId, ownerMemberId);
-        MemberFolder parentFolder = getOwnedFolder(loginId, parentFolderId);
+    public List<MemberFolder> listChildren(Long memberId, Long ownerMemberId, Long parentFolderId) {
+        validateOwner(memberId, ownerMemberId);
+        MemberFolder parentFolder = getOwnedFolder(memberId, parentFolderId);
         if (!parentFolder.getOwnerMemberId().equals(ownerMemberId)) {
             throw new FolderException(FolderErrorCode.FOLDER_FORBIDDEN);
         }
@@ -116,8 +116,8 @@ public class MemberFolderServiceImpl implements MemberFolderService {
 
     @Override
     @Transactional
-    public void update(Long loginId, Long memberFolderId, String folderName, String description) {
-        MemberFolder folder = getOwnedFolder(loginId, memberFolderId);
+    public void update(Long memberId, Long memberFolderId, String folderName, String description) {
+        MemberFolder folder = getOwnedFolder(memberId, memberFolderId);
 
         String resolvedFolderName = folderName == null
             ? folder.getFolderName()
@@ -148,8 +148,8 @@ public class MemberFolderServiceImpl implements MemberFolderService {
 
     @Override
     @Transactional
-    public void move(Long loginId, Long memberFolderId, Long newParentFolderId) {
-        MemberFolder folder = getOwnedFolder(loginId, memberFolderId);
+    public void move(Long memberId, Long memberFolderId, Long newParentFolderId) {
+        MemberFolder folder = getOwnedFolder(memberId, memberFolderId);
 
         if ((folder.getParentFolderId() == null && newParentFolderId == null)
             || (folder.getParentFolderId() != null && folder.getParentFolderId().equals(newParentFolderId))) {
@@ -161,7 +161,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
                 throw new FolderException(FolderErrorCode.INVALID_FOLDER_MOVE);
             }
 
-            MemberFolder newParentFolder = getOwnedFolder(loginId, newParentFolderId);
+            MemberFolder newParentFolder = getOwnedFolder(memberId, newParentFolderId);
 
             if (!newParentFolder.getOwnerMemberId().equals(folder.getOwnerMemberId())) {
                 throw new FolderException(FolderErrorCode.FOLDER_FORBIDDEN);
@@ -192,8 +192,8 @@ public class MemberFolderServiceImpl implements MemberFolderService {
 
     @Override
     @Transactional
-    public void delete(Long loginId, Long memberFolderId) {
-        getOwnedFolder(loginId, memberFolderId);
+    public void delete(Long memberId, Long memberFolderId) {
+        getOwnedFolder(memberId, memberFolderId);
 
         if (memberFolderJpaRepository.existsByParentFolderId(memberFolderId)
             || bookmarkDao.existsActiveBookmarkInFolder(memberFolderId)) {
@@ -203,16 +203,16 @@ public class MemberFolderServiceImpl implements MemberFolderService {
         memberFolderJpaRepository.deleteById(memberFolderId);
     }
 
-    private MemberFolder getOwnedFolder(Long loginId, Long memberFolderId) {
+    private MemberFolder getOwnedFolder(Long memberId, Long memberFolderId) {
         MemberFolder folder = memberFolderJpaRepository.findById(memberFolderId)
             .orElseThrow(() -> new FolderException(FolderErrorCode.FOLDER_NOT_FOUND));
 
-        validateOwner(loginId, folder.getOwnerMemberId());
+        validateOwner(memberId, folder.getOwnerMemberId());
         return folder;
     }
 
-    private void validateOwner(Long loginId, Long ownerMemberId) {
-        if (!ownerMemberId.equals(loginId)) {
+    private void validateOwner(Long memberId, Long ownerMemberId) {
+        if (!ownerMemberId.equals(memberId)) {
             throw new FolderException(FolderErrorCode.FOLDER_FORBIDDEN);
         }
     }

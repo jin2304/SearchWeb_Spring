@@ -45,5 +45,14 @@ out/
 .claude/
 CLAUDE.md
 
+### OMC ###
+.omc/
+
 ### HTTP Tests ###
 *.http
+
+### Temporary Files ###
+.gradle-user/
+status.txt
+status_utf8.txt
+docs/Backend/memo/

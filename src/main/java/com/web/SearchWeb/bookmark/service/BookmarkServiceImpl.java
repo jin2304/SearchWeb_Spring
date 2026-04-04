@@ -3,8 +3,6 @@ package com.web.SearchWeb.bookmark.service;
 import com.web.SearchWeb.bookmark.dao.BookmarkDao;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
-import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
-import com.web.SearchWeb.bookmark.dto.BookmarkDto;
 import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 
 import lombok.extern.slf4j.Slf4j;
@@ -332,47 +330,33 @@ public class BookmarkServiceImpl implements BookmarkService {
     }
     
 
-    // ========== Legacy Board-Bookmark Methods ==========
+    // ========== Legacy Board-Bookmark Methods (Commented Out) ==========
     
-    /**
-     * 게시글 북마크 확인 (Legacy)
-     * TODO: 새 스키마에서는 board-bookmark 관계가 없음. 현재는 0 반환
-     */
+    /*
     @Override
     public int checkBoardBookmark(BoardBookmarkCheckDto checkDto) {
         // 새 스키마에 board-bookmark 테이블이 없으므로 항상 0 반환
         return 0;
     }
     
-    /**
-     * 게시글 북마크 여부 확인 (for boardDetail)
-     * TODO: 새 스키마에서는 board-bookmark 관계가 없음. 현재는 0 반환
-     */
     @Override
     public int isBookmarked(Long boardId, Long memberId) {
         // 새 스키마에 board-bookmark 테이블이 없으므로 항상 0 반환
         return 0;
     }
     
-    /**
-     * 게시글 북마크 추가 (Legacy)
-     * TODO: 새 스키마에서는 board-bookmark 관계가 없음. 현재는 0 반환
-     */
     @Override
     public int insertBookmarkForBoard(Long boardId, BookmarkDto bookmarkDto) {
         // 새 스키마에 board-bookmark 테이블이 없으므로 아무 작업 안함
         return 0;
     }
     
-    /**
-     * 게시글 북마크 삭제 (Legacy)
-     * TODO: 새 스키마에서는 board-bookmark 관계가 없음. 현재는 0 반환
-     */
     @Override
     public int deleteBookmarkBoard(BoardBookmarkCheckDto checkDto) {
         // 새 스키마에 board-bookmark 테이블이 없으므로 아무 작업 안함
         return 0;
     }
+    */
 
 
    

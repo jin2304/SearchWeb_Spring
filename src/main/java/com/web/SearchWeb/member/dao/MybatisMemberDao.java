@@ -2,7 +2,6 @@ package com.web.SearchWeb.member.dao;
 
 
 import com.web.SearchWeb.member.domain.Member;
-import com.web.SearchWeb.member.dto.MemberDto;
 import com.web.SearchWeb.member.dto.MemberUpdateDto;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,25 +20,25 @@ public class MybatisMemberDao implements MemberDao {
     }
 
 
-    @Override
-    public void joinProcess(MemberDto member) {
-        mapper.joinProcess(member);
-    }
-
     /**
      *  소셜 회원가입
      */
     @Override
-    public void SocialjoinProcess(Member member) {
-        mapper.SocialjoinProcess(member);
+    public void insertSocialMember(Member member) {
+        mapper.insertSocialMember(member);
     }
 
-    /**
-     *  회원번호로 찾기
-     */
     @Override
     public Member findByMemberId(Long memberId) {
         return mapper.findByMemberId(memberId);
+    }
+
+    /**
+     *  회원번호로 비관적 락(FOR UPDATE) 조회
+     */
+    @Override
+    public Member findByMemberIdForUpdate(Long memberId) {
+        return mapper.findByMemberIdForUpdate(memberId);
     }
 
     /**
@@ -64,7 +63,7 @@ public class MybatisMemberDao implements MemberDao {
      *  소셜 회원 수정
      */
     @Override
-    public int updateSocialMember(Long memberId, Member member) {
-        return mapper.updateSocialMember(memberId, member);
+    public int updateSocialIdentity(Long memberId, Member member) {
+        return mapper.updateSocialIdentity(memberId, member);
     }
 }

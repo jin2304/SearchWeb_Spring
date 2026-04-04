@@ -4,15 +4,19 @@ import { RightPanel } from '@/components/my-links/RightPanel';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useFolders } from '@/lib/api/folderApi';
 import { useFolderStore } from '@/lib/store/folderStore';
-import { TEMP_MEMBER_ID } from '@/lib/auth/currentUser';
+import { useAuthStore } from '@/lib/store/authStore';
 
 const PINNED_COLORS = ['bg-blue-600', 'bg-indigo-500', 'bg-teal-500', 'bg-amber-500', 'bg-emerald-600'];
 
 export default function MyLinksPage() {
   const { toggleRightPanel } = useUIStore();
   const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
-
-  const { data: folders, isLoading, error } = useFolders(TEMP_MEMBER_ID);
+  const memberId = useAuthStore((s) => s.member?.memberId);
+  const isAuthInitializing = useAuthStore((s) => s.isInitializing);
+  const { data: folders, isLoading: isFoldersLoading, error } = useFolders(memberId);
+  
+  // 인증 정보를 복구 중이거나 아직 폴더 목록을 가져오는 중이면 로딩 상태로 간주
+  const isLoading = isAuthInitializing || isFoldersLoading;
   const pinnedFolders = folders?.slice(0, 5) ?? [];
 
   return (
@@ -162,8 +166,8 @@ export default function MyLinksPage() {
             </div>
           )}
 
-          {/* ── 빈 상태 ── */}
-          {folders && folders.length === 0 && (
+          {/* ── 빈 상태 (로딩이 끝난 후 데이터가 없는 경우) ── */}
+          {!isLoading && folders && folders.length === 0 && (
             <div className="col-span-full flex items-center justify-center py-8">
               <div className="flex flex-col items-center gap-1 text-gray-400 text-xs">
                 <span className="material-symbols-outlined text-2xl">folder_off</span>

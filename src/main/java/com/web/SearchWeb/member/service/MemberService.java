@@ -2,12 +2,9 @@ package com.web.SearchWeb.member.service;
 
 
 import com.web.SearchWeb.member.domain.Member;
-import com.web.SearchWeb.member.dto.MemberDto;
 import com.web.SearchWeb.member.dto.MemberUpdateDto;
 
 public interface MemberService {
-    //회원가입
-    public void joinProcess(MemberDto member);
 
     //회원번호로 찾기
     public Member findByMemberId(Long memberId);
@@ -15,8 +12,6 @@ public interface MemberService {
     //로그인 아이디로 찾기
     public Member findByLoginId(String loginId);
 
-    //비밀번호 확인
-    public boolean isPasswordMatching(MemberDto memberDto);
 
     //회원 수정
     public int updateMember(Long memberId, MemberUpdateDto memberUpdateDto);
