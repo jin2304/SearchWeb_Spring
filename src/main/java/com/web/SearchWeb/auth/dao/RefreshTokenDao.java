@@ -23,7 +23,7 @@ public interface RefreshTokenDao {
     void deleteByMemberId(Long memberId);
 
     // 만료된 토큰 일괄 삭제
-    void deleteExpired();
+    int deleteExpired();
 
     // 토큰 로테이션 시 후속 버전 / grace 정보 저장
     int markRotated(RefreshToken refreshToken);

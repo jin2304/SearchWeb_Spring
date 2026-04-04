@@ -10,6 +10,9 @@ public interface MemberDao {
     //회원번호로 찾기
     public Member findByMemberId(Long memberId);
 
+    //회원번호로 비관적 락(FOR UPDATE) 조회
+    public Member findByMemberIdForUpdate(Long memberId);
+
     //로그인 아이디로 찾기
     public Member findByLoginId(String loginId);
 

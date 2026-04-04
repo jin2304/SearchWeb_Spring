@@ -28,12 +28,17 @@ public class MybatisMemberDao implements MemberDao {
         mapper.insertSocialMember(member);
     }
 
-    /**
-     *  회원번호로 찾기
-     */
     @Override
     public Member findByMemberId(Long memberId) {
         return mapper.findByMemberId(memberId);
+    }
+
+    /**
+     *  회원번호로 비관적 락(FOR UPDATE) 조회
+     */
+    @Override
+    public Member findByMemberIdForUpdate(Long memberId) {
+        return mapper.findByMemberIdForUpdate(memberId);
     }
 
     /**

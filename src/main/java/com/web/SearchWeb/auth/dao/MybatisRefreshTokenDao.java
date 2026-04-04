@@ -73,8 +73,8 @@ public class MybatisRefreshTokenDao implements RefreshTokenDao {
      * 만료된 토큰 일괄 삭제
      */
     @Override
-    public void deleteExpired() {
-        sqlSession.delete(NAMESPACE + "deleteExpired");
+    public int deleteExpired() {
+        return sqlSession.delete(NAMESPACE + "deleteExpired");
     }
 
     /**

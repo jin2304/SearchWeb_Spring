@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS "refresh_token" (
   "grace_until" timestamptz,
   CONSTRAINT pk_refresh_token PRIMARY KEY ("id"),
   CONSTRAINT uq_refresh_token_hash UNIQUE ("token_hash"),
+  CONSTRAINT uq_refresh_token_session_version UNIQUE ("session_id", "version"),
   CONSTRAINT fk_refresh_token_member_id FOREIGN KEY ("member_id") REFERENCES "member"("member_id") ON DELETE CASCADE
 );
 
@@ -560,7 +561,6 @@ CREATE INDEX IF NOT EXISTS idx_member_created_at ON "member" ("created_at");
 CREATE INDEX IF NOT EXISTS idx_member_deleted_at ON "member" ("deleted_at");
 
 CREATE INDEX IF NOT EXISTS idx_refresh_token_member ON "refresh_token" ("member_id");
-CREATE INDEX IF NOT EXISTS idx_refresh_token_session_version ON "refresh_token" ("session_id", "version");
 CREATE INDEX IF NOT EXISTS idx_refresh_token_hash ON "refresh_token" ("token_hash");
 CREATE INDEX IF NOT EXISTS idx_refresh_token_expires ON "refresh_token" ("expires_at");
 
