@@ -45,7 +45,11 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public String issueRefreshToken(Long memberId) {
-        // 신규 로그인 시도 - 기존 토큰 정리 후 새 세션 시
+        // [핵심] 동시 로그인 요청 시 단일 세션 보장을 위해 member 레코드에 쓰기 락(FOR UPDATE)을 걸어 트랜잭션을 직렬화함.
+        // 먼저 락을 획득한 트랜잭션이 기존 토큰을 삭제하고 새 토큰을 insert할 때까지 다른 트랜잭션은 대기함.
+        memberDao.findByMemberIdForUpdate(memberId);
+
+        // 신규 로그인 시도 - 기존 토큰 정리 후 새 세션 시작
         refreshTokenDao.deleteByMemberId(memberId);
         return createAndSaveNewSessionRefreshToken(memberId);
     }
@@ -66,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (ExpiredJwtException e) {
             log.warn("[Refresh] 만료된 리프레시 토큰");
             throw AuthException.of(AuthErrorCode.AUTH_TOKEN_EXPIRED);
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             log.warn("[Refresh] 유효하지 않은 리프레시 토큰: {}", e.getMessage());
             throw AuthException.of(AuthErrorCode.AUTH_INVALID_TOKEN);
         }

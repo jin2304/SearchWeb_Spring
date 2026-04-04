@@ -71,7 +71,15 @@ public class JwtUtils {
      * @return 사용자 ID와 권한이 담긴 JwtMemberPrincipal 객체
      */
     public JwtMemberPrincipal parseAccessToken(String token) {
-        Claims claims = parseClaims(token);
+        return parseAccessToken(parseClaims(token));
+    }
+
+    /**
+     * 이미 파싱된 Claims에서 사용자 정보(Principal) 추출
+     * @param claims 파싱된 Claims
+     * @return 사용자 ID와 권한이 담긴 JwtMemberPrincipal 객체
+     */
+    public JwtMemberPrincipal parseAccessToken(Claims claims) {
         Long memberId = Long.parseLong(claims.getSubject());
         String role = claims.get("role", String.class);
 
@@ -90,19 +98,28 @@ public class JwtUtils {
      * @return 사용자 ID
      */
     public Long extractMemberId(String token) {
-        Claims claims = parseClaims(token);
+        return extractMemberId(parseClaims(token));
+    }
+
+    /**
+     * 이미 파싱된 Claims에서 사용자 식별 ID(Subject) 추출
+     * @param claims 파싱된 Claims
+     * @return 사용자 ID
+     */
+    public Long extractMemberId(Claims claims) {
         return Long.parseLong(claims.getSubject());
     }
 
     /**
-     * 토큰의 유효성 검증
+     * 토큰의 유효성 검증 및 Claims 반환
      * @param token 검증할 JWT 토큰
+     * @return 파싱된 Claims 객체
      * @throws ExpiredJwtException 토큰이 만료된 경우
      * @throws JwtException 토큰이 유효하지 않은 경우
      */
-    public void validateToken(String token) {
+    public Claims validateToken(String token) {
         try {
-            parseClaims(token);
+            return parseClaims(token);
         } catch (ExpiredJwtException e) {
             log.debug("만료된 JWT 토큰: {}", e.getMessage());
             throw e;

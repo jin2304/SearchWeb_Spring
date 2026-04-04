@@ -88,10 +88,17 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> logout(
             @CookieValue(name = "refreshToken", required = false) String refreshToken) {
 
-        if (refreshToken != null && !refreshToken.isBlank()) {
-            authService.logout(refreshToken);
+        try {
+            if (refreshToken != null && !refreshToken.isBlank()) {
+                authService.logout(refreshToken);
+            }
+        } catch (Exception e) {
+            // 토큰이 이미 만료되었거나 부적절하더라도 로그아웃 과정에서는 로그만 남기고 무시.
+            // 클라이언트의 로그인 상태 초기화(쿠키 삭제)가 더 중요하기 때문.
+            log.warn("[Logout] 토큰 무효화 중 예외 발생 (무시하고 쿠키 삭제 진행): {}", e.getMessage());
         }
 
+        // 서버 처리 결과와 상관없이 브라우저 쿠키는 반드시 삭제 명령 전달 (멱등성 보장)
         ResponseCookie clearCookie = createRefreshTokenCookie("", 0);
 
         return ResponseEntity.ok()
