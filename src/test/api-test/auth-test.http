@@ -13,13 +13,25 @@
 # ★ 한번만 수동 연동하면 이후에는 Send Requst 버튼만 연속해서 누르면 됩니다.
 # ============================================================
 
+
+
+
+
 ### 0. 공통 변수
 @baseUrl = http://localhost:8080
 
-# ★ [공통 필수 단계] Step 2를 수행하여 브라우저에서 복사한 쿠키를 여기에 붙여넣으세요.
-@refreshTokenCookie = eyJhbGciOiJIUzM4NCJ9.eyJqdGkiOiIxMTBiOGJlYi00NDFlLTQ4ZDQtODgyYi0yN2VhYjlkNmNjM2Y6MiIsInN1YiI6IjciLCJzaWQiOiIxMTBiOGJlYi00NDFlLTQ4ZDQtODgyYi0yN2VhYjlkNmNjM2YiLCJ2ZXIiOjIsImlhdCI6MTc3NTA1NDg0NiwiZXhwIjoxNzc2MjY0NDQ2fQ.0ppPiXZSsumHjs2a1N2h157P3guZHpSGOBsIDjutGTRfssS6nNBB5kxYun-Q_sGL
-# ★ Step 3 실행 시 자동으로 업데이트되거나, 수동으로 응답값을 복사해 넣어주세요.
-@accessToken = 
+# ★ [공통 필수 단계] Step 2를 수행하여 브라우저에서 복사한 쿠키를 여기에 붙여넣으세요 (최초1회만).
+@refreshTokenCookie = 
+# ★ accessToken은 자동으로 업데이트됩니다.
+
+# 메모리에 꼬인 쿠키와 토큰을 강제로 비웁니다.
+POST {{baseUrl}}/api/auth/logout
+
+> {%
+    client.global.set("refreshTokenCookie", "");
+    client.global.set("accessToken", "");
+    client.log("모든 메모리 변수가 초기화되었습니다.");
+%}
 
 # ------------------------------------------------------------------------------
 # [공통 필수 단계] 로그인 및 .http 세션 연동
