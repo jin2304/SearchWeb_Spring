@@ -1,5 +1,6 @@
 package com.web.SearchWeb.config.security;
 
+import com.web.SearchWeb.config.jwt.JwtAccessDeniedHandler;
 import com.web.SearchWeb.config.jwt.JwtAuthenticationEntryPoint;
 import com.web.SearchWeb.config.jwt.JwtAuthenticationFilter;
 import com.web.SearchWeb.config.jwt.JwtUtils;
@@ -34,6 +35,7 @@ public class SecurityConfig {
     private final CustomOAuth2MemberService customOAuth2MemberService;
     private final JwtUtils jwtUtils;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository;
@@ -81,10 +83,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 );
 
-        // 인증 실패(401) 시 JSON 에러 응답을 반환하는 EntryPoint
+        // 예외 처리(401, 403) 시 JSON 에러 응답을 반환하는 설정
         http
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint));
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 401: 인증 실패 (로그인 안 함)
+                        .accessDeniedHandler(jwtAccessDeniedHandler));         // 403: 권한 부족 (관리자 아님)
 
         // OAuth2 소셜 로그인 설정
         http

@@ -18,11 +18,11 @@ import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.Cookie;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
-import java.util.Optional;
 
 /**
  * OAuth2 로그인 성공 시 호출되는 핸들러.
@@ -58,6 +58,16 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         try {
             // 1. 리다이렉트 URI 결정 및 검증 (실패 시 예외 발생)
             targetUrl = determineTargetUrl(request, response, authentication);
+        } catch (AuthException e) {
+            // [개선] 검증 실패 시 서버 에러(500) 대신 안전한 실패 경로로 리다이렉트 (Controlled Auth Failure Redirect)
+            log.warn("OAuth2 Success Handler - 허용되지 않은 리다이렉트 URI: {}", e.getMessage());
+            targetUrl = UriComponentsBuilder.fromUriString(oauth2RedirectUri)
+                    .queryParam("error", "invalid_redirect_uri")
+                    .build().toUriString();
+            
+            // 토큰 발급 없이 에러 URL로 즉시 리다이렉트
+            response.sendRedirect(targetUrl);
+            return;
         } finally {
             // 2. 성공/실패 여부와 상관없이 무조건 임시 쿠키 삭제 (보안 강화)
             authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
@@ -89,25 +99,28 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     /**
-     * 쿠키에 저장된 redirect_uri를 읽어오고 검증합니다.
+     * 쿠키에 저장된 redirect_uri를 읽어오고 로직에 따라 정규화 및 검증을 수행
+     * 상대 경로(/...)가 들어오면 설정된 프론트엔드 오리진(oauth2RedirectUri)을 기준으로 절대 URL로 변환
      */
     @Override
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        // 1. 쿠키에서 redirect_uri를 찾음
-        Optional<String> redirectUri = CookieUtils.getCookie(request, HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
-                .map(Cookie::getValue);
+        // 1. 쿠키에서 전송된 리다이렉트 URI를 가져오거나, 없으면 기본 설정된 URI 사용
+        String targetUrl = CookieUtils.getCookie(request, HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
+                .map(Cookie::getValue)
+                .orElse(oauth2RedirectUri);
 
-        // 2. 만약 쿠키(redirect_uri)가 존재한다면 검증 후 반환
-        if (redirectUri.isPresent()) {
-            String url = redirectUri.get();
-            if (isAuthorizedRedirectUri(url)) {
-                return url;
-            }
+        // 2. 상대 경로(/...)인 경우, 프론트엔드 기본 리다이렉트 URI(origin)를 기준으로 절대 URL로 정규화
+        // 백엔드 도메인에서 실행되더라도 프론트엔드 origin으로 정확히 리다이렉트되도록 합니다.
+        if (targetUrl.startsWith("/") && !targetUrl.startsWith("//")) {
+            targetUrl = URI.create(oauth2RedirectUri).resolve(targetUrl).toString();
+        }
+
+        // 3. 최종 검증 (Open Redirect 방지 및 허용된 도메인 체크)
+        if (!isAuthorizedRedirectUri(targetUrl)) {
             throw AuthException.of(AuthErrorCode.AUTH_INVALID_REDIRECT_URI);
         }
 
-        // 3. 쿠키가 아예 존재하지 않는 경우 기본 주소(프론트엔드 콜백)로 이동
-        return oauth2RedirectUri;
+        return targetUrl;
     }
 
     /**
@@ -118,12 +131,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             return false;
         }
 
-        // 상대 경로는 같은 도메인이므로 허용
-        if (uri.startsWith("/") && !uri.startsWith("//")) {
-            return true;
-        }
-
-        // 절대 경로인 경우 설정된 프론트엔드 URI와 호스트/포트가 같은지 확인
+        // 모든 경로는 determineTargetUrl에서 절대 URL로 정규화되었으므로, 호스트와 포트를 엄격하게 비교합니다.
         try {
             URI clientRedirectUri = URI.create(oauth2RedirectUri);
             URI targetUri = URI.create(uri);

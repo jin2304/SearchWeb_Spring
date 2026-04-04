@@ -32,13 +32,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        // Filter에서 설정한 예외 코드가 있는지 확인
-        ErrorCode errorCode = (ErrorCode) request.getAttribute("exception");
-
-        // 예외 코드가 없으면 기본 인증 실패 코드 사용 (토큰이 아예 없는 경우 등)
-        if (errorCode == null) {
-            errorCode = AuthErrorCode.AUTH_UNAUTHORIZED;
-        }
+        // Filter에서 설정한 예외 코드가 있는지 확인 (instanceof로 안전하게 캐스팅)
+        Object exception = request.getAttribute(JwtAuthenticationFilter.JWT_EXCEPTION_ATTRIBUTE);
+        ErrorCode errorCode = (exception instanceof ErrorCode) ? (ErrorCode) exception : AuthErrorCode.AUTH_UNAUTHORIZED;
 
         response.setStatus(errorCode.getStatus().value());         // 에러 코드에 정의된 상태 코드 설정
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

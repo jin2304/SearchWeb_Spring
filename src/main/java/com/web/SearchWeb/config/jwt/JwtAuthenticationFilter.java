@@ -1,6 +1,7 @@
 package com.web.SearchWeb.config.jwt;
 
 import com.web.SearchWeb.auth.error.AuthErrorCode;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -25,6 +26,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    /**
+     * JWT 인증 과정에서 발생한 예외를 EntryPoint로 전달하기 위한 request attribute 키
+     */
+    public static final String JWT_EXCEPTION_ATTRIBUTE = "jwt_auth_exception";
+
     private final JwtUtils jwtUtils;
 
     @Override
@@ -37,8 +43,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // 2. 토큰이 있고 유효하면 → 인증 정보를 SecurityContext에 저장, 없으면 아무것도 안 하고 통과
             if (token != null) {
-                jwtUtils.validateToken(token);
-                JwtMemberPrincipal principal = jwtUtils.parseAccessToken(token);
+                Claims claims = jwtUtils.validateToken(token);
+                JwtMemberPrincipal principal = jwtUtils.parseAccessToken(claims);
                 List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(principal.role()));
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
@@ -46,11 +52,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException e) {
             // 3-1. 토큰 만료 → Context 클리어 후 에러코드 저장
             SecurityContextHolder.clearContext();
-            request.setAttribute("exception", AuthErrorCode.AUTH_TOKEN_EXPIRED);
+            request.setAttribute(JWT_EXCEPTION_ATTRIBUTE, AuthErrorCode.AUTH_TOKEN_EXPIRED);
         } catch (JwtException | IllegalArgumentException e) {
             // 3-2. 토큰 위변조/파싱 실패 → Context 클리어 후 에러코드 저장
             SecurityContextHolder.clearContext();
-            request.setAttribute("exception", AuthErrorCode.AUTH_INVALID_TOKEN);
+            request.setAttribute(JWT_EXCEPTION_ATTRIBUTE, AuthErrorCode.AUTH_INVALID_TOKEN);
         }
 
         // 4. 다음 필터로 진행 (인증 성공/실패 관계없이 항상 호출, 토큰이 없거나 유효하지 않아도 다음 필터로 넘김)

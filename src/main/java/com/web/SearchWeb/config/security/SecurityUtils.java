@@ -63,7 +63,7 @@ public final class SecurityUtils {
      */
     public static String hashToken(String input) {
         if (input == null || input.isBlank()) {
-            throw AuthException.of(AuthErrorCode.AUTH_INTERNAL_ERROR);
+            throw AuthException.of(AuthErrorCode.AUTH_INVALID_TOKEN);
         }
 
         try {
