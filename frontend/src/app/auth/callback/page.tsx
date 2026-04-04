@@ -6,8 +6,8 @@ import { useAuthStore } from '@/lib/store/authStore';
 
 /**
  * OAuth 로그인 완료 후 백엔드가 리디렉션하는 콜백 페이지
- * - initialize()는 AuthProvider가 단독 호출 — 여기서는 결과만 구독
- * - 초기화 완료 후 인증 성공 여부에 따라 분기
+ * - 마운트 시 initialize()를 직접 호출하여 토큰 갱신 및 상태 초기화 진행 (authStore 내부에서 중복 호출 방지)
+ * - initialize()는 내부적으로 한 번만 실행되도록 싱글톤(Promise) 처리되어 있어 안전함
  */
 export default function AuthCallbackPage() {
   const router = useRouter();
