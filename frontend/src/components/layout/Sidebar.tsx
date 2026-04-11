@@ -21,14 +21,15 @@ export function Sidebar() {
   const pinnedFolders = folders?.slice(0, 5) ?? [];
 
   const navItems = [
+    { name: 'Overview', href: '/', icon: 'visibility', activeClass: 'bg-primary/20 text-violet-300' },
     { name: 'My Links', href: '/my-links', icon: 'bookmark_border', activeClass: 'bg-primary/20 text-violet-300' },
-    { name: 'History', href: '/history', icon: 'history' },
-    { name: 'Tags', href: '/tags', icon: 'tag' },
-    { name: 'Settings', href: '/settings', icon: 'settings' },
+    // { name: 'History', href: '/history', icon: 'history' },
+    // { name: 'Tags', href: '/tags', icon: 'tag' },
+    // { name: 'Settings', href: '/settings', icon: 'settings' },
   ];
 
   return (
-    <aside className="w-[180px] bg-sidebar-dark text-white flex flex-col flex-shrink-0 h-full border-r border-white/5 z-40">
+    <aside className="w-[180px] bg-slate-950 text-white flex flex-col flex-shrink-0 h-full border-r border-white/5 z-40">
       
       {/* Logo Area */}
       <div className="p-4 flex items-center space-x-2">
@@ -67,7 +68,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2 space-y-0.5 hide-scrollbar">
         {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+          const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}

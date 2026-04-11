@@ -6,7 +6,9 @@ import { SaveLinkDialog } from "@/components/dialogs/SaveLinkDialog";
 import { CreateFolderDialog } from "@/components/dialogs/CreateFolderDialog";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
+import { Agentation } from "agentation";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,22 +26,32 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isDev = process.env.NODE_ENV === "development";
+
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
         {/* Material Symbols Outlined Font */}
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
       </head>
       <body className={`${inter.variable} font-sans antialiased bg-background-light dark:bg-background-dark text-text-main h-screen overflow-hidden flex transition-colors duration-200`}>
-        <QueryProvider>
-          <AuthProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
-          </AuthProvider>
-          <SaveLinkDialog />
-          <CreateFolderDialog />
-        </QueryProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <AuthProvider>
+              <AppLayout>
+                {children}
+              </AppLayout>
+            </AuthProvider>
+            <SaveLinkDialog />
+            <CreateFolderDialog />
+            {isDev && <Agentation />}
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
