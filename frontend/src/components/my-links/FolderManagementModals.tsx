@@ -97,7 +97,8 @@ export function FolderDeleteModal({ folder, onClose }: DeleteModalProps) {
           <button
             type="button"
             onClick={handleDelete}
-            className="flex-1 px-3 py-2 text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors shadow-sm"
+            disabled={deleteFolder.isPending}
+            className="flex-1 px-3 py-2 text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {deleteFolder.isPending ? 'Deleting...' : 'Delete'}
           </button>
@@ -122,6 +123,7 @@ export function FolderMoveModal({ folder, onClose }: MoveModalProps) {
   const targetFolders = allFolders?.filter(f => f.memberFolderId !== folder.memberFolderId && f.memberFolderId !== folder.parentFolderId) ?? [];
 
   const handleMove = (newParentId: number | null) => {
+    if (moveFolder.isPending) return;
     moveFolder.mutate({
       folderId: folder.memberFolderId,
       data: { newParentFolderId: newParentId }
@@ -135,12 +137,13 @@ export function FolderMoveModal({ folder, onClose }: MoveModalProps) {
       <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 p-6 animate-in fade-in zoom-in duration-200">
         <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4">Move Folder</h3>
         
-        <div className="max-h-60 overflow-y-auto mb-4 border border-gray-100 dark:border-gray-800 rounded-lg">
+        <div className={`max-h-60 overflow-y-auto mb-4 border border-gray-100 dark:border-gray-800 rounded-lg transition-opacity ${moveFolder.isPending ? 'pointer-events-none opacity-50' : ''}`}>
           {/* 최상위(Root)로 이동 옵션 */}
           {folder.parentFolderId !== null && (
             <button
               onClick={() => handleMove(null)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-purple-50 dark:hover:bg-purple-900/10 text-left transition-colors border-b border-gray-50 dark:border-gray-800"
+              disabled={moveFolder.isPending}
+              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-purple-50 dark:hover:bg-purple-900/10 text-left transition-colors border-b border-gray-50 dark:border-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-gray-400 text-base">home</span>
               <div className="flex-1">
@@ -159,7 +162,8 @@ export function FolderMoveModal({ folder, onClose }: MoveModalProps) {
             <button
               key={target.memberFolderId}
               onClick={() => handleMove(target.memberFolderId)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-purple-50 dark:hover:bg-purple-900/10 text-left transition-colors border-b border-gray-50 last:border-0 dark:border-gray-800"
+              disabled={moveFolder.isPending}
+              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-purple-50 dark:hover:bg-purple-900/10 text-left transition-colors border-b border-gray-50 last:border-0 dark:border-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-purple-400 text-base">folder</span>
               <div className="flex-1 min-w-0">

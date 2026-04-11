@@ -27,6 +27,8 @@ export function FolderCard({ folder, color }: FolderCardProps) {
 
   // 메뉴 외부 클릭 시 메뉴를 닫는 로직
   useEffect(() => {
+    if (!showMenu) return;
+
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
       // 메뉴 버튼이나 메뉴 본체를 클릭한 게 아니라면 메뉴를 닫음
@@ -38,7 +40,7 @@ export function FolderCard({ folder, color }: FolderCardProps) {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [showMenu]);
 
   // 메뉴 표시 시 버튼의 현재 위치를 계산하여 좌표 설정
   useEffect(() => {

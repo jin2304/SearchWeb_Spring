@@ -655,31 +655,48 @@ export function RightPanel() {
     if (selectedLinkIds.length === 0) return;
     
     try {
-      // 선택된 모든 링크들에 대해 폴더 수정 API 호출
-      // Promise.all을 사용하여 병렬 처리
-      await Promise.all(
-        selectedLinkIds.map(bookmarkId => {
-          // 현재 북마크 데이터를 찾아 기존 정보를 유지하며 폴더 ID만 변경
+      // Promise.allSettled를 사용하여 각 요청의 성공/실패 여부를 개별적으로 확인
+      const results = await Promise.allSettled(
+        selectedLinkIds.map(async (bookmarkId) => {
           const bookmark = bookmarks?.find(b => b.bookmarkId === bookmarkId);
-          if (!bookmark) return Promise.resolve();
+          if (!bookmark) return bookmarkId;
           
-          // mutateAsync로 비동기 호출 대기
-          return updateBookmarkMutation.mutateAsync({
+          await updateBookmarkMutation.mutateAsync({
             bookmarkId,
             memberFolderId: targetFolderId,
             displayTitle: bookmark.displayTitle,
             note: bookmark.note ?? undefined,
             tags: bookmark.tags?.join(', ')
           });
+          return bookmarkId;
         })
       );
+
+      // 성공한 ID 목록 추출
+      const succeededIds = results
+        .filter((res): res is PromiseFulfilledResult<number> => res.status === 'fulfilled')
+        .map(res => res.value);
+
+      // 성공한 항목은 선택 목록에서 제거 (즉시 반영)
+      if (succeededIds.length > 0) {
+        setSelectedLinkIds(prev => prev.filter(id => !succeededIds.includes(id)));
+      }
+
+      // 모든 요청이 성공했는지 확인
+      const allSucceeded = results.every(res => res.status === 'fulfilled');
       
-      // 이동 성공 시 모달을 닫고 일괄 편집 모드 종료
-      setIsMoveModalOpen(false);
-      exitBulkMode();
+      if (allSucceeded) {
+        // 전원 성공 시 모달 닫고 모드 종료
+        setIsMoveModalOpen(false);
+        exitBulkMode();
+      } else {
+        // 일부 실패 시 콘솔에 알림 (모달은 열려 있고 실패 항목만 선택된 상태로 남음)
+        const failedCount = selectedLinkIds.length - succeededIds.length;
+        console.error(`Bulk move partially failed: ${failedCount} items failed.`);
+      }
     } catch (error) {
-      console.error('Bulk move failed:', error);
-      // 에러 처리 로직 추가 가능 지점
+      // Promise.allSettled 자체에서 에러가 발생하는 경우(드문 상황)에 대한 대비
+      console.error('Unexpected error during bulk move:', error);
     }
   };
 
