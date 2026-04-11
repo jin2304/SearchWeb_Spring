@@ -2,34 +2,91 @@
 
 import NextLink from "next/link";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { buildBackendUrl } from "@/lib/config/backend";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/authStore";
 
 export default function Home() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
+    const handleScroll = () => {
+      const scrollTop =
+        containerRef.current?.scrollTop ??
+        window.scrollY ??
+        document.documentElement.scrollTop ??
+        document.body.scrollTop ??
+        0;
+
+      if (scrollTop > 240) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    handleScroll();
+
+    const scrollContainer = containerRef.current;
+
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+      return () => scrollContainer.removeEventListener("scroll", handleScroll);
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const scrollToTop = () => {
+    const scrollContainer = containerRef.current;
+
+    if (scrollContainer) {
+      scrollContainer.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const handleStartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isAuthenticated) {
+      router.push("/my-links");
+    } else {
+      window.location.href = buildBackendUrl("/oauth2/authorization/google");
+    }
+  };
+
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden w-screen text-text-main font-sans selection:bg-primary/20 bg-background-light dark:bg-background-dark">
+    <div
+      ref={containerRef}
+      className="relative flex h-screen min-h-screen w-full w-screen flex-col overflow-x-hidden overflow-y-auto text-text-main font-sans selection:bg-primary/20 bg-background-light dark:bg-background-dark"
+    >
       <header className="fixed w-full top-0 z-50 flex h-11 items-center justify-between whitespace-nowrap border-b border-white/10 bg-black/95 backdrop-blur-md px-6 lg:px-20 shadow-sm transition-all duration-300">
-        <NextLink href="#" className="flex items-center gap-2 group transition-opacity">
-          <div className="size-6 rounded bg-violet-600/20 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
-            <span className="material-symbols-outlined !text-base">bookmarks</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 tracking-tight uppercase">
-            <span className="text-gray-700 font-light translate-y-[0.5px]">/</span>
-            <span className="text-white text-sm tracking-tight normal-case">SearchWeb</span>
-          </div>
+        <NextLink href="/" className="flex items-center space-x-2 group transition-opacity">
+          <span className="material-symbols-outlined text-3xl text-violet-400 group-hover:scale-110 transition-transform">language</span>
+          <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">SearchWeb</span>
         </NextLink>
 
         <div className="flex items-center gap-6">
           <nav className="hidden items-center gap-7 md:flex">
             <a className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors" href="#features">기능</a>
-            <a className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors" href="#pricing">가격</a>
+            {/* <a className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors" href="#pricing">가격</a> */}
             <a className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors" href="#">문의하기</a>
             <NextLink href="/login" className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors">
               로그인
@@ -61,9 +118,9 @@ export default function Home() {
           <div className="w-full mx-auto max-w-6xl">
             <div className="flex flex-col lg:flex-row justify-between gap-8 lg:items-center">
               {/* Left Column: Text & Features */}
-              <div className="flex flex-col gap-8 lg:w-[50%] lg:pr-10">
+              <div className="flex flex-col gap-6 lg:w-[50%] lg:pr-10">
                 <div className="space-y-4 text-left">
-                  <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/40 dark:border-white/10 bg-white/40 dark:bg-white/5 backdrop-blur-md px-3 py-1.5 text-[11px] font-bold text-violet-600 dark:text-violet-400 shadow-[0_4px_15px_-3px_rgba(139,92,246,0.12)] dark:shadow-none transition-all duration-300 hover:border-violet-300 dark:hover:border-violet-500/30">
+                  <div className="inline-flex w-fit items-center gap-2 rounded-full border border-violet-500/20 dark:border-white/10 bg-violet-500/10 dark:bg-white/5 backdrop-blur-md px-3 py-1.5 text-[11px] font-bold text-violet-600 dark:text-violet-400 shadow-[0_4px_15px_-3px_rgba(139,92,246,0.12)] dark:shadow-none transition-all duration-300 hover:border-violet-300 dark:hover:border-violet-500/30">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 dark:bg-violet-500 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]"></span>
@@ -72,19 +129,20 @@ export default function Home() {
                   </div>
                   <h1 className="text-text-main dark:text-white text-4xl font-black leading-[1.1] tracking-tight md:text-5xl lg:text-6xl pt-2">
                     북마크의 진화,<br/>
-                    <span className="bg-linear-to-br from-violet-600 to-purple-500 dark:bg-none dark:text-violet-500 bg-clip-text text-transparent dark:text-wrap">AI 지능형</span> 관리
+                    <span className="bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] bg-clip-text text-transparent">AI 지능형</span> 관리
                   </h1>
-                  <p className="text-text-sub dark:text-white/60 text-lg font-normal leading-relaxed max-w-lg">
+                  <p className="text-text-sub dark:text-white/60 text-sm font-medium leading-relaxed tracking-tight max-w-lg opacity-80">
                     저장하고, 자동 태그하고, 다시 활용하세요.<br/>
                     SearchWeb의 AI가 당신의 지식 관리를 돕습니다.<br/>
                     단순한 링크 저장을 넘어선 지식 베이스를 구축하세요.
                   </p>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <div className="flex flex-col sm:flex-row gap-4 pt-0">
                   <a 
-                    href={buildBackendUrl("/oauth2/authorization/google")}
-                    className="flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-700 text-white text-sm font-semibold h-11 px-6 rounded-lg transition-all shadow-md whitespace-nowrap"
+                    href={isAuthenticated ? "/my-links" : buildBackendUrl("/oauth2/authorization/google")}
+                    onClick={handleStartClick}
+                    className="flex items-center justify-center gap-2 bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] hover:brightness-110 text-white text-sm font-bold h-11 px-6 rounded-lg transition-all shadow-lg shadow-violet-500/25 border-t border-white/20 whitespace-nowrap"
                   >
                     <div className="flex h-5 w-5 items-center justify-center rounded-sm bg-white p-0.5">
                       <svg width="14" height="14" viewBox="0 0 24 24">
@@ -100,32 +158,32 @@ export default function Home() {
 
                 <div className="flex flex-col gap-5 border-t border-slate-100 dark:border-white/10 pt-8 mt-4 relative z-10">
                   <div className="flex items-center gap-4 group">
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-1.5 group-hover:ring-violet-400/60">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-2 group-hover:ring-violet-400">
                       <span className="material-symbols-outlined text-[24px] transition-all duration-500 group-hover:text-primary dark:group-hover:text-violet-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_12px_rgba(167,139,250,0.6)]">auto_awesome</span>
                     </div>
                     <div className="flex flex-col justify-center">
-                      <h4 className="font-bold text-text-main dark:text-white text-base mb-0.5 transition-colors group-hover:text-primary dark:group-hover:text-violet-400">AI 자동 태깅</h4>
-                      <p className="text-sm text-text-sub dark:text-white/60">문서 내용을 분석하여 자동으로 카테고리를 분류합니다.</p>
+                      <h4 className="font-bold text-text-main dark:text-white text-[15px] tracking-tight mb-0.5 transition-colors group-hover:text-primary dark:group-hover:text-violet-400">AI 자동 태깅</h4>
+                      <p className="text-sm font-medium tracking-tight text-text-sub dark:text-white/60 opacity-80">문서 내용 분석을 통한 지능형 자동 카테고리 분류</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-4 group">
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-1.5 group-hover:ring-violet-400/60">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-2 group-hover:ring-violet-400">
                       <span className="material-symbols-outlined text-[24px] transition-all duration-500 group-hover:text-primary dark:group-hover:text-violet-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_12px_rgba(167,139,250,0.6)]">folder_open</span>
                     </div>
                     <div className="flex flex-col justify-center">
-                      <h4 className="font-bold text-text-main dark:text-white text-base mb-0.5 transition-colors group-hover:text-primary dark:group-hover:text-violet-400">스마트 폴더 추천</h4>
-                      <p className="text-sm text-text-sub dark:text-white/60">프로젝트별, 팀별 문서를 마법처럼 알아서 정리합니다.</p>
+                      <h4 className="font-bold text-text-main dark:text-white text-[15px] tracking-tight mb-0.5 transition-colors group-hover:text-primary dark:group-hover:text-violet-400">스마트 폴더 추천</h4>
+                      <p className="text-sm font-medium tracking-tight text-text-sub dark:text-white/60 opacity-80">프로젝트 및 팀별 문서를 최적의 구조로 스마트하게 정리</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-4 group">
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-1.5 group-hover:ring-violet-400/60">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-2 group-hover:ring-violet-400">
                       <span className="material-symbols-outlined text-[24px] transition-all duration-500 group-hover:text-primary dark:group-hover:text-violet-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_12px_rgba(167,139,250,0.6)]">bolt</span>
                     </div>
                     <div className="flex flex-col justify-center">
-                      <h4 className="font-bold text-text-main dark:text-white text-base mb-0.5 transition-colors group-hover:text-primary dark:group-hover:text-violet-400">초고속 검색</h4>
-                      <p className="text-sm text-text-sub dark:text-white/60">수만 개의 문서 중 원하는 내용을 0.1초 만에 발견하세요.</p>
+                      <h4 className="font-bold text-text-main dark:text-white text-[15px] tracking-tight mb-0.5 transition-colors group-hover:text-primary dark:group-hover:text-violet-400">초고속 검색</h4>
+                      <p className="text-sm font-medium tracking-tight text-text-sub dark:text-white/60 opacity-80">수만 개의 자료 속에서 원하는 정보를 찾아내는 0.1초 검색</p>
                     </div>
                   </div>
                 </div>
@@ -280,6 +338,7 @@ export default function Home() {
           </div>
         </section>
 
+        {/* 
         <section id="pricing" className="px-6 py-24 lg:px-20 bg-white dark:bg-background-dark border-t border-slate-100 dark:border-white/8 min-h-screen flex items-center transition-colors duration-300">
           <div className="mx-auto max-w-6xl">
             <div className="mb-10 flex flex-col items-center text-center">
@@ -384,26 +443,36 @@ export default function Home() {
             </div>
           </div>
         </section>
+        */}
       </main>
 
-      <footer className="border-t border-slate-100 dark:border-white/8 bg-white dark:bg-background-dark px-6 py-8 lg:px-20 relative z-20 transition-colors duration-300">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 md:flex-row">
-          <div className="flex items-center gap-2">
-            <div className="size-6 rounded bg-primary/10 dark:bg-violet-600/20 flex items-center justify-center text-primary dark:text-violet-400">
-              <span className="material-symbols-outlined !text-lg">bookmarks</span>
-            </div>
-            <span className="text-lg font-bold text-text-main dark:text-white">SearchWeb</span>
+      <footer className="border-t border-white/5 bg-[#030712] px-6 py-12 lg:px-20 relative z-20 transition-all duration-300">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 md:flex-row">
+          <div className="flex items-center space-x-2 group transition-opacity">
+            <span className="material-symbols-outlined text-3xl text-violet-400 group-hover:scale-110 transition-transform">language</span>
+            <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">SearchWeb</span>
           </div>
-          <div className="flex gap-8 text-sm text-text-sub dark:text-white/40">
-            <a className="hover:text-primary dark:hover:text-violet-400 transition-colors" href="#">이용약관</a>
-            <a className="hover:text-primary dark:hover:text-violet-400 transition-colors" href="#">개인정보처리방침</a>
-            <a className="hover:text-primary dark:hover:text-violet-400 transition-colors" href="#">문의하기</a>
+          <div className="flex gap-10 text-sm text-slate-400">
+            <a className="hover:text-white transition-colors" href="#">이용약관</a>
+            <a className="hover:text-white transition-colors" href="#">개인정보처리방침</a>
+            <a className="hover:text-white transition-colors" href="#">문의하기</a>
           </div>
-          <div className="text-sm text-text-sub dark:text-white/40">
+          <div className="text-sm text-slate-500 font-medium">
             © 2026 SearchWeb Inc. All rights reserved.
           </div>
         </div>
       </footer>
+
+      {/* Scroll to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed bottom-7 right-7 z-[60] flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-[#050505]/92 text-white shadow-[0_14px_34px_rgba(0,0,0,0.42)] backdrop-blur-xl transition-all duration-500 hover:scale-105 hover:bg-[#000000]/96 hover:shadow-[0_18px_40px_rgba(0,0,0,0.52)] active:scale-95 ${
+          showScrollTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-16 opacity-0"
+        }`}
+        aria-label="맨 위로 가기"
+      >
+        <span className="material-symbols-outlined text-[20px]">arrow_upward</span>
+      </button>
     </div>
   );
 }

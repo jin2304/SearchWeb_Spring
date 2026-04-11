@@ -2,17 +2,17 @@
 
 import React from "react";
 import NextLink from "next/link";
+import { Input } from "@/components/ui/input";
+import { buildBackendUrl } from "@/lib/config/backend";
 
 export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden w-screen text-text-main font-sans selection:bg-primary/20 bg-background-light dark:bg-background-dark">
       {/* Sync Header with Landing Page (page.tsx) */}
       <header className="fixed w-full top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-white/10 bg-black px-6 py-3 lg:px-20 shadow-md">
-        <NextLink href="/" className="flex items-center gap-3 text-white hover:opacity-80 transition-opacity">
-          <div className="size-7 rounded-lg bg-primary/20 flex items-center justify-center text-primary-light">
-            <span className="material-symbols-outlined !text-xl">bookmarks</span>
-          </div>
-          <h2 className="text-white text-xl font-bold leading-tight tracking-tight">SearchWeb</h2>
+        <NextLink href="/" className="flex items-center space-x-2 group transition-opacity">
+          <span className="material-symbols-outlined text-3xl text-violet-400 group-hover:scale-110 transition-transform">language</span>
+          <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">SearchWeb</span>
         </NextLink>
         <div className="flex flex-1 justify-end gap-8">
           <div className="hidden items-center gap-9 md:flex">
@@ -22,10 +22,10 @@ export default function LoginPage() {
           </div>
           <div className="hidden md:flex items-center">
             <NextLink href="/login" className="flex items-center justify-center rounded-lg bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] px-4 py-2 text-sm font-bold text-white transition-all hover:brightness-110 shadow-lg shadow-primary/20 border-t border-white/20">
-              Log In
+              로그인
             </NextLink>
           </div>
-          <button className="md:hidden text-white">
+          <button type="button" className="md:hidden text-white">
             <span className="material-symbols-outlined">menu</span>
           </button>
         </div>
@@ -136,9 +136,14 @@ export default function LoginPage() {
               </div>
 
               {/* Google Sign In - Purple Gradient Background */}
-              <button className="group relative mb-6 flex h-11 w-full items-center justify-center gap-3 rounded-lg border-t border-white/20 bg-[linear-gradient(135deg,#6d28d9,#8b5cf6)] text-white shadow-md transition-all hover:brightness-110 hover:shadow-primary/25">
+              <button 
+                type="button" 
+                onClick={() => { window.location.href = buildBackendUrl('/oauth2/authorization/google'); }} 
+                className="group relative mb-6 flex h-11 w-full items-center justify-center gap-3 rounded-lg border-t border-white/20 bg-[linear-gradient(135deg,#6d28d9,#8b5cf6)] text-white shadow-md transition-all hover:brightness-110 hover:shadow-primary/25"
+              >
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white p-1">
                   <svg className="h-full w-full" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <title>Google Logo</title>
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.26.81-.58z" fill="#FBBC05"></path>
@@ -160,8 +165,7 @@ export default function LoginPage() {
               <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-text-sub" htmlFor="email">이메일</label>
-                  <input 
-                    className="w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-main outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5" 
+                  <Input 
                     id="email" 
                     placeholder="이메일을 입력하세요" 
                     type="email"
@@ -170,8 +174,7 @@ export default function LoginPage() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-text-sub" htmlFor="password">비밀번호</label>
-                  <input 
-                    className="w-full rounded-lg border border-slate-200/80 bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-main outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5" 
+                  <Input 
                     id="password" 
                     placeholder="••••••••" 
                     type="password"
