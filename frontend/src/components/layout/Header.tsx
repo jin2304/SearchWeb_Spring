@@ -10,7 +10,7 @@ interface HeaderProps {
 
 export function Header({ title = 'My Links' }: HeaderProps) {
   const rightPanelOpen = useUIStore((s) => s.rightPanelOpen);
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -29,10 +29,10 @@ export function Header({ title = 'My Links' }: HeaderProps) {
       </div>
 
       {/* Right: Actions / Right Panel Header Sync */}
-      <div className={`flex items-center px-4 transition-all duration-300 ${
+      <div className={`flex items-center px-4 transition-all duration-300 dark:bg-white/[0.04] ${
         rightPanelOpen 
-          ? 'w-[700px] bg-white dark:bg-[#0a0a0b] border-l border-gray-200 dark:border-white/[0.08]' 
-          : 'bg-transparent'
+          ? 'xl:w-[700px] xl:bg-white xl:dark:bg-[#0a0a0b] xl:border-l xl:border-gray-200 xl:dark:border-white/[0.08]' 
+          : ''
       }`}>
         <div className="ml-auto flex items-center space-x-1">
           <button type="button" className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-md transition-colors">
@@ -41,10 +41,10 @@ export function Header({ title = 'My Links' }: HeaderProps) {
           <button
             type="button"
             className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-md transition-colors"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
           >
             <span className="material-symbols-outlined !text-[14px]">
-              {mounted && theme === 'dark' ? 'light_mode' : 'dark_mode'}
+              {mounted && resolvedTheme === 'dark' ? 'light_mode' : 'dark_mode'}
             </span>
           </button>
         </div>
