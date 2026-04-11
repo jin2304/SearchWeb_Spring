@@ -1,61 +1,177 @@
 'use client';
 
-import { Folder } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import type { FolderResponse } from '@/lib/types/folder';
+import { useFolderStore } from '@/lib/store/folderStore';
+import { FolderEditModal, FolderDeleteModal, FolderMoveModal } from './FolderManagementModals';
 
 interface FolderCardProps {
-  name: string;
-  count: number;
-  color?: 'blue' | 'purple' | 'green' | 'amber' | 'rose' | 'indigo';
-  icon?: React.ReactNode;
+  folder: FolderResponse;
+  color?: string;
 }
 
-const COLOR_MAPS = {
-  blue: {
-    bg: 'bg-blue-400',
-    groupHover: 'group-hover:bg-blue-400'
-  },
-  purple: {
-    bg: 'bg-purple-400',
-    groupHover: 'group-hover:bg-purple-400'
-  },
-  green: {
-    bg: 'bg-green-400',
-    groupHover: 'group-hover:bg-green-400'
-  },
-  amber: {
-    bg: 'bg-amber-400',
-    groupHover: 'group-hover:bg-amber-400'
-  },
-  rose: {
-    bg: 'bg-rose-400',
-    groupHover: 'group-hover:bg-rose-400'
-  },
-  indigo: {
-    bg: 'bg-indigo-400',
-    groupHover: 'group-hover:bg-indigo-400'
-  }
-};
+const MENU_OFFSET_Y = 4; // 버튼과 메뉴 사이의 상하 간격
 
-export function FolderCard({ name, count, color = 'blue', icon }: FolderCardProps) {
-  const selectedColor = COLOR_MAPS[color];
+export function FolderCard({ folder, color }: FolderCardProps) {
+  const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
+  const [showMenu, setShowMenu] = useState(false); // 드롭다운 메뉴 표시 여부
+  const [modalType, setModalType] = useState<'edit' | 'delete' | 'move' | null>(null); // 현재 열린 모달 타입
+  
+  // DOM 참조 (메뉴 외부 클릭 감지 및 위치 계산용)
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // 드롭다운 메뉴의 절대 좌표 상태
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
+
+  // 메뉴 외부 클릭 시 메뉴를 닫는 로직
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+      // 메뉴 버튼이나 메뉴 본체를 클릭한 게 아니라면 메뉴를 닫음
+      if (menuRef.current?.contains(target) || menuButtonRef.current?.contains(target)) {
+        return;
+      }
+      setShowMenu(false);
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // 메뉴 표시 시 버튼의 현재 위치를 계산하여 좌표 설정
+  useEffect(() => {
+    if (!showMenu) return;
+
+    const updateMenuPosition = () => {
+      if (!menuButtonRef.current) return;
+
+      // 버튼의 화면상 절대 위치를 가져옴
+      const rect = menuButtonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + MENU_OFFSET_Y, // 버튼 바로 아래에 위치하도록 계산
+        left: rect.left, // 버튼의 왼쪽 끝에 맞춤 (오른쪽으로 확장됨)
+      });
+    };
+
+    updateMenuPosition();
+    // 윈도우 크기 조절이나 스크롤 시 메뉴 위치를 재계산 (포탈 특성상 필요)
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', updateMenuPosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updateMenuPosition);
+      window.removeEventListener('scroll', updateMenuPosition, true);
+    };
+  }, [showMenu]);
+
+  // 카드 클릭 시 폴더 선택 처리 (메뉴가 열려있지 않을 때만)
+  const handleCardClick = () => {
+    if (!showMenu) {
+      setSelectedFolderId(folder.memberFolderId);
+    }
+  };
+
+  // 메뉴 버튼 토글 (이벤트 전파 방지 포함)
+  const toggleMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMenu((prev) => !prev);
+  };
+
+  // 메뉴 항목 클릭 시 모달 열기 및 메뉴 닫기
+  const handleMenuItemClick = (type: 'edit' | 'delete' | 'move', e: React.MouseEvent) => {
+    e.stopPropagation();
+    setModalType(type);
+    setShowMenu(false);
+  };
 
   return (
-    <div className="group relative flex flex-col justify-between p-4 bg-white dark:bg-card-dark rounded-xl border border-border shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden min-h-[120px]">
-      
-      {/* Background Decorative Element */}
-      <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-[0.03] ${selectedColor.bg}`} />
-      
-      <div className="flex items-center justify-between z-10">
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-muted/50 text-muted-foreground ${selectedColor.groupHover} group-hover:text-white transition-colors`}>
-          {icon || <Folder size={20} />}
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={handleCardClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCardClick();
+          }
+        }}
+        className={`bg-white dark:bg-card-dark rounded-lg p-2.5 border border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10 transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between focus:ring-1 focus:ring-purple-300 dark:focus:ring-purple-500 outline-none hover:bg-purple-50/30 dark:hover:bg-white/[0.03] relative overflow-visible ${color || ''}`}
+      >
+        <div className="flex justify-between items-start">
+          <div className="p-1.5 bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-gray-400 group-hover:dark:text-white transition-colors rounded-md flex items-center justify-center w-8 h-8">
+            <span className="material-symbols-outlined text-[16px]">folder_open</span>
+          </div>
+
+          <div className="relative">
+            <button
+              ref={menuButtonRef}
+              onClick={toggleMenu}
+              type="button"
+              className="text-gray-300 dark:text-gray-600 hover:text-purple-500 dark:hover:text-purple-400 transition-colors h-5 w-5 flex items-center justify-center"
+            >
+              <span
+                className="material-symbols-outlined !text-[18px] !leading-none"
+                style={{ fontVariationSettings: "'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}
+              >
+                more_horiz
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-semibold text-[10px] xl:text-[11px] text-gray-800 dark:text-white truncate mt-1.5">
+            {folder.folderName}
+          </h4>
         </div>
       </div>
-      
-      <div className="mt-4 z-10">
-        <h3 className="text-sm font-semibold text-foreground truncate">{name}</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">{count} links</p>
-      </div>
 
-    </div>
+      {/* ── 드롭다운 메뉴 (Portal을 사용하여 최상단 layer에서 렌더링) ── */}
+      {/* 팁: overflow-hidden 속성이 있는 카드 밖으로 메뉴가 잘리지 않도록 Portal을 사용합니다. */}
+      {showMenu && menuPosition && createPortal(
+        <div
+          ref={menuRef}
+          className="fixed w-28 bg-white dark:bg-slate-950 border border-gray-100 dark:border-white/8 shadow-xl rounded-lg py-1 z-[120] animate-in fade-in slide-in-from-top-1 duration-150"
+          style={{ top: menuPosition.top, left: menuPosition.left }}
+        >
+          <button
+            onClick={(e) => handleMenuItemClick('edit', e)}
+            className="w-full text-left px-3 py-2 text-[11px] text-gray-700 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors"
+          >
+            <span className="material-symbols-outlined !text-[16px] !leading-none">edit</span>
+            <span className="font-medium">Rename</span>
+          </button>
+          <button
+            onClick={(e) => handleMenuItemClick('move', e)}
+            className="w-full text-left px-3 py-2 text-[11px] text-gray-700 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors"
+          >
+            <span className="material-symbols-outlined !text-[16px] !leading-none">drive_file_move</span>
+            <span className="font-medium">Move</span>
+          </button>
+          <div className="h-px bg-gray-50 dark:bg-white/8 my-0.5" />
+          <button
+            onClick={(e) => handleMenuItemClick('delete', e)}
+            className="w-full text-left px-3 py-2 text-[11px] text-rose-500 dark:text-red-400 hover:bg-rose-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors"
+          >
+            <span className="material-symbols-outlined !text-[16px] !leading-none text-rose-500 dark:text-red-400">delete</span>
+            <span className="font-medium">Delete</span>
+          </button>
+        </div>,
+        document.body
+      )}
+
+      {modalType === 'edit' && (
+        <FolderEditModal folder={folder} onClose={() => setModalType(null)} />
+      )}
+      {modalType === 'delete' && (
+        <FolderDeleteModal folder={folder} onClose={() => setModalType(null)} />
+      )}
+      {modalType === 'move' && (
+        <FolderMoveModal folder={folder} onClose={() => setModalType(null)} />
+      )}
+    </>
   );
 }

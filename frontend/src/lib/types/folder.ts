@@ -17,3 +17,14 @@ export interface CreateFolderRequest {
   folderName: string;
   description?: string;
 }
+
+// PUT /api/folders/{folderId} 요청 바디
+export interface UpdateFolderRequest {
+  folderName: string;
+  description?: string;
+}
+
+// PUT /api/folders/{folderId}/move 요청 바디
+export interface MoveFolderRequest {
+  newParentFolderId: number | null;
+}

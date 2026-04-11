@@ -1,12 +1,15 @@
 'use client';
 
+import { FolderCard } from '@/components/my-links/FolderCard';
 import { RightPanel } from '@/components/my-links/RightPanel';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useFolders } from '@/lib/api/folderApi';
 import { useFolderStore } from '@/lib/store/folderStore';
 import { useAuthStore } from '@/lib/store/authStore';
+import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
+import { useState } from 'react';
 
-const PINNED_COLORS = ['bg-blue-600', 'bg-indigo-500', 'bg-teal-500', 'bg-amber-500', 'bg-emerald-600'];
+const PINNED_COLORS = ['bg-blue-600/90', 'bg-indigo-500/90', 'bg-teal-500/90', 'bg-amber-500/90', 'bg-emerald-600/90'];
 
 export default function MyLinksPage() {
   const { toggleRightPanel } = useUIStore();
@@ -19,17 +22,24 @@ export default function MyLinksPage() {
   const isLoading = isAuthInitializing || isFoldersLoading;
   const pinnedFolders = folders?.slice(0, 5) ?? [];
 
+  const [folderSort, setFolderSort] = useState('recently');
+  const folderSortOptions: SortOption[] = [
+    { id: 'recently', label: 'Recently Added', icon: 'schedule' },
+    { id: 'a-z', label: 'Name (A-Z)', icon: 'sort_by_alpha' },
+    { id: 'count', label: 'Link Count', icon: 'list_alt' }
+  ];
+
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 overflow-y-auto p-4 xl:p-5 transition-all duration-300">
+      <div className="flex-1 min-w-0 overflow-y-auto px-4 py-2 xl:px-5 xl:py-3 transition-all duration-300 bg-[#fafafa] dark:bg-white/[0.04]">
         
         {/* Top Search & Filter Section */}
         <div className="mb-5 flex flex-col items-start bg-transparent">
           
           <div className="relative w-full max-w-lg mb-3">
-            <div className="group bg-white dark:bg-gray-900 rounded-full flex items-center p-1 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-300">
-              <div className="pl-3 pr-2 text-gray-400 dark:text-gray-500 group-focus-within:text-purple-500 transition-colors flex items-center">
+            <div className="group bg-white dark:bg-gray-900 rounded-full flex items-center p-1 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300">
+              <div className="pl-3 pr-2 text-gray-400 dark:text-gray-500 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300 transition-colors flex items-center">
                 {/* <span className="material-symbols-outlined text-[18px]">auto_awesome</span> */}
               </div>
               <input 
@@ -37,8 +47,8 @@ export default function MyLinksPage() {
                 placeholder="Search folders or links" 
                 type="text"
               />
-              <button type="button" className="flex items-center justify-center h-7 w-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-full transition-colors mr-0.5">
-                <span className="material-symbols-outlined text-lg">search</span>
+              <button type="button" className="flex items-center justify-center h-7 w-7 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors mr-0.5">
+                <span className="material-symbols-outlined !text-[16px]">search</span>
               </button>
             </div>
           </div>
@@ -106,33 +116,20 @@ export default function MyLinksPage() {
           </div>
           
           <div className="flex items-center gap-1.5 focus-within:z-20 relative">
+            <SortDropdown 
+              value={folderSort}
+              onChange={setFolderSort}
+              options={folderSortOptions}
+              panelClassName="bg-white/78 border-white/70 ring-1 ring-slate-200/60 backdrop-blur-xl shadow-[0_20px_45px_-18px_rgba(15,23,42,0.22),0_12px_24px_-16px_rgba(148,163,184,0.45)] dark:ring-0 dark:backdrop-blur-md"
+            />
             <button 
               type="button"
               onClick={() => useUIStore.getState().toggleCreateFolderDialog(true)}
-              className="flex items-center space-x-1 text-[10px] font-medium text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-100 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md px-2 py-1 transition-colors"
+              className="group flex items-center gap-1 px-2 py-1 border border-gray-200/80 dark:border-white/8 rounded-md text-[10px] font-medium transition-all duration-200 bg-white/50 dark:bg-slate-900/50 text-gray-600 dark:text-white hover:bg-purple-50/50 dark:hover:bg-purple-900/20 hover:border-purple-200/50 dark:hover:border-purple-500/30"
             >
-              <span className="material-symbols-outlined !text-[12px] !leading-none">folder</span>
+              <span className="material-symbols-outlined !text-[12px] text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors leading-none">folder</span>
               <span>Create Folder</span>
             </button>
-            <div className="relative group">
-              <button type="button" className="flex items-center space-x-1 text-[10px] font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
-                <span className="material-symbols-outlined !text-[12px] !leading-none">filter_list</span>
-                <span>Sort by: Recently</span>
-                <span className="material-symbols-outlined !text-[12px] !leading-none mt-0.5">expand_more</span>
-              </button>
-              <div className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-card-dark border border-gray-100 dark:border-gray-700 shadow-xl rounded-lg py-1 hidden group-focus-within:block z-30">
-                <button type="button" className="w-full text-left px-3 py-1.5 text-[10px] text-primary font-medium bg-blue-50 dark:bg-blue-900/20 flex items-center justify-between">
-                  <span>Recently Added</span>
-                  <span className="material-symbols-outlined text-[12px]">check</span>
-                </button>
-                <button type="button" className="w-full text-left px-3 py-1.5 text-[10px] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  Name (A-Z)
-                </button>
-                <button type="button" className="w-full text-left px-3 py-1.5 text-[10px] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  Link Count
-                </button>
-              </div>
-            </div>
             <button 
               type="button"
               onClick={() => useUIStore.getState().toggleSaveLinkDialog(true)}
@@ -177,34 +174,12 @@ export default function MyLinksPage() {
           )}
 
           {/* ── 폴더 카드 목록 (백엔드 데이터 반복 렌더링) ── */}
-          {folders?.map((folder) => (
-            <div
-              key={folder.memberFolderId}
-              role="button"
-              tabIndex={0}
-              onClick={() => setSelectedFolderId(folder.memberFolderId)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setSelectedFolderId(folder.memberFolderId);
-                }
-              }}
-              className="bg-white dark:bg-card-dark rounded-lg p-2.5 border border-gray-100 dark:border-gray-800 hover:shadow-sm hover:border-purple-200 dark:hover:border-purple-900/50 transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between focus:ring-1 focus:ring-purple-300 outline-none hover:bg-purple-50/50 dark:hover:bg-purple-900/10"
-            >
-              <div className="flex justify-between items-start">
-                <div className="p-1.5 bg-purple-50/80 dark:bg-purple-900/15 text-gray-400 rounded-md flex items-center justify-center w-8 h-8">
-                  <span className="material-symbols-outlined text-[16px]">folder_open</span>
-                </div>
-                <button type="button" className="text-gray-300 hover:text-purple-500">
-                  <span className="material-symbols-outlined text-sm">more_horiz</span>
-                </button>
-              </div>
-              <div>
-                <h4 className="font-semibold text-[10px] xl:text-[11px] text-gray-800 dark:text-gray-200 truncate mt-1.5">
-                  {folder.folderName}
-                </h4>
-              </div>
-            </div>
+          {(folders ? [...folders] : []).sort((a, b) => {
+            if (folderSort === 'recently') return b.memberFolderId - a.memberFolderId;
+            if (folderSort === 'a-z') return a.folderName.localeCompare(b.folderName);
+            return 0;
+          }).map((folder) => (
+            <FolderCard key={folder.memberFolderId} folder={folder} />
           ))}
 
         </div>

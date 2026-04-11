@@ -59,7 +59,7 @@ export function CreateFolderDialog() {
 
   return (
     <Dialog open={createFolderDialogOpen} onOpenChange={toggleCreateFolderDialog}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-card-dark rounded-[16px] shadow-2xl p-0 overflow-hidden border border-gray-100 dark:border-gray-700 !gap-0 [&>button]:hidden">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-[#0a0a0b] rounded-[16px] shadow-2xl p-0 overflow-hidden border border-gray-100 dark:border-white/[0.08] !gap-0 [&>button]:hidden">
         
         {/* 접근성을 위한 제목 (가독성을 위해 숨김 처리) */}
         <DialogTitle className="sr-only">Create New Folder</DialogTitle>
@@ -68,8 +68,8 @@ export function CreateFolderDialog() {
           {/* 헤더 영역: 제목 및 닫기 버튼 */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] p-1.5 rounded-lg shadow-lg shadow-violet-200/50 flex items-center justify-center ring-1 ring-white/20">
-                <span className="material-symbols-outlined text-white !text-[18px] fill-1 drop-shadow-sm">folder</span>
+              <div className="bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] p-1.5 rounded-lg flex items-center justify-center">
+                <span className="material-symbols-outlined text-white !text-[18px] fill-1">folder</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Create New Folder</h3>
             </div>
@@ -91,7 +91,7 @@ export function CreateFolderDialog() {
               <input 
                 id="folder-name-input"
                 type="text"
-                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-gray-400" 
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-gray-400" 
                 placeholder="e.g., Design Resources"
                 value={folderName}
                 onChange={(e) => setFolderName(e.target.value)}
