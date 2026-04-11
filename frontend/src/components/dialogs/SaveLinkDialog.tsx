@@ -77,6 +77,9 @@ export function SaveLinkDialog() {
       return;
     }
 
+    // 레이스 컨디션 방지를 위한 플래그
+    let isIgnore = false;
+
     // 1단계: 즉시 도메인으로 임시 제목 설정
     const domain = url.replace(/^https?:\/\//, '').split('/')[0];
     setDisplayTitle(domain);
@@ -85,14 +88,17 @@ export function SaveLinkDialog() {
     const timerId = setTimeout(() => {
       analyzeUrlMutation.mutate(url, {
         onSuccess: (realTitle: string) => {
-          if (realTitle) {
+          if (!isIgnore && realTitle) {
             setDisplayTitle(realTitle);
           }
         }
       });
     }, 500);
 
-    return () => clearTimeout(timerId);
+    return () => {
+      isIgnore = true;
+      clearTimeout(timerId);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
