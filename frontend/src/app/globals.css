@@ -156,10 +156,6 @@
   animation: float-soft 6s ease-in-out infinite;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.1); }
-}
 
 @layer base {
   * {
@@ -232,4 +228,4 @@
 
 .dark .glass-card {
   background: rgba(15, 23, 42, 0.7);
-}
+}

@@ -8,7 +8,7 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
-import { Agentation } from "agentation";
+import { AgentationProvider } from "@/components/providers/AgentationProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -26,8 +26,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isDev = process.env.NODE_ENV === "development";
-
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
@@ -49,7 +47,7 @@ export default function RootLayout({
             </AuthProvider>
             <SaveLinkDialog />
             <CreateFolderDialog />
-            {isDev && <Agentation />}
+            <AgentationProvider />
           </QueryProvider>
         </ThemeProvider>
       </body>

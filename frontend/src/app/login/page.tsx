@@ -4,32 +4,13 @@ import React from "react";
 import NextLink from "next/link";
 import { Input } from "@/components/ui/input";
 import { buildBackendUrl } from "@/lib/config/backend";
+import { LandingHeader } from "@/components/layout/LandingHeader";
 
 export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden w-screen text-text-main font-sans selection:bg-primary/20 bg-background-light dark:bg-background-dark">
       {/* Sync Header with Landing Page (page.tsx) */}
-      <header className="fixed w-full top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-white/10 bg-black px-6 py-3 lg:px-20 shadow-md">
-        <NextLink href="/" className="flex items-center space-x-2 group transition-opacity">
-          <span className="material-symbols-outlined text-3xl text-violet-400 group-hover:scale-110 transition-transform">language</span>
-          <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">SearchWeb</span>
-        </NextLink>
-        <div className="flex flex-1 justify-end gap-8">
-          <div className="hidden items-center gap-9 md:flex">
-            <a className="text-white/90 hover:text-white text-sm font-medium transition-colors" href="/#features">기능</a>
-            <a className="text-white/90 hover:text-white text-sm font-medium transition-colors" href="/#pricing">가격</a>
-            <a className="text-white/90 hover:text-white text-sm font-medium transition-colors" href="#">문의하기</a>
-          </div>
-          <div className="hidden md:flex items-center">
-            <NextLink href="/login" className="flex items-center justify-center rounded-lg bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] px-4 py-2 text-sm font-bold text-white transition-all hover:brightness-110 shadow-lg shadow-primary/20 border-t border-white/20">
-              로그인
-            </NextLink>
-          </div>
-          <button type="button" className="md:hidden text-white">
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-        </div>
-      </header>
+      <LandingHeader isLoginPage />
 
       <main className="flex flex-1 flex-col lg:flex-row min-h-0 pt-[60px]">
         {/* Left Section: Visual Assets */}

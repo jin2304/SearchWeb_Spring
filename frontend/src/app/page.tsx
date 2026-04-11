@@ -1,17 +1,16 @@
 "use client";
 
 import NextLink from "next/link";
-import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { buildBackendUrl } from "@/lib/config/backend";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
+import { LandingHeader } from "@/components/layout/LandingHeader";
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -77,39 +76,7 @@ export default function Home() {
       ref={containerRef}
       className="relative flex h-screen min-h-screen w-full w-screen flex-col overflow-x-hidden overflow-y-auto text-text-main font-sans selection:bg-primary/20 bg-background-light dark:bg-background-dark"
     >
-      <header className="fixed w-full top-0 z-50 flex h-11 items-center justify-between whitespace-nowrap border-b border-white/10 bg-black/95 backdrop-blur-md px-6 lg:px-20 shadow-sm transition-all duration-300">
-        <NextLink href="/" className="flex items-center space-x-2 group transition-opacity">
-          <span className="material-symbols-outlined text-3xl text-violet-400 group-hover:scale-110 transition-transform">language</span>
-          <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">SearchWeb</span>
-        </NextLink>
-
-        <div className="flex items-center gap-6">
-          <nav className="hidden items-center gap-7 md:flex">
-            <a className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors" href="#features">기능</a>
-            {/* <a className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors" href="#pricing">가격</a> */}
-            <a className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors" href="#">문의하기</a>
-            <NextLink href="/login" className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors">
-              로그인
-            </NextLink>
-          </nav>
-          
-          <div className="flex items-center gap-2 ml-4">
-            <button
-              type="button"
-              className="flex items-center justify-center p-2 text-white hover:bg-white/10 rounded-full transition-colors"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              aria-label="테마 전환"
-            >
-              <span className="material-symbols-outlined !text-[18px]">
-                {mounted && theme === 'dark' ? 'light_mode' : 'dark_mode'}
-              </span>
-            </button>
-            <button className="md:hidden text-white flex items-center p-2 hover:bg-white/10 rounded-full">
-              <span className="material-symbols-outlined !text-[20px]">menu</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      <LandingHeader />
 
       <main className="flex-grow">
         <section className="relative flex min-h-[100dvh] items-center overflow-hidden pt-12 pb-16 lg:pt-20 lg:pb-24 px-6 lg:px-20 bg-background-light dark:bg-background-dark transition-colors duration-300">
