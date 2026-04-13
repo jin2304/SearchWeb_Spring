@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useUIStore } from '@/lib/store/uiStore';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -48,7 +49,6 @@ export function SaveLinkDialog() {
   const [isCreatingNewTag, setIsCreatingNewTag] = useState(false); // 새 태그 생성 모드 여부
   const [newTagInputValue, setNewTagInputValue] = useState('');    // 새 태그 입력값
   const [openFolderBrowser, setOpenFolderBrowser] = useState(false); // 폴더 브라우저 드롭다운 열림 여부
-  const folderBrowserRef = useRef<HTMLDivElement>(null); // 폴더 브라우저 외부 클릭 감지용
 
   // --- 폼 기반 입력 상태 (실제 서버로 전송될 데이터) ---
   const [url, setUrl] = useState('');                                            // 저장할 링크 URL
@@ -146,17 +146,7 @@ export function SaveLinkDialog() {
     }
   }, [saveLinkDialogOpen]); // 내부 상태(url 등) 의존성 제어
 
-  // 폴더 브라우저 외부 클릭 시 닫기
-  useEffect(() => {
-    if (!openFolderBrowser) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (folderBrowserRef.current && !folderBrowserRef.current.contains(e.target as Node)) {
-        setOpenFolderBrowser(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [openFolderBrowser]);
+  // (커스텀 위치 계산 및 외부 클릭 로직 제거됨 - Popover로 대체)
 
   // 단순 표시용 태그 이름 리스트 추출
   const existingTagsList = tagsData?.map((t) => t.tagName) ?? [];
@@ -351,7 +341,7 @@ export function SaveLinkDialog() {
       */}
       <DialogContent className="sm:max-w-[540px] sm:left-[calc(50%+90px)] p-0 bg-transparent border-0 shadow-none [&>button]:hidden overflow-visible">
         
-        <div className={`relative z-10 w-full max-w-[540px] bg-white dark:bg-[#0a0a0b] rounded-2xl ${theme.softModalShadow} border border-slate-100 dark:border-white/[0.08] overflow-hidden mx-auto`}>
+        <div className={`relative z-[60] w-full max-w-[540px] bg-white dark:bg-[#0a0a0b] rounded-2xl ${theme.softModalShadow} border border-slate-100 dark:border-white/[0.08] overflow-visible mx-auto`}>
           
           {/* Header & Close */}
           <div className="relative flex items-center justify-between px-5 pt-5 pb-2 z-10">
@@ -542,64 +532,70 @@ export function SaveLinkDialog() {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="relative flex-1" ref={folderBrowserRef}>
-                  <button
-                    type="button"
-                    className={`w-full flex items-center justify-between bg-white dark:bg-gray-800 border rounded-lg px-2.5 py-2 text-xs text-[#1e293b] dark:text-gray-200 cursor-pointer transition-all shadow-sm ${
-                      openFolderBrowser ? 'border-violet-400 ring-1 ring-violet-200 dark:ring-purple-900/30' : 'border-[#e2e8f0] dark:border-gray-700 hover:border-violet-300 dark:hover:border-purple-500 hover:bg-slate-50 dark:hover:bg-gray-700'
-                    }`}
-                    onClick={() => setOpenFolderBrowser(!openFolderBrowser)}
-                  >
-                    <span className={(selectedFolderId || pendingNewFolderName) ? 'text-[#1e293b] dark:text-gray-200 font-medium' : 'text-slate-500 dark:text-gray-400'}>
-                      {pendingNewFolderName
-                        ? pendingNewFolderName
-                        : selectedFolderId
-                          ? folders?.find(f => f.memberFolderId === selectedFolderId)?.folderName ?? 'Browse all folders...'
-                          : 'Browse all folders...'}
-                    </span>
-                    <span className={`material-symbols-outlined !text-[16px] text-slate-400 transition-transform duration-200 ${openFolderBrowser ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
-
-                  {/* 폴더 브라우저 드롭다운 */}
-                  {openFolderBrowser && (
-                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] dark:shadow-2xl border border-slate-200 dark:border-gray-800 z-[60] max-h-[200px] overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-200">
-                      <div className="px-3 py-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-[#1c1c1e] rounded-t-xl flex items-center gap-1.5">
+                <div className="relative flex-1">
+                  <Popover open={openFolderBrowser} onOpenChange={setOpenFolderBrowser} modal={true}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={`w-full flex items-center justify-between bg-white dark:bg-gray-800 border rounded-lg px-2.5 py-2 text-xs text-[#1e293b] dark:text-gray-200 cursor-pointer transition-all shadow-sm ${
+                          openFolderBrowser ? 'border-violet-400 ring-1 ring-violet-200 dark:ring-purple-900/30' : 'border-[#e2e8f0] dark:border-gray-700 hover:border-violet-300 dark:hover:border-purple-500 hover:bg-slate-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <span className={(selectedFolderId || pendingNewFolderName) ? 'text-[#1e293b] dark:text-gray-200 font-medium' : 'text-slate-500 dark:text-gray-400'}>
+                          {pendingNewFolderName
+                            ? pendingNewFolderName
+                            : selectedFolderId
+                              ? folders?.find(f => f.memberFolderId === selectedFolderId)?.folderName ?? 'Browse all folders...'
+                              : 'Browse all folders...'}
+                        </span>
+                        <span className={`material-symbols-outlined !text-[16px] text-slate-400 transition-transform duration-200 ${openFolderBrowser ? 'rotate-180' : ''}`}>expand_more</span>
+                      </button>
+                    </PopoverTrigger>
+                    
+                    <PopoverContent 
+                      className="w-[--radix-popover-trigger-width] p-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] dark:shadow-2xl border border-slate-200 dark:border-gray-800 z-[110] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200"
+                      align="start"
+                      sideOffset={6}
+                    >
+                      <div className="px-3 py-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-gray-800 bg-white dark:bg-[#1c1c1e] flex items-center gap-1.5">
                         <span className="material-symbols-outlined !text-[12px] text-violet-400">folder</span>
                         All Folders ({folders?.length ?? 0})
                       </div>
 
-                      {folders?.map((folder) => {
-                        const isActive = selectedFolderId === folder.memberFolderId;
-                        return (
-                          <button
-                            key={folder.memberFolderId}
-                            className={`w-full text-left px-3 py-2 text-[11px] font-medium transition-colors flex items-center gap-2 ${
-                              isActive ? 'text-violet-700 dark:text-purple-300 bg-violet-50 dark:bg-purple-900/30' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700 hover:text-slate-800 dark:hover:text-white'
-                            }`}
-                            onClick={() => {
-                              const newId = isActive ? null : folder.memberFolderId;
-                              setSelectedFolderId(newId);
-                              setPendingNewFolderName(null); // 기존 폴더 선택 시 AI 추천 새 폴더 해제
-                              // 원래 top3에 없는 폴더만 고정 (맨 앞으로 이동)
-                              if (newId !== null) {
-                                const top3 = (folders ?? []).slice(0, 3).map(f => f.memberFolderId);
-                                if (!top3.includes(newId)) {
-                                  setPinnedFolderId(newId);
+                      <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                        {folders?.map((folder) => {
+                          const isActive = selectedFolderId === folder.memberFolderId;
+                          return (
+                            <button
+                              key={folder.memberFolderId}
+                              className={`w-full text-left px-3 py-2 text-[11px] font-medium transition-colors flex items-center gap-2 ${
+                                isActive ? 'text-violet-700 dark:text-purple-300 bg-violet-50 dark:bg-purple-900/30' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700 hover:text-slate-800 dark:hover:text-white'
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const newId = isActive ? null : folder.memberFolderId;
+                                setSelectedFolderId(newId);
+                                setPendingNewFolderName(null); 
+                                if (newId !== null) {
+                                  const top3 = (folders ?? []).slice(0, 3).map(f => f.memberFolderId);
+                                  if (!top3.includes(newId)) {
+                                    setPinnedFolderId(newId);
+                                  }
+                                } else {
+                                  setPinnedFolderId(null);
                                 }
-                              } else {
-                                setPinnedFolderId(null);
-                              }
-                              setOpenFolderBrowser(false);
-                            }}
-                          >
-                            <span className={`material-symbols-outlined !text-[16px] ${isActive ? 'text-violet-400 dark:text-purple-400' : 'text-gray-300 dark:text-gray-500'}`}>folder</span>
-                            <span className="truncate">{folder.folderName}</span>
-                            {isActive && <span className="material-symbols-outlined !text-[12px] ml-auto text-violet-400 dark:text-purple-400">check</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                                setOpenFolderBrowser(false);
+                              }}
+                            >
+                              <span className={`material-symbols-outlined !text-[16px] ${isActive ? 'text-violet-400 dark:text-purple-400' : 'text-gray-300 dark:text-gray-500'}`}>folder</span>
+                              <span className="truncate">{folder.folderName}</span>
+                              {isActive && <span className="material-symbols-outlined !text-[12px] ml-auto text-violet-400 dark:text-purple-400">check</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <button
                   className="flex-none w-8 h-8 flex items-center justify-center rounded-lg border border-[#e2e8f0] dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-slate-50 dark:hover:bg-gray-700 hover:border-violet-300 dark:hover:border-purple-500 text-slate-400 hover:text-violet-600 dark:hover:text-purple-400 transition-all shadow-sm"
