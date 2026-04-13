@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchClient } from './fetchClient';
-import type { FolderResponse, CreateFolderRequest } from '@/lib/types/folder';
+import type { FolderResponse, CreateFolderRequest, UpdateFolderRequest, MoveFolderRequest } from '@/lib/types/folder';
 
 
 /**
@@ -29,6 +29,28 @@ async function createFolder(data: CreateFolderRequest): Promise<number> {
 async function deleteFolder(folderId: number): Promise<void> {
   return fetchClient<void>(`/api/folders/${folderId}`, {
     method: 'DELETE',
+  });
+}
+
+/**
+ * 폴더 정보를 수정합니다.
+ * PUT /api/folders/{folderId}
+ */
+async function updateFolder({ folderId, data }: { folderId: number; data: UpdateFolderRequest }): Promise<void> {
+  return fetchClient<void>(`/api/folders/${folderId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * 폴더 위치를 이동합니다.
+ * PUT /api/folders/{folderId}/move
+ */
+async function moveFolder({ folderId, data }: { folderId: number; data: MoveFolderRequest }): Promise<void> {
+  return fetchClient<void>(`/api/folders/${folderId}/move`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
   });
 }
 
@@ -68,12 +90,37 @@ export function useCreateFolder() {
 
 /**
  * [삭제 Hook] 특정 폴더를 삭제합니다.
- * 성공 시 'folders' 캐시를 무효화하여 목록을 자동 갱신합니다.
  */
 export function useDeleteFolder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteFolder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['folders'] });
+    },
+  });
+}
+
+/**
+ * [수정 Hook] 폴더 정보를 업데이트합니다.
+ */
+export function useUpdateFolder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateFolder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['folders'] });
+    },
+  });
+}
+
+/**
+ * [이동 Hook] 폴더를 다른 위치로 이동합니다.
+ */
+export function useMoveFolder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: moveFolder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['folders'] });
     },

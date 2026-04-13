@@ -1,8 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useUIStore } from '@/lib/store/uiStore';
-import { useFolderStore } from '@/lib/store/folderStore';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useFolders, useCreateFolder } from '@/lib/api/folderApi';
@@ -17,22 +18,22 @@ const theme = {
   premiumGradient: "bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)]",
   elevatedShadow: "shadow-[0_10px_25px_-5px_rgba(124,58,237,0.4),0_8px_10px_-6px_rgba(124,58,237,0.2)]",
   softModalShadow: "shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05),0_10px_10px_-5px_rgba(0,0,0,0.01),0_0_1px_rgba(0,0,0,0.05)]",
-  accentPurple: "text-[#7c3aed]",
-  charcoal: "text-[#1e293b]",
+  accentPurple: "text-[#7c3aed] dark:text-purple-400",
+  charcoal: "text-[#1e293b] dark:text-white",
 };
 
 // 재사용될 반복 스타일 클래스 모음
 const styles = {
-  minimalInput: "bg-white border border-[#e2e8f0] rounded-lg px-3 py-2 w-full text-xs text-[#1e293b] transition-colors duration-200 placeholder-slate-400 font-normal focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none shadow-sm",
-  tagChip: "text-[11px] px-2.5 py-1 rounded-full transition-all cursor-pointer select-none border border-transparent font-medium flex items-center justify-center min-h-[26px] bg-white shadow-sm",
-  tagChipSelected: "bg-violet-50 text-violet-700 border-violet-200 shadow-sm font-semibold",
-  tagChipExisting: "text-[#1e293b] border-slate-200 hover:bg-slate-50 hover:border-slate-300",
-  tagAddTrigger: "text-[11px] px-2.5 py-1 rounded-full bg-white border border-dashed border-slate-300 text-slate-500 hover:border-violet-500 hover:text-violet-600 transition-all cursor-pointer flex items-center gap-1 min-h-[26px] w-fit relative z-30 shadow-sm",
-  folderTile: "relative flex flex-col items-center justify-center p-3 rounded-lg border border-[#e2e8f0] bg-white cursor-pointer transition-all hover:border-violet-300 text-center gap-1.5 shadow-[0_2px_4px_-1px_rgba(0,0,0,0.05),0_1px_2px_-1px_rgba(0,0,0,0.03)]",
-  folderTileActive: "border-violet-500 ring-1 ring-violet-500 bg-white text-violet-900 shadow-[0_0_10px_rgba(124,58,237,0.25)]",
+  minimalInput: "bg-white dark:bg-slate-900/60 border border-[#e2e8f0] dark:border-white/10 rounded-xl px-3 py-2 w-full text-xs text-[#1e293b] dark:text-gray-100 transition-all duration-200 placeholder-slate-400 font-normal focus:border-violet-500 dark:focus:border-purple-500 focus:ring-1 focus:ring-violet-500 dark:focus:ring-purple-500 outline-none shadow-sm",
+  tagChip: "text-[11px] px-2.5 py-1 rounded-full transition-all cursor-pointer select-none border border-transparent font-medium flex items-center justify-center min-h-[26px] bg-white dark:bg-slate-800 shadow-sm",
+  tagChipSelected: "bg-violet-50 dark:bg-purple-900/40 text-violet-700 dark:text-purple-300 border-violet-200 dark:border-purple-700 shadow-sm font-semibold",
+  tagChipExisting: "text-[#1e293b] dark:text-gray-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-white/20",
+  tagAddTrigger: "text-[11px] px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-dashed border-slate-300 dark:border-white/15 text-slate-500 dark:text-gray-400 hover:border-violet-500 dark:hover:border-purple-400 hover:text-violet-600 dark:hover:text-purple-400 transition-all cursor-pointer flex items-center gap-1 min-h-[26px] w-fit relative z-30 shadow-sm",
+  folderTile: "relative flex flex-col items-center justify-center p-3 rounded-xl border border-[#e2e8f0] dark:border-white/10 bg-white dark:bg-slate-800/60 backdrop-blur-sm cursor-pointer transition-all hover:border-violet-300 dark:hover:border-purple-500/50 hover:bg-slate-50/50 dark:hover:bg-slate-700 text-center gap-1.5 shadow-sm",
+  folderTileActive: "border-violet-500 dark:border-purple-500 ring-1 ring-violet-500 dark:ring-purple-500 bg-white dark:bg-slate-800 text-violet-900 dark:text-purple-300 shadow-[0_0_15px_rgba(124,58,237,0.15)]",
   matchBadge: `absolute -top-2 -right-1.5 ${theme.premiumGradient} text-white text-[9px] font-bold px-1.5 py-[1px] rounded-full shadow-md z-10`,
-  btnGradient: "bg-[linear-gradient(135deg,#7c3aed_0%,#a855f7_100%)] hover:opacity-95 text-white shadow-md shadow-violet-500/20",
-  sectionContainer: "bg-[#f8f9fc] rounded-xl p-3 border border-transparent"
+  btnGradient: "bg-[linear-gradient(135deg,#7c3aed_0%,#a855f7_100%)] hover:opacity-95 text-white shadow-md shadow-violet-500/20 dark:shadow-purple-900/30",
+  sectionContainer: "bg-gray-50/80 dark:bg-slate-800/50 dark:backdrop-blur-md rounded-2xl p-3 border border-gray-100/50 dark:border-white/[0.05]"
 };
 
 /**
@@ -48,7 +49,6 @@ export function SaveLinkDialog() {
   const [isCreatingNewTag, setIsCreatingNewTag] = useState(false); // 새 태그 생성 모드 여부
   const [newTagInputValue, setNewTagInputValue] = useState('');    // 새 태그 입력값
   const [openFolderBrowser, setOpenFolderBrowser] = useState(false); // 폴더 브라우저 드롭다운 열림 여부
-  const folderBrowserRef = useRef<HTMLDivElement>(null); // 폴더 브라우저 외부 클릭 감지용
 
   // --- 폼 기반 입력 상태 (실제 서버로 전송될 데이터) ---
   const [url, setUrl] = useState('');                                            // 저장할 링크 URL
@@ -77,25 +77,59 @@ export function SaveLinkDialog() {
       return;
     }
 
+    // 레이스 컨디션 방지를 위한 플래그
+    let isIgnore = false;
 
     // 1단계: 즉시 도메인으로 임시 제목 설정
     const domain = url.replace(/^https?:\/\//, '').split('/')[0];
     setDisplayTitle(domain);
 
-    // 2단계: 실제 페이지 제목(Title) 요청 (복사-붙여넣기 위주이므로 즉시 요청)
-    analyzeUrlMutation.mutate(url, {
-      onSuccess: (realTitle: string) => {
-        if (realTitle) {
-          setDisplayTitle(realTitle);
+    // 2단계: 500ms debounce 후 실제 페이지 제목 요청 (타이핑 시 불필요한 중복 요청 방지)
+    const timerId = setTimeout(() => {
+      analyzeUrlMutation.mutate(url, {
+        onSuccess: (realTitle: string) => {
+          if (!isIgnore && realTitle) {
+            setDisplayTitle(realTitle);
+          }
         }
-      }
-    });
+      });
+    }, 500);
+
+    return () => {
+      isIgnore = true;
+      clearTimeout(timerId);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]);
+
+  useEffect(() => {
+    setFaviconLoadFailed(false);
   }, [url]);
 
   
-  // --- 팝업이 열고 닫힐 때마다 모든 입력 상태 초기화 ---
+  // --- UI 전용 상태 추가 (클립보드 추천) ---
+  const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
+  const [faviconLoadFailed, setFaviconLoadFailed] = useState(false);
+
+  // --- 팝업이 열고 닫힐 때마다 모든 입력 상태 초기화 및 클립보드 감지 ---
   useEffect(() => {
-    if (!saveLinkDialogOpen) {
+    if (saveLinkDialogOpen) {
+      // 팝업이 열릴 때: 클립보드에 URL이 있는지 한 번만 확인
+      const timerId = setTimeout(async () => {
+        if (typeof navigator === 'undefined' || !navigator.clipboard) return;
+        try {
+          // 브라우저 정책상 사용자 권한 프롬프트가 발생할 수 있습니다.
+          const text = await navigator.clipboard.readText();
+          if (text && (text.startsWith('http://') || text.startsWith('https://'))) {
+            setClipboardUrl(text);
+          }
+        } catch (err) {
+          // 권한 거부 등의 에러는 무시
+          console.warn('Clipboard read error (auto-paste):', err);
+        }
+      }, 150);
+      return () => clearTimeout(timerId);
+    } else {
       // 팝업이 닫힐 때: 모든 입력 상태 초기화
       setOpenFolderBrowser(false);
       setUrl('');
@@ -108,20 +142,11 @@ export function SaveLinkDialog() {
       setIsCreatingNewTag(false);
       setAiSuggestedTags(new Set());
       setPendingNewFolderName(null);
+      setClipboardUrl(null);
     }
-  }, [saveLinkDialogOpen]);
+  }, [saveLinkDialogOpen]); // 내부 상태(url 등) 의존성 제어
 
-  // 폴더 브라우저 외부 클릭 시 닫기
-  useEffect(() => {
-    if (!openFolderBrowser) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (folderBrowserRef.current && !folderBrowserRef.current.contains(e.target as Node)) {
-        setOpenFolderBrowser(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [openFolderBrowser]);
+  // (커스텀 위치 계산 및 외부 클릭 로직 제거됨 - Popover로 대체)
 
   // 단순 표시용 태그 이름 리스트 추출
   const existingTagsList = tagsData?.map((t) => t.tagName) ?? [];
@@ -258,6 +283,9 @@ export function SaveLinkDialog() {
 
   
   /**
+   * [핸들러] 클립보드에서 링크 붙여넣기
+   */
+  /**
    * [핸들러] 새로운 태그를 직접 생성할 때 호출
    */
   const handleCreateNewTag = (tagName: string) => {
@@ -313,20 +341,20 @@ export function SaveLinkDialog() {
       */}
       <DialogContent className="sm:max-w-[540px] sm:left-[calc(50%+90px)] p-0 bg-transparent border-0 shadow-none [&>button]:hidden overflow-visible">
         
-        <div className={`relative z-10 w-full max-w-[540px] bg-white rounded-2xl ${theme.softModalShadow} border border-slate-100 overflow-visible mx-auto`}>
+        <div className={`relative z-[60] w-full max-w-[540px] bg-white dark:bg-[#0a0a0b] rounded-2xl ${theme.softModalShadow} border border-slate-100 dark:border-white/[0.08] overflow-visible mx-auto`}>
           
           {/* Header & Close */}
           <div className="relative flex items-center justify-between px-5 pt-5 pb-2 z-10">
             <DialogTitle className={`text-lg font-extrabold ${theme.charcoal} tracking-tight flex items-center gap-2.5`}>
-              <div className={`${theme.premiumGradient} p-1.5 rounded-lg shadow-lg shadow-violet-200/50 flex items-center justify-center ring-1 ring-white/20`}>
-                <span className="material-symbols-outlined text-white !text-[18px] fill-1 drop-shadow-sm">bookmark</span>
+              <div className={`${theme.premiumGradient} p-1.5 rounded-lg flex items-center justify-center`}>
+                <span className="material-symbols-outlined text-white !text-[18px] fill-1">bookmark</span>
               </div>
               Save to Workspace
             </DialogTitle>
             <DialogDescription className="sr-only">Save a new link to your workspace with AI assistance</DialogDescription>
             <button 
               onClick={() => toggleSaveLinkDialog(false)} 
-              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-800 dark:hover:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"
             >
               <span className="material-symbols-outlined !text-[18px]">close</span>
             </button>
@@ -337,37 +365,72 @@ export function SaveLinkDialog() {
             {/* URL Input */}
             <div className={`${styles.sectionContainer} space-y-1.5`}>
               <div className="flex items-center gap-1.5">
-                <span className={`material-symbols-outlined !text-[12px] ${theme.accentPurple}`}>link</span>
-                <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">URL</label>
+                <span className={`material-symbols-outlined !text-[12px] opacity-100 ${theme.accentPurple}`}>link</span>
+                <label className="block text-[10px] font-bold text-gray-900 dark:text-white/90 uppercase tracking-[0.15em]">URL</label>
               </div>
               <div className="relative group flex items-center gap-2">
-                <div className="flex-none w-8 h-8 rounded-lg bg-white border border-[#e2e8f0] flex items-center justify-center shadow-sm overflow-hidden">
-                  {url ? (
-                    <img 
-                      src={`https://www.google.com/s2/favicons?domain=${url.replace(/^https?:\/\//, '').split('/')[0]}&sz=64`} 
-                      alt="" 
+                <div className="flex-none w-8 h-8 rounded-lg bg-white dark:bg-gray-800 border border-[#e2e8f0] dark:border-gray-700 flex items-center justify-center shadow-sm overflow-hidden">
+                  {url && !faviconLoadFailed ? (
+                    <Image
+                      src={`https://www.google.com/s2/favicons?domain=${url.replace(/^https?:\/\//, '').split('/')[0]}&sz=64`}
+                      alt=""
+                      width={20}
+                      height={20}
+                      unoptimized
                       className="w-5 h-5 object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        if ((e.target as HTMLImageElement).parentElement) {
-                          (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="material-symbols-outlined text-slate-400 !text-[18px]">link</span>';
-                        }
-                      }}
+                      onError={() => setFaviconLoadFailed(true)}
                     />
                   ) : (
                     <span className="material-symbols-outlined text-slate-400 !text-[18px]">link</span>
                   )}
                 </div>
-                <input
-                  className={`${styles.minimalInput} flex-1`}
-                  type="text"
-                  placeholder="https://example.com"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                />
+                <div className="relative flex-1">
+                  {/* 클립보드 자동 인식 - 초미니멀 액션 칩 UI */}
+                  {clipboardUrl && !url && (
+                    <button
+                      type="button"
+                      onClick={() => { setUrl(clipboardUrl); setClipboardUrl(null); }}
+                      className="absolute -top-8 right-0 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-300 z-20 group outline-none"
+                    >
+                      <div className="bg-white/95 dark:bg-[#0a0a0b]/95 backdrop-blur-xl border border-violet-100 dark:border-white/[0.08] rounded-full shadow-[0_12px_24px_-8px_rgba(124,58,237,0.3)] flex items-center gap-2.5 px-3.5 py-2 whitespace-nowrap transition-all hover:bg-violet-50 dark:hover:bg-purple-900/20 active:scale-95">
+                        <div className={`${styles.btnGradient} w-5 h-5 rounded-full flex items-center justify-center flex-none overflow-hidden shadow-sm shadow-violet-500/20`}>
+                          <span className="inline-flex h-full w-full items-center justify-center rotate-[-45deg] translate-x-[0.25px]">
+                            <span className="material-symbols-outlined !text-[13px] !leading-none block text-white font-bold">link</span>
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-bold text-slate-700 dark:text-gray-100 tracking-tight pr-1">복사한 링크 붙여넣기</span>
+                      </div>
+                      {/* 부드럽고 존재감 있는 곡선형 SVG 꼬리표 - 크기 확대 및 실루엣 최적화 */}
+                      <svg 
+                        className="absolute -bottom-[6px] right-4 w-[18px] h-[7px]" 
+                        viewBox="0 0 18 7" 
+                        fill="none" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path 
+                          d="M0 0C4.5 0 7 1.5 9 7C11 1.5 13.5 0 18 0Z" 
+                          className="fill-white/95 dark:fill-[#0a0a0b]/95 group-hover:fill-violet-50 dark:group-hover:fill-purple-900/20 transition-colors"
+                        />
+                        <path 
+                          d="M0 0C4.5 0 7 1.5 9 7C11 1.5 13.5 0 18 0" 
+                          className="stroke-violet-100 dark:stroke-white/[0.08] transition-colors" 
+                          strokeWidth="1"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                  <input
+                    className={`${styles.minimalInput} w-full`}
+                    type="text"
+                    placeholder="https://example.com"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    autoFocus
+                  />
+                </div>
               </div>
               {url.trim() && !(url.startsWith('http://') || url.startsWith('https://')) && (
-                <p className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-1 ml-10">
+                <p className="text-[10px] text-red-500 dark:text-red-400 font-medium flex items-center gap-1 mt-1 ml-10">
                   <span className="material-symbols-outlined !text-[12px]">error</span>
                   URL은 http:// 또는 https://로 시작해야 합니다.
                 </p>
@@ -378,8 +441,8 @@ export function SaveLinkDialog() {
             <div className={`${styles.sectionContainer} space-y-1.5`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className={`material-symbols-outlined !text-[12px] ${theme.accentPurple}`}>title</span>
-                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">TITLE</label>
+                  <span className={`material-symbols-outlined !text-[12px] opacity-100 ${theme.accentPurple}`}>title</span>
+                  <label className="block text-[10px] font-bold text-gray-900 dark:text-white/90 uppercase tracking-[0.15em]">TITLE</label>
                 </div>
                 {analyzeUrlMutation.isPending && (
                   <span className="text-[9px] text-violet-500 animate-pulse flex items-center gap-1 font-medium">
@@ -424,11 +487,11 @@ export function SaveLinkDialog() {
             <div className={`${styles.sectionContainer} space-y-3`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className={`material-symbols-outlined !text-[12px] ${theme.accentPurple}`}>folder</span>
-                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Folder</label>
+                  <span className={`material-symbols-outlined !text-[12px] opacity-100 ${theme.accentPurple}`}>folder</span>
+                  <label className="block text-[10px] font-bold text-gray-900 dark:text-white/90 uppercase tracking-[0.15em]">Folder</label>
                 </div>
                 {analyzeLinkMutation.isSuccess && analyzeLinkMutation.data?.suggestedFolder && (
-                  <span className="text-[8px] text-violet-600 flex items-center gap-1 font-bold bg-white px-1.5 py-0.5 rounded-full border border-violet-100 shadow-sm animate-in fade-in zoom-in duration-300">
+                  <span className="text-[8px] text-violet-600 dark:text-purple-400 flex items-center gap-1 font-bold bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded-full border border-violet-100 dark:border-purple-900/50 shadow-sm animate-in fade-in zoom-in duration-300">
                     <span className="material-symbols-outlined !text-[10px]">smart_toy</span>
                     AI Recommended
                   </span>
@@ -461,75 +524,81 @@ export function SaveLinkDialog() {
                       {isPending && (
                         <span className={styles.matchBadge}>NEW</span>
                       )}
-                      <span className={`material-symbols-outlined !text-[20px] mb-0.5 transition-colors ${isActive ? 'text-violet-500 drop-shadow-sm' : 'text-gray-400 group-hover:text-violet-400'}`}>{isPending ? 'create_new_folder' : 'folder'}</span>
-                      <span className={`text-[10px] leading-tight truncate w-full ${isActive ? 'font-bold text-violet-900' : 'text-slate-500 group-hover:text-slate-800 font-medium'}`}>{folder.folderName}</span>
+                      <span className={`material-symbols-outlined !text-[20px] mb-0.5 transition-colors ${isActive ? 'text-violet-500 dark:text-purple-400 drop-shadow-sm' : 'text-gray-400 dark:text-gray-500 group-hover:text-violet-400 dark:group-hover:text-purple-400'}`}>{isPending ? 'create_new_folder' : 'folder'}</span>
+                      <span className={`text-[10px] leading-tight truncate w-full ${isActive ? 'font-bold text-violet-900 dark:text-purple-300' : 'text-slate-500 dark:text-gray-400 group-hover:text-slate-800 dark:group-hover:text-gray-200 font-medium'}`}>{folder.folderName}</span>
                     </button>
                   );
                 })}
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="relative flex-1" ref={folderBrowserRef}>
-                  <button
-                    type="button"
-                    className={`w-full flex items-center justify-between bg-white border rounded-lg px-2.5 py-2 text-xs text-[#1e293b] cursor-pointer transition-all shadow-sm ${
-                      openFolderBrowser ? 'border-violet-400 ring-1 ring-violet-200' : 'border-[#e2e8f0] hover:border-violet-300 hover:bg-slate-50'
-                    }`}
-                    onClick={() => setOpenFolderBrowser(!openFolderBrowser)}
-                  >
-                    <span className={(selectedFolderId || pendingNewFolderName) ? 'text-[#1e293b] font-medium' : 'text-slate-500'}>
-                      {pendingNewFolderName
-                        ? pendingNewFolderName
-                        : selectedFolderId
-                          ? folders?.find(f => f.memberFolderId === selectedFolderId)?.folderName ?? 'Browse all folders...'
-                          : 'Browse all folders...'}
-                    </span>
-                    <span className={`material-symbols-outlined !text-[16px] text-slate-400 transition-transform duration-200 ${openFolderBrowser ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
-
-                  {/* 폴더 브라우저 드롭다운 */}
-                  {openFolderBrowser && (
-                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 z-[60] max-h-[200px] overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-200">
-                      <div className="px-3 py-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 sticky top-0 bg-white rounded-t-xl flex items-center gap-1.5">
+                <div className="relative flex-1">
+                  <Popover open={openFolderBrowser} onOpenChange={setOpenFolderBrowser} modal={true}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={`w-full flex items-center justify-between bg-white dark:bg-gray-800 border rounded-lg px-2.5 py-2 text-xs text-[#1e293b] dark:text-gray-200 cursor-pointer transition-all shadow-sm ${
+                          openFolderBrowser ? 'border-violet-400 ring-1 ring-violet-200 dark:ring-purple-900/30' : 'border-[#e2e8f0] dark:border-gray-700 hover:border-violet-300 dark:hover:border-purple-500 hover:bg-slate-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <span className={(selectedFolderId || pendingNewFolderName) ? 'text-[#1e293b] dark:text-gray-200 font-medium' : 'text-slate-500 dark:text-gray-400'}>
+                          {pendingNewFolderName
+                            ? pendingNewFolderName
+                            : selectedFolderId
+                              ? folders?.find(f => f.memberFolderId === selectedFolderId)?.folderName ?? 'Browse all folders...'
+                              : 'Browse all folders...'}
+                        </span>
+                        <span className={`material-symbols-outlined !text-[16px] text-slate-400 transition-transform duration-200 ${openFolderBrowser ? 'rotate-180' : ''}`}>expand_more</span>
+                      </button>
+                    </PopoverTrigger>
+                    
+                    <PopoverContent 
+                      className="w-[--radix-popover-trigger-width] p-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] dark:shadow-2xl border border-slate-200 dark:border-gray-800 z-[110] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200"
+                      align="start"
+                      sideOffset={6}
+                    >
+                      <div className="px-3 py-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-gray-800 bg-white dark:bg-[#1c1c1e] flex items-center gap-1.5">
                         <span className="material-symbols-outlined !text-[12px] text-violet-400">folder</span>
                         All Folders ({folders?.length ?? 0})
                       </div>
 
-                      {folders?.map((folder) => {
-                        const isActive = selectedFolderId === folder.memberFolderId;
-                        return (
-                          <button
-                            key={folder.memberFolderId}
-                            className={`w-full text-left px-3 py-2 text-[11px] font-medium transition-colors flex items-center gap-2 ${
-                              isActive ? 'text-violet-700 bg-violet-50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
-                            }`}
-                            onClick={() => {
-                              const newId = isActive ? null : folder.memberFolderId;
-                              setSelectedFolderId(newId);
-                              setPendingNewFolderName(null); // 기존 폴더 선택 시 AI 추천 새 폴더 해제
-                              // 원래 top3에 없는 폴더만 고정 (맨 앞으로 이동)
-                              if (newId !== null) {
-                                const top3 = (folders ?? []).slice(0, 3).map(f => f.memberFolderId);
-                                if (!top3.includes(newId)) {
-                                  setPinnedFolderId(newId);
+                      <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                        {folders?.map((folder) => {
+                          const isActive = selectedFolderId === folder.memberFolderId;
+                          return (
+                            <button
+                              key={folder.memberFolderId}
+                              className={`w-full text-left px-3 py-2 text-[11px] font-medium transition-colors flex items-center gap-2 ${
+                                isActive ? 'text-violet-700 dark:text-purple-300 bg-violet-50 dark:bg-purple-900/30' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700 hover:text-slate-800 dark:hover:text-white'
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const newId = isActive ? null : folder.memberFolderId;
+                                setSelectedFolderId(newId);
+                                setPendingNewFolderName(null); 
+                                if (newId !== null) {
+                                  const top3 = (folders ?? []).slice(0, 3).map(f => f.memberFolderId);
+                                  if (!top3.includes(newId)) {
+                                    setPinnedFolderId(newId);
+                                  }
+                                } else {
+                                  setPinnedFolderId(null);
                                 }
-                              } else {
-                                setPinnedFolderId(null);
-                              }
-                              setOpenFolderBrowser(false);
-                            }}
-                          >
-                            <span className={`material-symbols-outlined !text-[16px] ${isActive ? 'text-violet-400' : 'text-gray-300'}`}>folder</span>
-                            <span className="truncate">{folder.folderName}</span>
-                            {isActive && <span className="material-symbols-outlined !text-[12px] ml-auto text-violet-400">check</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                                setOpenFolderBrowser(false);
+                              }}
+                            >
+                              <span className={`material-symbols-outlined !text-[16px] ${isActive ? 'text-violet-400 dark:text-purple-400' : 'text-gray-300 dark:text-gray-500'}`}>folder</span>
+                              <span className="truncate">{folder.folderName}</span>
+                              {isActive && <span className="material-symbols-outlined !text-[12px] ml-auto text-violet-400 dark:text-purple-400">check</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <button
-                  className="flex-none w-8 h-8 flex items-center justify-center rounded-lg border border-[#e2e8f0] bg-white hover:bg-slate-50 hover:border-violet-300 text-slate-400 hover:text-violet-600 transition-all shadow-sm"
+                  className="flex-none w-8 h-8 flex items-center justify-center rounded-lg border border-[#e2e8f0] dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-slate-50 dark:hover:bg-gray-700 hover:border-violet-300 dark:hover:border-purple-500 text-slate-400 hover:text-violet-600 dark:hover:text-purple-400 transition-all shadow-sm"
                   onClick={() => useUIStore.getState().toggleCreateFolderDialog(true)}
                 >
                   <span className="material-symbols-outlined !text-[18px]">add</span>
@@ -541,8 +610,8 @@ export function SaveLinkDialog() {
             <div className={`${styles.sectionContainer} space-y-2`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className={`material-symbols-outlined !text-[12px] ${theme.accentPurple}`}>tag</span>
-                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">TAGS</label>
+                  <span className={`material-symbols-outlined !text-[12px] opacity-100 ${theme.accentPurple}`}>tag</span>
+                  <label className="block text-[10px] font-bold text-gray-900 dark:text-white/90 uppercase tracking-[0.15em]">TAGS</label>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5 items-center">
@@ -560,7 +629,7 @@ export function SaveLinkDialog() {
                       type="button"
                       key={`ai-${tag}`}
                       onClick={() => toggleTagSelection(tag)}
-                      className={`${styles.tagChip} bg-violet-50 text-violet-700 border-violet-300 shadow-sm font-semibold cursor-pointer ring-1 ring-violet-200`}
+                      className={`${styles.tagChip} bg-violet-50 dark:bg-purple-900/30 text-violet-700 dark:text-purple-300 border-violet-300 dark:border-purple-600 shadow-sm font-semibold cursor-pointer ring-1 ring-violet-200 dark:ring-purple-900/50`}
                     >
                       <span className="material-symbols-outlined !text-[12px] mr-1">auto_awesome</span>
                       {tag}
@@ -588,13 +657,13 @@ export function SaveLinkDialog() {
                 })}
 
                 {isCreatingNewTag ? (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-violet-400 bg-white ring-2 ring-violet-100 shadow-sm min-h-[26px]">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-violet-400 dark:border-purple-500 bg-white dark:bg-gray-800 ring-2 ring-violet-100 dark:ring-purple-900/30 shadow-sm min-h-[26px]">
                     <input 
                       type="text"
                       value={newTagInputValue}
                       onChange={(e) => setNewTagInputValue(e.target.value)}
                       placeholder="Type tag..."
-                      className="text-[11px] outline-none text-[#1e293b] w-16 sm:w-20 bg-transparent placeholder-slate-400 font-medium"
+                      className="text-[11px] outline-none text-[#1e293b] dark:text-gray-200 w-16 sm:w-20 bg-transparent placeholder-slate-400 font-medium"
                       autoFocus
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && newTagInputValue.trim()) {
@@ -607,7 +676,7 @@ export function SaveLinkDialog() {
                         }
                       }}
                     />
-                    <div className="flex items-center gap-0.5 pl-1.5 border-l border-slate-200">
+                    <div className="flex items-center gap-0.5 pl-1.5 border-l border-slate-200 dark:border-gray-600">
                       <button
                         onClick={() => {
                           if (newTagInputValue.trim()) {
@@ -616,7 +685,7 @@ export function SaveLinkDialog() {
                             setNewTagInputValue('');
                           }
                         }}
-                        className="text-violet-600 hover:text-violet-800 transition-colors flex items-center justify-center p-0.5"
+                        className="text-violet-600 dark:text-purple-400 hover:text-violet-800 dark:hover:text-purple-300 transition-colors flex items-center justify-center p-0.5"
                       >
                         <span className="material-symbols-outlined !text-[14px]">check</span>
                       </button>
@@ -634,26 +703,26 @@ export function SaveLinkDialog() {
                 ) : (
                   <Popover open={openTagPopover} onOpenChange={setOpenTagPopover} modal={true}>
                     <PopoverTrigger asChild>
-                      <button className={`${styles.tagAddTrigger} focus:ring-2 focus:ring-violet-200 focus:border-violet-400`}>
+                      <button className={`${styles.tagAddTrigger} focus:ring-2 focus:ring-violet-200 dark:focus:ring-purple-900/30 focus:border-violet-400 dark:focus:border-purple-500`}>
                         <span className="material-symbols-outlined !text-[14px]">add</span> Add tag...
                       </button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-[200px] p-2 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-slate-200 z-[100]" 
+                      className="w-[200px] p-2 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] dark:shadow-2xl border border-slate-200 dark:border-gray-800 z-[100]" 
                       align="start" 
                       side="bottom" // [수정] 아래로 여는 것을 선호하지만
                       sideOffset={8}
                       avoidCollisions={true} // [수정] 공간이 정말 부족하다면 위로 띄워 깨짐을 방지
                       collisionPadding={10}  // 화면 끝에 너무 딱 붙지 않게 여유를 줌
                     >
-                    <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-2.5 py-1.5 focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-200 transition-all bg-slate-50/50">
+                    <div className="flex items-center gap-2 border border-slate-200 dark:border-gray-700 rounded-lg px-2.5 py-1.5 focus-within:border-violet-500 dark:focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-violet-200 dark:focus-within:ring-purple-900/30 transition-all bg-slate-50/50 dark:bg-gray-800/50">
                       <span className="material-symbols-outlined !text-[14px] text-slate-400">search</span>
                       <input 
                         type="text" 
                         value={tagInput}
                         onChange={(e) => setTagInput(e.target.value)}
                         placeholder="Search or create..." 
-                        className="w-full text-[11px] font-medium outline-none bg-transparent placeholder-slate-400 text-slate-700"
+                        className="w-full text-[11px] font-medium outline-none bg-transparent placeholder-slate-400 text-slate-700 dark:text-gray-200"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && tagInput.trim()) {
                             setTagInput('');
@@ -665,7 +734,7 @@ export function SaveLinkDialog() {
                     
                     <div className="mt-2 w-full">
                       <button 
-                        className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors font-bold text-[11px]"
+                        className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md bg-violet-50 dark:bg-purple-900/30 text-violet-700 dark:text-purple-300 hover:bg-violet-100 dark:hover:bg-purple-900/50 transition-colors font-bold text-[11px]"
                         onClick={() => {
                           setOpenTagPopover(false);
                           setTagInput('');
@@ -695,7 +764,7 @@ export function SaveLinkDialog() {
                         <button
                           type="button"
                           key={tag}
-                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-slate-50 font-medium text-[11px] cursor-pointer transition-colors ${selectedTags.includes(tag) ? 'text-violet-700 bg-violet-50' : 'text-[#1e293b]'}`}
+                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-gray-800 font-medium text-[11px] cursor-pointer transition-colors ${selectedTags.includes(tag) ? 'text-violet-700 dark:text-purple-300 bg-violet-50 dark:bg-purple-900/30' : 'text-[#1e293b] dark:text-gray-300'}`}
                           onClick={() => {
                             toggleTagSelection(tag);
                             setTagInput('');
@@ -716,8 +785,8 @@ export function SaveLinkDialog() {
             <div className={`${styles.sectionContainer} space-y-2`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className={`material-symbols-outlined !text-[12px] ${theme.accentPurple}`}>edit</span>
-                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">NOTE</label>
+                  <span className={`material-symbols-outlined !text-[12px] opacity-100 ${theme.accentPurple}`}>edit</span>
+                  <label className="block text-[10px] font-bold text-gray-900 dark:text-white/90 uppercase tracking-[0.15em]">NOTE</label>
                 </div>
                 {(analyzeLinkMutation.isPending || analyzeLinkMutation.isSuccess) && (
                   <button
@@ -731,7 +800,7 @@ export function SaveLinkDialog() {
                 )}
               </div>
               <textarea
-                className="w-full bg-white border border-[#e2e8f0] hover:border-slate-300 focus:border-violet-400 rounded-lg p-2.5 text-xs text-[#1e293b] placeholder-slate-400 resize-none outline-none focus:ring-1 focus:ring-violet-100 transition-all font-normal shadow-sm"
+                className="w-full bg-white dark:bg-slate-900/60 border border-[#e2e8f0] dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 focus:border-violet-400 dark:focus:border-purple-500 rounded-xl p-2.5 text-xs text-[#1e293b] dark:text-gray-100 placeholder-slate-400 resize-none outline-none focus:ring-1 focus:ring-violet-100 dark:focus:ring-purple-900/30 transition-all font-normal shadow-sm"
                 placeholder="Add a personal note or key takeaway..."
                 rows={2}
                 value={note}
@@ -740,17 +809,17 @@ export function SaveLinkDialog() {
             </div>
 
             {/* Footer Buttons */}
-            <div className="pt-3 flex items-center justify-end gap-4 border-t border-slate-100 mt-2 px-1">
+            <div className="flex items-center justify-end gap-3 px-6 py-5 mt-2">
               <button 
                 onClick={() => toggleSaveLinkDialog(false)} 
-                className="text-xs text-slate-500 hover:text-[#1e293b] transition-colors font-semibold"
+                className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors font-medium px-2 py-1"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending || createFolderMutation.isPending}
-                className={`${styles.btnGradient} text-xs font-bold px-5 py-2 rounded-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`${styles.btnGradient} text-xs font-bold px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg`}
               >
                 {(createBookmarkMutation.isPending || createFolderMutation.isPending) ? 'Saving...' : 'Save to Workspace'}
               </button>

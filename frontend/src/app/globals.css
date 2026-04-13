@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-display: Inter, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -69,28 +69,32 @@
   --radius: 0.75rem;
 
   /* Background & Texts */
-  --background-light: #f6f6f8; /* Updated from new HTML */
-  --background-dark: #131022;  /* Updated from new HTML */
-  --sidebar-dark: #0A0A0A;
+  --background-light: #ffffff; /* Pure White */
+  --background-dark: #0f172a; /* slate-900 */
+  --sidebar-dark: #0f172a; 
   --card-light: #FFFFFF;
-  --card-dark: #1F2937;
-  
+  --card-dark: #1e293b; /* slate-800 */
+
   --text-main: #121118;
-  --text-sub: #686189;
-  
+  --text-sub: #52525b; /* zinc-600 for better contrast on white */
+
   --text-primary-light: #1F2937;
   --text-secondary-light: #6B7280;
-  --text-primary-dark: #F9FAFB;
-  --text-secondary-dark: #9CA3AF;
-  
+  --text-primary-dark: #FFFFFF; /* Apple HIG: Pure White */
+  --text-secondary-dark: rgba(255, 255, 255, 0.64); /* Apple HIG: White 64% */
+
   /* Primary */
-  --primary: #7c3aed; /* violet-600 equivalent */
+  --primary: #7c3aed; /* violet-600 equivalent (Light Mode) */
   --primary-content: #ffffff;
   --primary-dark: #6d28d9; /* violet-700 equivalent */
   --primary-light: #ede9fe; /* violet-100 equivalent */
+
+  /* Dark Mode - Unified Purple Accent */
+  --interactive: #7c3aed; /* violet-600 */
+  --interactive-hover: #8b5cf6; /* violet-500 */
   
   /* shadcn Defaults mapped to new theme */
-  --background: oklch(0.975 0 0); /* background-light */
+  --background: #ffffff; /* background-light */
   --foreground: oklch(0.145 0 0); /* text-primary-light */
   --card: oklch(1 0 0); /* card-light */
   --card-foreground: oklch(0.145 0 0);
@@ -111,43 +115,51 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0); /* background-dark */
-  --foreground: oklch(0.985 0 0); /* text-primary-dark */
-  --card: oklch(0.205 0 0); /* card-dark */
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.55 0.18 250); 
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0); /* text-secondary-dark */
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.55 0.18 250);
+  --background: #0f172a; /* slate-900 */
+  --foreground: #f8fafc; /* slate-50 */
+  --card: #1e293b; /* slate-800 */
+  --card-foreground: #f8fafc;
+  --popover: #1e293b; /* slate-800 */
+  --popover-foreground: #f8fafc;
+  --primary-foreground: #FFFFFF;
+  --secondary: #7c3aed; /* System Purple */
+  --secondary-foreground: #FFFFFF;
+  --muted: rgba(255, 255, 255, 0.2); 
+  --muted-foreground: #94a3b8; /* slate-400 */
+  --accent: #7c3aed; /* System Purple */
+  --accent-foreground: #FFFFFF;
+  --interactive: #7c3aed; /* System Purple */
+  --interactive-hover: #8b5cf6; /* Bright Purple */
+  --border: rgba(255, 255, 255, 0.06); 
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: rgba(124, 58, 237, 0.5); /* Purple Transparent */
+  
+  /* SearchWeb specific custom colors for dark mode */
+  --text-main: #f8fafc; /* slate-50 */
+  --text-sub: #94a3b8; /* slate-400 */
 }
 
 
 
 /* Animations for Login Page */
-@keyframes orbit {
-  0% { transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg); }
-  100% { transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg); }
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
-@keyframes orbit-reverse {
-  0% { transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg); }
-  100% { transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg); }
+
+@keyframes float-soft-alt {
+  0%, 100% { transform: translateY(0) rotate(12deg); }
+  50% { transform: translateY(-12px) rotate(15deg); }
 }
-@keyframes float-folder {
-  0%, 100% { transform: translateY(0px) rotateX(10deg) rotateY(-10deg); }
-  50% { transform: translateY(-15px) rotateX(15deg) rotateY(-5deg); }
+
+.animate-float-soft {
+  animation: float-soft 4s ease-in-out infinite;
 }
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.1); }
+
+.animate-float-soft-slow {
+  animation: float-soft 6s ease-in-out infinite;
 }
+
 
 @layer base {
   * {
@@ -186,8 +198,76 @@
 /* Material Icons Settings */
 .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-    /* font-size: inherit; <- Removed to allow individual size overrides */
 }
 .icon-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+}
+
+/* --- Login Page 3D Animations --- */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg); }
+}
+
+@keyframes orbit-reverse {
+  from { transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg); }
+  to { transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg); }
+}
+
+@keyframes float-folder {
+  0%, 100% { transform: translateY(0) rotateX(2deg) rotateY(-2deg); }
+  50% { transform: translateY(-12px) rotateX(-2deg) rotateY(2deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.15); }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.7);
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+.animate-shine {
+  animation: shine 1.5s infinite;
+  opacity: 1;
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes icon-depth {
+  0%, 100% { 
+    transform: rotateY(5deg) rotateX(-60deg) scale(1.05); 
+    filter: blur(0px); 
+    opacity: 1; 
+  }
+  50% { 
+    transform: rotateY(5deg) rotateX(-60deg) scale(0.92); 
+    filter: blur(0.8px); 
+    opacity: 0.7; 
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes nebula-pulse {
+  0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+  50% { transform: scale(1.1) translate(10px, -10px); opacity: 0.7; }
 }

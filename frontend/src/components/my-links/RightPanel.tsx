@@ -5,6 +5,7 @@ import { useBookmarks, useDeleteBookmark, useUpdateBookmark } from '@/lib/api/bo
 import { useTags } from '@/lib/api/tagApi';
 import { useFolderStore } from '@/lib/store/folderStore';
 import { useAuthStore } from '@/lib/store/authStore';
+import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
 
 /**
@@ -68,6 +69,20 @@ function LinkItem({
   const dropdownRef = useRef<HTMLDivElement>(null);        // 드롭다운 메뉴 참조
   const folderDropdownRef = useRef<HTMLDivElement>(null);  // 폴더 드롭다운 참조
   const itemRef = useRef<HTMLDivElement>(null);            // LinkItem 전체 컨테이너 참조
+  const isEditing = isTitleEditing || isNoteEditing || isTagEditing;
+  const isActive = (isBulkEditMode && isSelected) || isEditing;
+  const itemDarkClass = isActive
+    ? 'dark:border-violet-400/55 dark:[background:linear-gradient(135deg,rgba(109,40,217,0.24)_0%,rgba(139,92,246,0.16)_52%,rgba(30,41,59,0.2)_100%)] dark:shadow-[0_22px_46px_-24px_rgba(124,58,237,0.58),0_0_0_1px_rgba(167,139,250,0.14)]'
+    : 'dark:border-gray-800/60 dark:[background-color:rgba(15,23,42,0.35)] dark:[background-image:none] dark:hover:border-violet-400/35 dark:hover:shadow-[0_16px_36px_-20px_rgba(124,58,237,0.3),inset_0_0_0_1px_rgba(139,92,246,0.18)]';
+  const glowDarkClass = isActive
+    ? 'dark:bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.24)_0%,rgba(124,58,237,0.14)_40%,rgba(124,58,237,0)_74%)]'
+    : 'dark:bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.2)_0%,rgba(124,58,237,0.1)_40%,rgba(124,58,237,0)_74%)]';
+  const surfaceDarkClass = isActive
+    ? 'dark:bg-[linear-gradient(135deg,rgba(109,40,217,0.22)_0%,rgba(139,92,246,0.14)_48%,rgba(30,41,59,0.16)_100%)]'
+    : 'dark:bg-[linear-gradient(135deg,rgba(109,40,217,0.2)_0%,rgba(139,92,246,0.14)_48%,rgba(30,41,59,0.1)_100%)]';
+  const ringDarkClass = isActive ? 'dark:ring-violet-400/35 dark:ring-2' : 'dark:ring-violet-400/25 dark:group-hover:ring-transparent';
+  const iconDarkClass = 'dark:bg-gray-800 dark:border-gray-700 dark:group-hover:border-violet-400/30 dark:group-hover:bg-[linear-gradient(135deg,rgba(109,40,217,0.3)_0%,rgba(139,92,246,0.18)_100%)] dark:group-hover:text-violet-200 dark:group-hover:shadow-[0_12px_24px_-16px_rgba(124,58,237,0.8)]';
+  const tagDarkClass = 'dark:border-white/8 dark:bg-slate-800/85 dark:text-slate-300 dark:group-hover:border-violet-400/30 dark:group-hover:bg-[linear-gradient(135deg,rgba(76,29,149,0.32)_0%,rgba(109,40,217,0.22)_100%)] dark:group-hover:text-violet-100';
 
 
   // Handle outside clicks for dropdowns and editing modes | 드롭다운 및 편집 모드 외부 클릭 시 닫기/저장 처리
@@ -201,9 +216,13 @@ function LinkItem({
   };
 
   return (
-    <div 
+    <div
       ref={itemRef}
-      className={`group relative z-0 hover:z-20 flex items-center p-3 rounded-xl transition-all duration-300 cursor-pointer border ${(isBulkEditMode && isSelected) || (isTitleEditing || isNoteEditing || isTagEditing) ? 'bg-purple-50/40 dark:bg-purple-900/10 border-purple-200/60 dark:border-purple-800/60' : 'border-transparent hover:border-purple-200/30 dark:hover:border-purple-800/30 hover:bg-purple-50/40 dark:hover:bg-purple-900/5'}`}
+      className={`group relative isolate z-0 hover:z-20 flex items-center p-3 rounded-xl transition-all duration-300 cursor-pointer border shadow-sm backdrop-blur-[6px] dark:backdrop-blur-none ${
+        isActive
+          ? 'border-violet-400/25 bg-white/94 shadow-[0_22px_45px_-20px_rgba(124,58,237,0.22),0_15px_25px_-10px_rgba(124,58,237,0.14),0_0_0_1px_rgba(167,139,250,0.18)]'
+          : 'border-gray-200/75 bg-white/88 hover:border-violet-500/50 hover:bg-white/90 hover:shadow-[0_12px_36px_-12px_rgba(0,0,0,0.08),inset_0_0_0_1px_rgba(124,58,237,0.4)] hover:backdrop-blur-md'
+      } ${itemDarkClass}`}
       onClick={() => {
         if (isBulkEditMode && onToggleSelect) {
           onToggleSelect(data.bookmarkId);
@@ -212,18 +231,46 @@ function LinkItem({
         }
       }}
     >
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-[-8px] -z-10 rounded-[20px] blur-xl transition-all duration-300 ${
+          isActive
+            ? 'opacity-100 bg-[radial-gradient(circle_at_50%_36%,rgba(167,139,250,0.24)_0%,rgba(139,92,246,0.08)_34%,rgba(139,92,246,0)_65%)]'
+            : 'opacity-0 group-hover:opacity-100 bg-[radial-gradient(circle_at_50%_36%,rgba(167,139,250,0.12)_0%,rgba(139,92,246,0.04)_34%,rgba(139,92,246,0)_65%)]'
+        } ${glowDarkClass}`}
+      />
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 rounded-[inherit] transition-all duration-300 ${
+          isActive
+            ? 'opacity-100 bg-[linear-gradient(135deg,rgba(255,255,255,0.92)_0%,rgba(216,180,254,0.42)_48%,rgba(255,255,255,0.08)_100%)]'
+            : 'opacity-0 group-hover:opacity-100 bg-[linear-gradient(135deg,rgba(255,255,255,0.9)_0%,rgba(243,232,255,0.5)_48%,rgba(255,255,255,0.1)_100%)]'
+        } ${surfaceDarkClass}`}
+      />
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset transition-all duration-300 ${
+          isActive
+            ? 'opacity-100 ring-2 ring-violet-400/50'
+            : 'opacity-0 group-hover:opacity-100 ring-transparent group-hover:ring-transparent'
+        } ${ringDarkClass}`}
+      />
       
       {/* Bulk Edit Checkbox | 대량 편집 체크박스 */}
       {isBulkEditMode && (
-        <div className="mr-3 shrink-0 flex items-center">
-          <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${isSelected ? 'bg-purple-500 border-purple-500 text-white shadow-sm' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}>
+        <div className="relative z-10 mr-3 shrink-0 flex items-center">
+          <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
+            isSelected
+              ? 'border-transparent bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_55%,#a78bfa_100%)] text-white shadow-[0_8px_18px_-10px_rgba(124,58,237,0.8)]'
+              : 'border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/90 group-hover:border-violet-300 dark:group-hover:border-violet-500/50'
+          }`}>
             {isSelected && <span className="material-symbols-outlined !text-[12px] font-bold">check</span>}
           </div>
         </div>
       )}
 
       {/* Favicon & Domain Icon | 파비콘 및 도메인 아이콘 */}
-      <div className="h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold shrink-0 overflow-hidden border border-gray-100 dark:border-gray-700">
+      <div className={`relative z-10 h-8 w-8 rounded-lg bg-gray-100 text-gray-400 dark:text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold shrink-0 overflow-hidden border border-gray-100 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-violet-200/90 group-hover:bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(243,232,255,0.96)_100%)] group-hover:text-violet-600 group-hover:shadow-[0_12px_20px_-12px_rgba(124,58,237,0.28)] ${iconDarkClass}`}>
         {data.link?.faviconUrl ? (
           <img src={data.link.faviconUrl} alt="" className="w-5 h-5 object-contain" />
         ) : data.link?.domain ? (
@@ -240,7 +287,7 @@ function LinkItem({
           <span className="uppercase">{(data.link?.domain ?? data.displayTitle)?.[0] ?? 'L'}</span>
         )}
       </div>
-      <div className="ml-3 flex-1 flex flex-col min-w-0">
+      <div className="relative z-10 ml-3 flex-1 flex flex-col min-w-0">
         <div className="flex items-center w-full">
           {/* Title Area | 제목 영역 (호버 시 전체 제목 및 URL 표시) */}
           <div className="flex-1 flex items-center min-w-0 h-[28px]">
@@ -257,7 +304,7 @@ function LinkItem({
               />
             ) : (
               <h4
-                className="text-[10.5px] font-semibold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:whitespace-normal group-hover:line-clamp-2 transition-colors cursor-pointer w-full border border-transparent flex items-center px-0 leading-tight"
+                className="text-[10.5px] font-semibold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:whitespace-normal group-hover:line-clamp-2 transition-all duration-300 group-hover:text-violet-700 dark:group-hover:text-violet-100 cursor-pointer w-full border border-transparent flex items-center px-0 leading-tight"
               >{titleContent}</h4>
             )}
           </div>
@@ -270,7 +317,7 @@ function LinkItem({
             <>
               <div className="relative" ref={folderDropdownRef}>
                 <button 
-                  className={`inline-flex items-center gap-1 text-[8.5px] font-semibold px-2 py-0.5 rounded transition-all ${isFolderDropdownOpen ? 'bg-purple-100 text-purple-700' : 'bg-gray-100/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10'}`}
+                  className={`inline-flex items-center gap-1 text-[8.5px] font-semibold px-2 py-0.5 rounded transition-all ${isFolderDropdownOpen ? 'bg-gray-100 text-gray-700' : 'bg-gray-100/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/20'}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsFolderDropdownOpen(!isFolderDropdownOpen);
@@ -288,7 +335,7 @@ function LinkItem({
                     {folders?.map(folder => (
                       <button
                         key={folder.memberFolderId}
-                        className={`w-full text-left px-2 py-1.5 text-[9px] font-medium transition-colors flex items-center justify-between ${folder.memberFolderId === data.memberFolderId ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
+                        className={`w-full text-left px-2 py-1.5 text-[9px] font-medium transition-colors flex items-center justify-between ${folder.memberFolderId === data.memberFolderId ? 'text-gray-900 bg-gray-100 dark:bg-gray-700' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           if (folder.memberFolderId !== data.memberFolderId && onUpdateFolder) {
@@ -322,7 +369,7 @@ function LinkItem({
               <input
                 ref={tagInputRef}
                 type="text"
-                className="text-[8.5px] font-medium bg-purple-50/50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 rounded-md outline-none text-purple-600 dark:text-purple-400 px-1.5 py-0 min-w-[60px] h-[18px]"
+                className="text-[8.5px] font-medium bg-gray-50/50 dark:bg-gray-800/10 border border-gray-200 dark:border-gray-700 rounded-md outline-none text-gray-700 dark:text-gray-300 px-1.5 py-0 min-w-[60px] h-[18px]"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onBlur={handleTagEditComplete}
@@ -336,11 +383,11 @@ function LinkItem({
                   data.tags.map((tag, idx) => (
                     <span 
                       key={idx} 
-                      className="text-[8.5px] px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap hover:bg-purple-50 hover:text-purple-500 transition-colors"
+                      className={`text-[8.5px] px-2 py-0.5 rounded border border-transparent bg-gray-100/90 text-gray-500 font-medium whitespace-nowrap transition-all duration-300 hover:bg-gray-200 hover:text-gray-800 group-hover:border-violet-200/80 group-hover:bg-[linear-gradient(135deg,rgba(250,245,255,0.95)_0%,rgba(243,232,255,0.78)_100%)] group-hover:text-violet-600 ${tagDarkClass}`}
                     >#{tag}</span>
                   ))
                 ) : (isTitleEditing || isNoteEditing) ? (
-                  <span className="text-[8.5px] text-gray-300 dark:text-gray-600 font-medium italic hover:text-purple-400 transition-colors px-2 py-0.5">Add tags...</span>
+                  <span className="text-[8.5px] text-gray-300 dark:text-gray-600 font-medium italic hover:text-gray-400 transition-colors px-2 py-0.5">Add tags...</span>
                 ) : null}
               </>
             )}
@@ -350,7 +397,7 @@ function LinkItem({
 
       {/* Note Edit Input | 메모 편집창 (편집 모드 시에만 나타남) */}
       {isNoteEditing && (
-        <div className="flex-1 min-w-0 ml-4 h-[28px] z-10">
+        <div className="relative z-10 flex-1 min-w-0 ml-4 h-[28px]">
           <input
             ref={noteInputRef}
             type="text"
@@ -373,15 +420,15 @@ function LinkItem({
         </div>
       )}
 
-      <div className="shrink-0 ml-4 flex items-center justify-end w-8 relative" ref={dropdownRef}>
+      <div className="relative z-10 shrink-0 ml-4 flex items-center justify-end w-8" ref={dropdownRef}>
         {!isBulkEditMode && !(isNoteEditing || isTitleEditing) && (
-          <span className={`text-[8px] text-gray-400 whitespace-nowrap transition-opacity duration-200 absolute right-0 pointer-events-none ${isDropdownOpen ? 'opacity-0' : 'group-hover:opacity-0'}`}>
+          <span className={`text-[8px] text-gray-400 dark:text-gray-500 whitespace-nowrap transition-all duration-200 absolute right-0 pointer-events-none ${isDropdownOpen ? 'opacity-0' : 'group-hover:opacity-0 group-hover:-translate-x-1 group-hover:text-violet-500/80 dark:group-hover:text-violet-300/80'}`}>
             {formatRelativeTime(data.createdAt)}
           </span>
         )}
         {/* More Actions Button | 더보기/편집취소 버튼 */}
         <button 
-          className={`p-1 mt-0.5 rounded-md text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all absolute right-[-4px] ${(isNoteEditing || isTitleEditing) ? 'opacity-100 text-purple-500' : (isDropdownOpen ? 'opacity-100 bg-gray-100 dark:bg-gray-800' : 'opacity-0 group-hover:opacity-100')}`}
+          className={`p-1 mt-0.5 rounded-md text-gray-400 hover:text-violet-600 dark:text-gray-500 dark:hover:text-violet-200 hover:bg-violet-50/80 dark:hover:bg-violet-500/15 transition-all absolute right-[-4px] ${(isNoteEditing || isTitleEditing) ? 'opacity-100 text-violet-600 dark:text-violet-200' : (isDropdownOpen ? 'opacity-100 bg-violet-50/80 dark:bg-violet-500/15 text-violet-600 dark:text-violet-200' : 'opacity-0 group-hover:opacity-100')}`}
           onClick={(e) => {
             e.stopPropagation();
             if (isNoteEditing || isTitleEditing) {
@@ -409,7 +456,7 @@ function LinkItem({
           <div className="absolute right-0 top-full mt-1 w-24 bg-white dark:bg-gray-800 rounded-lg shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 dark:border-gray-700 py-1 z-20 flex flex-col">
             {/* Edit Button | 수정 버튼 */}
             <button 
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 transition-colors text-left"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsDropdownOpen(false);
@@ -458,9 +505,13 @@ export function RightPanel() {
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false); // 태그 필터 드롭다운 오픈 여부
   const tagDropdownRef = useRef<HTMLDivElement>(null);
 
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false); // 정렬 드롭다운 오픈 여부
-  const sortDropdownRef = useRef<HTMLDivElement>(null);
   const [sortOption, setSortOption] = useState<'newest' | 'oldest' | 'a-z'>('newest'); // 현재 정렬 옵션
+
+  const sortOptions: SortOption[] = [
+    { id: 'newest', label: 'Newest First', icon: 'schedule' },
+    { id: 'oldest', label: 'Oldest First', icon: 'history' },
+    { id: 'a-z', label: 'A to Z', icon: 'sort_by_alpha' }
+  ];
 
   // UI 정렬 옵션을 백엔드 파라미터로 매핑
   const backendSort = sortOption === 'newest' ? 'Newest' as const : sortOption === 'oldest' ? 'Oldest' as const : 'Alphabetical' as const;
@@ -490,20 +541,17 @@ export function RightPanel() {
       if (tagDropdownRef.current && !tagDropdownRef.current.contains(event.target as Node)) {
           setIsTagDropdownOpen(false);
       }
-      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
-          setIsSortDropdownOpen(false);
-      }
       if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
           setIsMoreMenuOpen(false);
       }
     }
-    if (isTagDropdownOpen || isSortDropdownOpen || isMoreMenuOpen) {
+    if (isTagDropdownOpen || isMoreMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isTagDropdownOpen, isSortDropdownOpen, isMoreMenuOpen]);
+  }, [isTagDropdownOpen, isMoreMenuOpen]);
 
   // Client-side tag filtering logic | 태그 필터링 처리 (클라이언트 사이드 필터링)
   const allLinks = bookmarks ?? [];
@@ -601,16 +649,67 @@ export function RightPanel() {
     });
   };
 
+  /** 대량 링크 폴더 일괄 이동 핸들러 */
+  const handleBulkMove = async (targetFolderId: number) => {
+    // 선택된 링크가 없으면 중단
+    if (selectedLinkIds.length === 0) return;
+    
+    try {
+      // Promise.allSettled를 사용하여 각 요청의 성공/실패 여부를 개별적으로 확인
+      const results = await Promise.allSettled(
+        selectedLinkIds.map(async (bookmarkId) => {
+          const bookmark = bookmarks?.find(b => b.bookmarkId === bookmarkId);
+          if (!bookmark) return bookmarkId;
+          
+          await updateBookmarkMutation.mutateAsync({
+            bookmarkId,
+            memberFolderId: targetFolderId,
+            displayTitle: bookmark.displayTitle,
+            note: bookmark.note ?? undefined,
+            tags: bookmark.tags?.join(', ')
+          });
+          return bookmarkId;
+        })
+      );
+
+      // 성공한 ID 목록 추출
+      const succeededIds = results
+        .filter((res): res is PromiseFulfilledResult<number> => res.status === 'fulfilled')
+        .map(res => res.value);
+
+      // 성공한 항목은 선택 목록에서 제거 (즉시 반영)
+      if (succeededIds.length > 0) {
+        setSelectedLinkIds(prev => prev.filter(id => !succeededIds.includes(id)));
+      }
+
+      // 모든 요청이 성공했는지 확인
+      const allSucceeded = results.every(res => res.status === 'fulfilled');
+      
+      if (allSucceeded) {
+        // 전원 성공 시 모달 닫고 모드 종료
+        setIsMoveModalOpen(false);
+        exitBulkMode();
+      } else {
+        // 일부 실패 시 콘솔에 알림 (모달은 열려 있고 실패 항목만 선택된 상태로 남음)
+        const failedCount = selectedLinkIds.length - succeededIds.length;
+        console.error(`Bulk move partially failed: ${failedCount} items failed.`);
+      }
+    } catch (error) {
+      // Promise.allSettled 자체에서 에러가 발생하는 경우(드문 상황)에 대한 대비
+      console.error('Unexpected error during bulk move:', error);
+    }
+  };
+
   // Determine the current folder name | 현재 폴더 이름 결정
   const currentFolderName = myFolders?.find(f => f.memberFolderId === selectedFolderId)?.folderName ?? 'All Links';
 
   if (!rightPanelOpen) return null;
 
   return (
-    <aside className="w-[700px] shrink-0 bg-white dark:bg-card-dark border-l border-gray-200 dark:border-gray-800 hidden xl:flex flex-col h-full shadow-lg z-10 transition-all duration-300 relative">
+    <aside className="w-[700px] shrink-0 bg-white dark:bg-[#0a0a0b] border-l border-gray-200 dark:border-white/[0.08] hidden xl:flex flex-col h-full shadow-2xl z-10 transition-all duration-300 relative">
       
       {/* Top Header & Tags | 상단 헤더 및 태그 필터 영역 */}
-      <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col gap-4 bg-white dark:bg-card-dark sticky top-0 z-[15]">
+      <div className="px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex flex-col gap-2 bg-white dark:bg-[#0a0a0b] sticky top-0 z-[15]">
         
         {/* Row 1: Title & Actions */}
         <div className="flex justify-between items-start">
@@ -622,7 +721,7 @@ export function RightPanel() {
               </div>
               <h2 className="text-sm font-bold text-gray-900 dark:text-white">{currentFolderName}</h2>
             </div>
-            <p className="text-[10px] text-gray-500 mt-1">{filteredLinks.length} Links</p>
+            <p className="text-[10px] text-gray-500">{filteredLinks.length} Links</p>
           </div>
 
           {/* Right: Action Buttons & Search | 우측 액션 버튼 및 검색창 */}
@@ -631,20 +730,16 @@ export function RightPanel() {
             <div className="relative" ref={tagDropdownRef}>
               <button 
                 onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
-                className={`group flex items-center gap-1 px-2 py-1 border rounded-md text-[10px] font-medium transition-all duration-200 ${selectedTags.length > 0 ? 'bg-purple-50/50 border-purple-200/50 text-purple-700 dark:bg-purple-900/20 dark:border-purple-800/50 dark:text-purple-300 shadow-sm' : 'bg-white/50 dark:bg-card-dark border-gray-200/60 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-purple-50/30 hover:border-purple-200/50 dark:hover:bg-gray-800/80 hover:shadow-sm'}`}
+                className={`group flex items-center gap-1 px-2 py-1 border rounded-md text-[10px] font-medium transition-all duration-200 ${selectedTags.length > 0 ? 'bg-[linear-gradient(135deg,rgba(139,92,246,0.18)_0%,rgba(167,139,250,0.12)_100%)] border-violet-400/60 text-violet-700 dark:bg-[linear-gradient(135deg,rgba(109,40,217,0.4)_0%,rgba(139,92,246,0.28)_100%)] dark:border-violet-500/70 dark:text-violet-200 shadow-[0_2px_8px_-2px_rgba(124,58,237,0.35)] dark:shadow-[0_2px_10px_-2px_rgba(139,92,246,0.5)] ring-1 ring-violet-300/50 dark:ring-violet-500/40' : 'bg-white/50 dark:bg-slate-900/50 border-gray-200/60 dark:border-white/8 text-gray-600 dark:text-white hover:bg-purple-50/50 dark:hover:bg-purple-900/20 hover:border-purple-200/50 dark:hover:border-purple-500/30'}`}
               >
-                <span className={`material-symbols-outlined !text-[12px] transition-colors ${selectedTags.length > 0 ? 'text-purple-500' : 'text-gray-400 group-hover:text-purple-400'}`}>sell</span>
-                <span>Tags {selectedTags.length > 0 && <span className="ml-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 px-1 py-0.5 rounded-sm text-[8px] font-bold">{selectedTags.length}</span>}</span>
-                <span className={`material-symbols-outlined !text-[12px] text-gray-400 transition-transform duration-200 ${isTagDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                <span className={`material-symbols-outlined !text-[12px] leading-none transition-colors ${selectedTags.length > 0 ? 'text-violet-600 dark:text-violet-300' : 'text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400'}`}>sell</span>
+                <span>Tags {selectedTags.length > 0 && <span className="ml-0.5 bg-violet-500/20 dark:bg-violet-400/25 text-violet-700 dark:text-violet-200 px-1 py-0.5 rounded-sm text-[8px] font-bold">{selectedTags.length}</span>}</span>
+                <span className={`material-symbols-outlined !text-[12px] transition-transform duration-200 ${selectedTags.length > 0 ? 'text-violet-500 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'} ${isTagDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
               </button>
 
               {/* Dropdown Menu */}
               {isTagDropdownOpen && (
-                <div className="absolute left-0 top-full mt-2 w-52 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-gray-100/50 dark:border-gray-700/50 py-1.5 z-30 flex flex-col max-h-[300px] overflow-y-auto origin-top-left animate-in fade-in slide-in-from-top-1 duration-200">
-                  <div className="px-3.5 py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100/50 dark:border-gray-700/50 mb-1.5 flex items-center gap-1.5">
-                    <span className="font-extrabold text-[12px] text-purple-400 leading-none mb-0.5">#</span>
-                    Select Tags
-                  </div>
+                <div className="absolute left-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-gray-100/50 dark:border-white/10 py-1.5 z-30 flex flex-col max-h-[300px] overflow-y-auto origin-top-left animate-in fade-in slide-in-from-top-1 duration-200">
                   {AVAILABLE_TAGS.map(tag => {
                     const isSelected = selectedTags.includes(tag);
                     return (
@@ -675,48 +770,11 @@ export function RightPanel() {
               )}
             </div>
             
-            {/* Sort by Dropdown | 정렬 옵션 드롭다운 */}
-            <div className="relative" ref={sortDropdownRef}>
-              <button 
-                onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                className={`group flex items-center gap-1 px-2 py-1 border rounded-md text-[10px] font-medium transition-all duration-200 ${isSortDropdownOpen ? 'bg-purple-50/50 border-purple-200/50 text-purple-700 dark:bg-purple-900/20 dark:border-purple-800/50 dark:text-purple-300 shadow-sm' : 'bg-white/50 dark:bg-card-dark border-gray-200/60 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-purple-50/30 hover:border-purple-200/50 dark:hover:bg-gray-800/80 hover:shadow-sm'}`}
-              >
-                <span className={`material-symbols-outlined !text-[12px] transition-colors ${isSortDropdownOpen ? 'text-purple-500' : 'text-gray-400 group-hover:text-purple-400'}`}>sort</span>
-                <span>Sort by: {sortOption === 'newest' ? 'Newest' : sortOption === 'oldest' ? 'Oldest' : 'A-Z'}</span>
-                <span className={`material-symbols-outlined !text-[12px] text-gray-400 transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
-              </button>
-
-              {/* Dropdown Menu */}
-              {isSortDropdownOpen && (
-                <div className="absolute left-0 top-full mt-2 w-36 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-gray-100/50 dark:border-gray-700/50 py-1.5 z-30 flex flex-col origin-top-left animate-in fade-in slide-in-from-top-1 duration-200">
-                  <div className="px-3.5 py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100/50 dark:border-gray-700/50 mb-1 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined !text-[12px] text-purple-400">sort</span>
-                    Sort Options
-                  </div>
-                  {[
-                    { id: 'newest', label: 'Newest First', icon: 'schedule' },
-                    { id: 'oldest', label: 'Oldest First', icon: 'history' },
-                    { id: 'a-z', label: 'A to Z', icon: 'sort_by_alpha' }
-                  ].map(option => {
-                    const isSelected = sortOption === option.id;
-                    return (
-                      <button
-                        key={option.id}
-                        className="group flex items-center gap-2.5 px-3.5 py-2 text-[10px] font-medium hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all text-left w-full relative"
-                        onClick={() => {
-                          setSortOption(option.id as any);
-                          setIsSortDropdownOpen(false);
-                        }}
-                      >
-                        <span className={`material-symbols-outlined !text-[14px] transition-colors duration-200 ${isSelected ? 'text-purple-500' : 'text-gray-400 group-hover:text-purple-400'}`}>{option.icon}</span>
-                        <span className={`transition-colors duration-200 ${isSelected ? 'text-purple-600 dark:text-purple-400 font-semibold' : 'text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100'}`}>{option.label}</span>
-                        {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-purple-500 rounded-r-full" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <SortDropdown 
+              value={sortOption}
+              onChange={(val) => setSortOption(val as 'newest' | 'oldest' | 'a-z')}
+              options={sortOptions}
+            />
 
             {/* Search Bar | 검색창 */}
             <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-md w-[110px]">
@@ -764,12 +822,12 @@ export function RightPanel() {
         </div>
 
         {/* Row 2: Selected Tags & Sort Icon (Always keeps space) | 2행: 선택된 태그 목록 및 정렬 아이콘 */}
-        <div className="flex justify-between items-center mt-1 min-h-[28px]">
+        <div className="flex justify-between items-center min-h-[28px]">
           <div className="w-full flex flex-wrap gap-1.5 items-center">
             {selectedTags.length > 0 ? (
               <>
                 {selectedTags.map((tag, idx) => (
-                  <span key={idx} className="group inline-flex items-center gap-1 pl-2 pr-1.5 py-1 rounded-md text-[9px] font-medium bg-purple-50 text-purple-600 border border-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800/50 whitespace-nowrap transition-colors animate-in fade-in zoom-in duration-500">
+                  <span key={idx} className="group inline-flex items-center gap-1 pl-2 pr-1.5 py-1 rounded-md text-[9px] font-medium bg-[linear-gradient(135deg,rgba(109,40,217,0.85)_0%,rgba(139,92,246,0.75)_50%,rgba(167,139,250,0.68)_100%)] text-white shadow-sm shadow-purple-500/25 dark:bg-[linear-gradient(135deg,rgba(109,40,217,0.55)_0%,rgba(139,92,246,0.45)_50%,rgba(167,139,250,0.35)_100%)] dark:text-white dark:shadow-sm dark:shadow-purple-600/15 whitespace-nowrap transition-colors animate-in fade-in zoom-in duration-500">
                     {tag}
                     <button 
                       onClick={() => toggleTag(tag)}
@@ -794,14 +852,14 @@ export function RightPanel() {
             )}
           </div>
           <button className="flex items-center justify-center p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors ml-2 shrink-0">
-            <span className="material-symbols-outlined !text-[14px]">swap_vert</span>
+            <span className="material-symbols-outlined !text-[12px] !leading-none">swap_vert</span>
           </button>
         </div>
       </div>
 
 
       {/* Link List Section | 링크 목록 섹션 */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
         {isBookmarksLoading ? (
           <div className="flex items-center justify-center h-48 text-gray-400 gap-2">
             <span className="material-symbols-outlined animate-spin text-xl">progress_activity</span>
@@ -834,11 +892,11 @@ export function RightPanel() {
 
       {/* Floating Bulk Action Bar | 하단 대량 편집 액션바 */}
       {isBulkEditMode && (
-        <div className="absolute bottom-6 left-1/2 w-max -translate-x-1/2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgba(168,85,247,0.3)] dark:shadow-[0_8px_30px_rgba(168,85,247,0.4)] ring-2 ring-purple-200/80 dark:ring-purple-700/60 px-3.5 py-2 flex items-center gap-3 z-40 animate-in slide-in-from-bottom-5 fade-in duration-300">
+        <div className="absolute bottom-6 left-1/2 w-max -translate-x-1/2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-slate-900/40 ring-1 ring-gray-200 dark:ring-gray-700 px-3.5 py-2 flex items-center gap-3 z-40 animate-in slide-in-from-bottom-5 fade-in duration-300">
           <div className="flex items-center gap-2">
             <button 
               onClick={handleSelectAll}
-              className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${selectedLinkIds.length === filteredLinks.length && filteredLinks.length > 0 ? 'bg-purple-500 border-purple-500 text-white shadow-sm' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}
+              className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${selectedLinkIds.length === filteredLinks.length && filteredLinks.length > 0 ? 'bg-slate-600 border-slate-600 text-white shadow-sm' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}
             >
               {selectedLinkIds.length === filteredLinks.length && filteredLinks.length > 0 && <span className="material-symbols-outlined !text-[12px] font-bold">check</span>}
             </button>
@@ -888,11 +946,11 @@ export function RightPanel() {
             {/* Header styled like SaveLinkDialog */}
             <div className="relative flex items-center justify-between px-5 pt-5 pb-3 z-10 border-b border-gray-100 dark:border-gray-800/50">
               <div className="text-lg font-extrabold text-[#1e293b] dark:text-gray-100 tracking-tight flex items-center gap-2.5">
-                <div className="bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] p-1.5 rounded-lg shadow-lg shadow-violet-200/50 dark:shadow-violet-900/30 flex items-center justify-center ring-1 ring-white/20">
+                <div className="bg-[linear-gradient(135deg,#475569_0%,#64748b_100%)] p-1.5 rounded-lg shadow-lg shadow-slate-200/50 dark:shadow-slate-900/30 flex items-center justify-center ring-1 ring-white/20">
                   <span className="material-symbols-outlined text-white !text-[18px] fill-1 drop-shadow-sm">drive_file_move</span>
                 </div>
                 <span>Move Links</span>
-                <span className="text-[11px] font-medium text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 px-1.5 py-0.5 rounded-md ml-1">{selectedLinkIds.length} items</span>
+                <span className="text-[11px] font-medium text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 px-1.5 py-0.5 rounded-md ml-1">{selectedLinkIds.length} items</span>
               </div>
               <button 
                 onClick={() => setIsMoveModalOpen(false)}
@@ -921,21 +979,19 @@ export function RightPanel() {
                     {myFolders.map(folder => (
                       <button
                         key={folder.memberFolderId}
-                        onClick={() => {
-                          setIsMoveModalOpen(false);
-                          exitBulkMode();
-                        }}
-                        className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-gray-800 transition-all text-left group bg-white/50"
+                        onClick={() => handleBulkMove(folder.memberFolderId)} // 폴더 클릭 시 일괄 이동 실행
+                        disabled={updateBookmarkMutation.isPending} // API 호출 중 중복 클릭 방지
+                        className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-gray-800 transition-all text-left group bg-white/50 disabled:opacity-50"
                       >
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 shrink-0 bg-slate-100 group-hover:bg-slate-200 group-hover:text-slate-500 transition-colors">
                           <span className="material-symbols-outlined !text-[18px]">folder_open</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-[13px] font-medium text-slate-600 dark:text-gray-200 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors truncate">
+                          <div className="text-[13px] font-medium text-slate-600 dark:text-gray-200 group-hover:text-slate-800 dark:group-hover:text-slate-200 transition-colors truncate">
                             {folder.folderName}
                           </div>
                         </div>
-                        <span className="material-symbols-outlined text-transparent group-hover:text-violet-500 transition-colors !text-[18px] -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 duration-200 mr-1">check_circle</span>
+                        <span className="material-symbols-outlined text-transparent group-hover:text-slate-500 transition-colors !text-[18px] -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 duration-200 mr-1">check_circle</span>
                       </button>
                     ))}
                   </div>

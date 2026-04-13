@@ -59,7 +59,7 @@ export function CreateFolderDialog() {
 
   return (
     <Dialog open={createFolderDialogOpen} onOpenChange={toggleCreateFolderDialog}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-card-dark rounded-[16px] shadow-2xl p-0 overflow-hidden border border-gray-100 dark:border-gray-700 !gap-0 [&>button]:hidden">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-[#0a0a0b] rounded-[16px] shadow-2xl p-0 overflow-hidden border border-gray-100 dark:border-white/[0.08] !gap-0 [&>button]:hidden">
         
         {/* 접근성을 위한 제목 (가독성을 위해 숨김 처리) */}
         <DialogTitle className="sr-only">Create New Folder</DialogTitle>
@@ -68,8 +68,8 @@ export function CreateFolderDialog() {
           {/* 헤더 영역: 제목 및 닫기 버튼 */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] p-1.5 rounded-lg shadow-lg shadow-violet-200/50 flex items-center justify-center ring-1 ring-white/20">
-                <span className="material-symbols-outlined text-white !text-[18px] fill-1 drop-shadow-sm">folder</span>
+              <div className="bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] p-1.5 rounded-lg flex items-center justify-center">
+                <span className="material-symbols-outlined text-white !text-[18px] fill-1">folder</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Create New Folder</h3>
             </div>
@@ -91,7 +91,7 @@ export function CreateFolderDialog() {
               <input 
                 id="folder-name-input"
                 type="text"
-                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-gray-400" 
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-gray-400" 
                 placeholder="e.g., Design Resources"
                 value={folderName}
                 onChange={(e) => setFolderName(e.target.value)}
@@ -104,26 +104,35 @@ export function CreateFolderDialog() {
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Appearance</label>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-500 mb-3 font-medium">Select Icon</p>
-                <div className="flex gap-2 mb-0 overflow-x-auto pt-1 pb-1">
-                  {ICONS.map((iconStr) => {
-                    const isActive = selectedIcon === iconStr;
-                    return (
-                      <button 
-                        key={iconStr}
-                        onClick={() => setSelectedIcon(iconStr)}
-                        style={{ width: '36px', height: '36px', minWidth: '36px', minHeight: '36px' }}
-                        className={`flex items-center justify-center rounded-lg transition-all shadow-sm flex-shrink-0 ${
-                          isActive 
-                            ? 'bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 text-purple-600 dark:text-purple-300 ring-2 ring-purple-500/20' 
-                            : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-purple-400 hover:text-purple-500'
-                        }`}
-                      >
-                        <span className="material-symbols-outlined !text-[18px] !leading-none">{iconStr}</span>
-                      </button>
-                    )
-                  })}
+              <div className="bg-gray-50/50 dark:bg-gray-800/40 rounded-xl p-4 border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/10 dark:bg-black/10 backdrop-blur-[0.5px]">
+                  <div className="px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-purple-500/30 shadow-lg shadow-purple-500/10 flex items-center gap-1.5 transform hover:scale-105 transition-transform duration-300">
+                    <span className="material-symbols-outlined text-purple-600 dark:text-purple-400 !text-[14px]">lock</span>
+                    <span className="text-[10px] font-bold text-gray-800 dark:text-gray-200 tracking-tight">Coming soon!</span>
+                  </div>
+                </div>
+                
+                {/* Content partially visible */}
+                <div className="opacity-30 pointer-events-none select-none">
+                  <p className="text-xs text-gray-500 mb-3 font-medium">Select Icon</p>
+                  <div className="flex gap-2 mb-0 overflow-x-auto pt-1 pb-1">
+                    {ICONS.map((iconStr) => {
+                      const isActive = selectedIcon === iconStr;
+                      return (
+                        <div 
+                          key={iconStr}
+                          style={{ width: '36px', height: '36px', minWidth: '36px', minHeight: '36px' }}
+                          className={`flex items-center justify-center rounded-lg transition-all shadow-sm flex-shrink-0 ${
+                            isActive 
+                              ? 'bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 text-purple-600 dark:text-purple-300' 
+                              : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined !text-[18px] !leading-none">{iconStr}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -134,36 +143,34 @@ export function CreateFolderDialog() {
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Pin Settings</label>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                {/* 상단 고정 토글 */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Pin to Top</span>
-                  <button 
-                    type="button"
-                    onClick={() => setIsPinned(!isPinned)}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex-shrink-0 ${
-                      isPinned ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
-                    }`}
-                  >
-                    <span className={`${isPinned ? 'translate-x-[18px]' : 'translate-x-[2px]'} inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ease-in-out`}></span>
-                  </button>
+              <div className="bg-gray-50/50 dark:bg-gray-800/40 rounded-xl p-4 border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/10 dark:bg-black/10 backdrop-blur-[0.5px]">
+                  <div className="px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-purple-500/30 shadow-lg shadow-purple-500/10 flex items-center gap-1.5 transform hover:scale-105 transition-transform duration-300">
+                    <span className="material-symbols-outlined text-purple-600 dark:text-purple-400 !text-[14px]">lock</span>
+                    <span className="text-[10px] font-bold text-gray-800 dark:text-gray-200 tracking-tight">Coming soon!</span>
+                  </div>
                 </div>
-                {/* 테마 색상 선택 */}
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-xs text-gray-500 mb-3 font-medium">Select Color</p>
-                  <div className="flex gap-3">
-                    {COLORS.map((c) => {
-                      const isActive = selectedColor === c.id;
-                      return (
-                        <button
+
+                {/* Content partially visible */}
+                <div className="opacity-30 pointer-events-none select-none">
+                  {/* 상단 고정 토글 */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Pin to Top</span>
+                    <div className="relative inline-flex h-5 w-9 items-center rounded-full bg-gray-300 dark:bg-gray-600">
+                      <span className="translate-x-[2px] inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"></span>
+                    </div>
+                  </div>
+                  {/* 테마 색상 선택 */}
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 mb-3 font-medium">Select Color</p>
+                    <div className="flex gap-3">
+                      {COLORS.map((c) => (
+                        <div
                           key={c.id}
-                          onClick={() => setSelectedColor(c.id)}
-                          className={`w-6 h-6 rounded-full flex-shrink-0 transition-all dark:ring-offset-gray-800 ring-offset-2 ${c.base} ${
-                            isActive ? `ring-2 ${c.active}` : 'opacity-60 hover:opacity-100 hover:ring-2'
-                          }`}
-                        ></button>
-                      )
-                    })}
+                          className={`w-6 h-6 rounded-full flex-shrink-0 bg-gray-400 opacity-60`}
+                        ></div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
