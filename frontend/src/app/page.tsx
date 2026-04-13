@@ -92,16 +92,16 @@ export default function Home() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 dark:bg-violet-500 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]"></span>
                     </span>
-                    <span className="tracking-tight">지금 가장 스마트한 북마크, SearchWeb 2.0</span>
+                    <span className="tracking-tight">지금 가장 스마트한 북마크, SearchWeb 베타서비스</span>
                   </div>
-                  <h1 className="text-text-main dark:text-white text-4xl font-black leading-[1.1] tracking-tight md:text-5xl lg:text-6xl pt-2">
-                    북마크의 진화,<br/>
-                    <span className="bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] bg-clip-text text-transparent">AI 지능형</span> 관리
+                  <h1 className="text-text-main dark:text-white text-2xl sm:text-3xl font-black leading-[1.2] tracking-tight lg:text-4xl pt-2">
+                    흩어진 링크에서,<br/>
+                    <span className="bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] bg-clip-text text-transparent">가치 있는 지식을 발견하세요</span>
                   </h1>
                   <p className="text-text-sub dark:text-white/60 text-sm font-medium leading-relaxed tracking-tight max-w-lg opacity-80">
-                    저장하고, 자동 태그하고, 다시 활용하세요.<br/>
-                    SearchWeb의 AI가 당신의 지식 관리를 돕습니다.<br/>
-                    단순한 링크 저장을 넘어선 지식 베이스를 구축하세요.
+                    저장하고, 태그하고, 다시 활용하세요.<br/>
+                    SearchWeb이 당신의 지식 관리를 돕습니다.<br/>
+                    단순한 저장을 넘어선 지식 베이스를 구축하세요.
                   </p>
                 </div>
                 
@@ -183,12 +183,7 @@ export default function Home() {
 
                     {/* Center Card (Featured/AI) */}
                     <div className="h-40 w-52 sm:h-48 sm:w-64 rounded-2xl border border-violet-100 dark:border-violet-500/40 bg-white dark:bg-slate-950 shadow-[0_0_60px_rgba(139,92,246,0.3)] dark:shadow-violet-900/60 p-4 flex flex-col gap-3 z-20 scale-110 relative group transition-all duration-500 hover:scale-125 hover:border-violet-300 hover:shadow-[0_0_100px_rgba(139,92,246,0.5)]">
-                      {/* Harmonious Sleek Hero Badge - optimized for performance */}
-                      <div className={`absolute -right-3 -top-3 flex items-center justify-center p-1 rounded-[14px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-[0_8px_20px_rgb(0,0,0,0.1)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.5)] z-30 transition-all duration-700 rotate-6 hover:scale-110 hover:rotate-12 ${mounted ? 'opacity-100 animate-float-soft' : 'opacity-0'}`}>
-                        <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-linear-to-br from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500 text-white shadow-inner">
-                          <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                        </div>
-                      </div>
+
                       
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl bg-violet-50 dark:bg-violet-900/40 border border-violet-100 dark:border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform">
