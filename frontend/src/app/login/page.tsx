@@ -1,7 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import NextLink from "next/link";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { buildBackendUrl } from "@/lib/config/backend";
 import { LandingHeader } from "@/components/layout/LandingHeader";
@@ -12,117 +14,267 @@ export default function LoginPage() {
       {/* Sync Header with Landing Page (page.tsx) */}
       <LandingHeader isLoginPage />
 
-      <main className="flex flex-1 flex-col lg:flex-row min-h-0 pt-[60px]">
-        {/* Left Section: Visual Assets */}
-        <div className="relative flex w-full flex-col items-center justify-center overflow-hidden border-r border-slate-100 bg-[#F5F3FF] p-8 lg:w-1/2 lg:p-12 min-h-[400px]">
-          {/* Background Blurs */}
+      <main className="flex flex-1 flex-col lg:flex-row min-h-0 pt-11">
+        {/* Left Section: Visual Assets (Galaxy Background) */}
+        <div className="relative flex w-full flex-col items-center justify-center overflow-hidden border-r border-slate-100 dark:border-white/5 bg-[#F5F3FF] dark:bg-[#020617] p-8 lg:w-1/2 lg:p-12 min-h-[400px] transition-colors duration-1000">
+          {/* Cosmic Background System (Light: Crystal Aurora / Dark: Galaxy) */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/5 blur-[120px]"></div>
-            <div className="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-primary-light/10 blur-[100px]"></div>
+            {/* Nebula Layers - Adapted for Light/Dark themes */}
+            <div 
+              className="absolute -left-[10%] -top-[10%] h-[80%] w-[80%] rounded-full bg-primary/10 dark:bg-primary/15 blur-[120px]"
+              style={{ animation: "nebula-pulse 15s ease-in-out infinite" }}
+            ></div>
+            <div 
+              className="absolute -right-[15%] bottom-[10%] h-[70%] w-[70%] rounded-full bg-cyan-400/15 dark:bg-indigo-600/10 blur-[100px]"
+              style={{ animation: "nebula-pulse 20s ease-in-out infinite reverse" }}
+            ></div>
+            <div 
+              className="absolute left-[20%] top-[30%] h-[40%] w-[40%] rounded-full bg-pink-400/20 dark:bg-violet-500/10 blur-[90px]"
+              style={{ animation: "rotate-slow 30s linear infinite" }}
+            ></div>
+
+            {/* Dense Star/Light Field (Twinkling Crystal Shards) - Hidden in Light Mode */}
+            <div className="absolute inset-0 hidden dark:block">
+              {Array.from({ length: 45 }).map((_, i) => (
+                <div 
+                  key={`star-${i}`}
+                  className="absolute rounded-full transition-all duration-1000"
+                  style={{ 
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    width: `${Math.random() * 2.5 + 0.5}px`,
+                    height: `${Math.random() * 2.5 + 0.5}px`,
+                    // Light mode: Prism effect (shades of indigo/cyan/white)
+                    backgroundColor: i % 4 === 0 ? "#7c3aed" : i % 5 === 0 ? "#0ea5e9" : "#ffffff",
+                    opacity: 0.4,
+                    animation: i % 3 === 0 ? `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite ${Math.random() * 5}s` : 'none',
+                    boxShadow: i % 8 === 0 ? '0 0 10px 1px rgba(124,58,237,0.3)' : i % 12 === 0 ? '0 0 12px 2px rgba(14,165,233,0.3)' : 'none'
+                  }}
+                ></div>
+              ))}
+            </div>
           </div>
 
-          <div className="relative z-10 flex w-full flex-col items-center justify-center text-center">
+          <div className="relative z-10 flex w-full flex-col items-center justify-center text-center -mt-10">
             {/* Text Content */}
-            <div className="mb-4 flex w-full max-w-lg flex-col items-center">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary shadow-sm">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="mb-16 flex w-full max-w-md flex-col items-center"
+            >
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/50 dark:bg-white/5 backdrop-blur-md px-4 py-1.5 text-[10px] font-bold tracking-[0.2em] text-primary shadow-sm">
                 BETA SERVICE
               </div>
-              <h1 className="mb-4 text-3xl font-black leading-tight tracking-tight text-text-main lg:text-4xl">
-                북마크, 이제 AI가<br />
-                <span className="text-primary">정리합니다</span>
+              <h1 className="mb-6 text-2xl sm:text-3xl font-black leading-[1.3] tracking-tight text-text-main lg:text-4xl break-keep">
+                쌓여가는 링크,<br />
+                <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary to-violet-400 whitespace-nowrap">AI가 당신의 시간을 찾아드립니다</span>
               </h1>
-              <p className="mx-auto max-w-sm text-sm font-light text-text-sub">
-                수천 개의 링크도 단 몇 초 만에. AI가 문맥을 이해하여 자동으로 폴더를 생성하고 분류합니다.
+              <p className="mx-auto max-w-sm text-sm font-light text-text-sub leading-relaxed">
+                정리는 AI에게 맡기고 본질에만 집중하세요. <br/>
+                단순한 저장을 넘어, AI가 스스로 이해하고 분류하는 지능형 저장소를 완성하세요.
               </p>
-            </div>
+            </motion.div>
 
             {/* 3D Visuals & Orbiting Icons */}
-            <div className="relative flex h-[320px] w-full max-w-md items-center justify-center scale-75 sm:scale-90" style={{ perspective: "1000px" }}>
-              {/* Central Folder */}
-              <div 
-                className="relative z-20 flex h-24 w-32 items-center justify-center rounded-lg border-l border-t border-white/20 bg-primary/90 shadow-2xl"
-                style={{ 
-                  transformStyle: "preserve-3d", 
-                  animation: "float-folder 6s ease-in-out infinite" 
-                }}
-              >
-                <div className="absolute -top-3 left-0 h-4 w-12 rounded-t-md border-l border-t border-white/20 bg-primary/90"></div>
-                <span className="material-symbols-outlined !text-5xl text-white drop-shadow-md">folder_open</span>
-                <div 
-                  className="absolute inset-0 -z-10 rounded-lg bg-primary blur-xl" 
-                  style={{ animation: "pulse-glow 3s infinite" }}
-                ></div>
+            <div className="relative flex h-[350px] w-full max-w-lg items-center justify-center scale-90 sm:scale-100" style={{ perspective: "1200px", transformStyle: "preserve-3d" }}>
+              {/* Data Particles (Digital Dust) - Integrated with Star Field - Hidden in Light Mode */}
+              <div className="absolute inset-x-[-20%] inset-y-[-20%] pointer-events-none -z-10 hidden dark:block" style={{ transformStyle: "preserve-3d" }}>
+                {[
+                  { l: "20%", t: "30%", z: "120px", d: "0s" },
+                  { l: "70%", t: "20%", z: "-80px", d: "-1s" },
+                  { l: "40%", t: "80%", z: "60px", d: "-2s" },
+                  { l: "80%", t: "60%", z: "-150px", d: "-3s" },
+                  { l: "15%", t: "65%", z: "90px", d: "-4s" },
+                  { l: "55%", t: "45%", z: "180px", d: "-5s" },
+                ].map((p, i) => (
+                  <div 
+                    key={`part-${i}`}
+                    className="absolute h-[3px] w-[3px] bg-primary/60 dark:bg-primary/80 rounded-full shadow-[0_0_8px_rgba(124,58,237,0.6)]"
+                    style={{ 
+                      left: p.l,
+                      top: p.t,
+                      transform: `translateZ(${p.z}) translateZ(0)`,
+                      animation: `float-soft ${5 + i % 3}s ease-in-out infinite ${p.d}`,
+                      willChange: "transform"
+                    }}
+                  ></div>
+                ))}
               </div>
 
-              {/* Orbiting Icons - Ring 1 */}
-              {[
-                { icon: "mail", color: "text-blue-500", offset: "0s" },
-                { icon: "image", color: "text-green-500", offset: "-4s" },
-                { icon: "article", color: "text-purple-500", offset: "-8s" },
-                { icon: "shopping_bag", color: "text-orange-500", offset: "-12s" },
-                { icon: "favorite", color: "text-pink-500", offset: "-16s" },
-              ].map((item, i) => (
-                <div 
-                  key={`ring1-${i}`}
-                  className="absolute left-1/2 top-1/2 -ml-4 -mt-4 transition-all duration-300"
-                  style={{ 
-                    animation: `orbit 20s linear infinite ${item.offset}`,
-                    ["--orbit-radius" as any]: "110px"
-                  }}
-                >
-                  <div className={`flex h-9 w-9 transform items-center justify-center rounded-xl border border-slate-100 bg-white shadow-lg transition-transform hover:scale-110 ${item.color}`}>
-                    <span className="material-symbols-outlined text-base">{item.icon}</span>
-                  </div>
-                </div>
-              ))}
+              {/* Central 3D Folder Composite */}
+              <div 
+                className="absolute z-20" 
+                style={{ 
+                  transformStyle: "preserve-3d", 
+                  animation: "float-folder 6s ease-in-out infinite",
+                  willChange: "transform"
+                }}
+              >
+                {/* Static Tilt Wrapper with Rendering Fixes */}
+                <div style={{ transform: "rotateY(-18deg) rotateX(10deg)", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}>
+                  {/* Back Plate & Tab */}
+                  <div 
+                    className="relative h-24 w-32 rounded-lg bg-[#5b21b6] border-l border-t border-white/20 shadow-2xl" 
+                    style={{ 
+                      transformStyle: "preserve-3d", 
+                      outline: "1px solid transparent",
+                      backfaceVisibility: "hidden" 
+                    }}
+                  >
+                    {/* Tab */}
+                    <div className="absolute -top-2.5 left-0 h-4 w-12 rounded-t-lg bg-[#5b21b6] border-l border-t border-white/20"></div>
+                    
+                    {/* Middle: Inner Content / Processing Light */}
+                    <div 
+                      className="absolute inset-x-2 top-2 bottom-4 rounded-md bg-indigo-950/50 border border-white/5 flex items-center justify-center"
+                      style={{ transform: "translateZ(10px) translateZ(0)", backfaceVisibility: "hidden" }}
+                    >
+                      <div className="h-10 w-10 bg-primary/20 blur-xl rounded-full"></div>
+                      <div className="h-3 w-3 bg-white/40 blur-sm rounded-full animate-pulse"></div>
+                    </div>
 
-              {/* Orbiting Icons - Ring 2 (Reverse) */}
-              {[
-                { icon: "code", color: "text-indigo-500", offset: "0s" },
-                { icon: "flight", color: "text-cyan-500", offset: "-6s" },
-                { icon: "movie", color: "text-red-500", offset: "-12s" },
-                { icon: "schedule", color: "text-teal-500", offset: "-18s" },
-                { icon: "lightbulb", color: "text-amber-500", offset: "-24s" },
-              ].map((item, i) => (
-                <div 
-                  key={`ring2-${i}`}
-                  className="absolute left-1/2 top-1/2 -ml-5 -mt-5 transition-all duration-300"
-                  style={{ 
-                    animation: `orbit-reverse 30s linear infinite ${item.offset}`,
-                    ["--orbit-radius" as any]: "160px"
-                  }}
-                >
-                  <div className={`flex h-11 w-11 transform items-center justify-center rounded-xl border border-slate-100 bg-white shadow-lg transition-transform hover:scale-110 ${item.color}`}>
-                    <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                    {/* Front Flap: Angled Forward for 3D Depth with Tab Shape */}
+                    <div 
+                      className="absolute inset-0 rounded-lg border-l border-t border-white/40 bg-[#6d28d9] shadow-[15px_5px_30px_rgba(0,0,0,0.5)] flex items-center justify-center"
+                      style={{ 
+                        transformStyle: "preserve-3d",
+                        transformOrigin: "left bottom",
+                        transform: "translateZ(22px) rotateY(-12deg) translateZ(0)",
+                        outline: "1px solid transparent",
+                        backfaceVisibility: "hidden"
+                      }}
+                    >
+                      {/* Front Tab Shape */}
+                      <div className="absolute -top-3 left-0 h-4 w-14 rounded-t-lg bg-[#6d28d9] border-l border-t border-white/40"></div>
+                      
+                      <span className="material-symbols-outlined !text-5xl text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]">folder</span>
+                      
+                      {/* Edge Highlights and Shine */}
+                      <div className="absolute inset-0 rounded-lg bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none"></div>
+                    </div>
+
+                    {/* External Background Glow */}
+                    <div 
+                      className="absolute inset-0 -z-20 rounded-lg bg-primary blur-[40px] opacity-20" 
+                      style={{ animation: "pulse-glow 5s infinite" }}
+                    ></div>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Tilted Orbit Plane Wrapper */}
+              <div className="absolute inset-0 flex items-center justify-center z-10" style={{ transform: "rotateX(60deg) rotateY(-5deg)", transformStyle: "preserve-3d" }}>
+                {/* Orbit Rings - Visual Guide Lines (Sharp version) */}
+                <div className="absolute h-[280px] w-[280px] rounded-full border border-primary/20 dark:border-primary/10"></div>
+                <div className="absolute h-[440px] w-[440px] rounded-full border border-dashed border-primary/15 dark:border-primary/5"></div>
+                
+                {/* Orbiting Icons - Ring 1 */}
+                {[
+                  { icon: "mail", color: "text-blue-500", offset: "0s" },
+                  { icon: "image", color: "text-emerald-500", offset: "-4s" },
+                  { icon: "article", color: "text-purple-500", offset: "-8s" },
+                  { icon: "shopping_bag", color: "text-orange-500", offset: "-12s" },
+                  { icon: "favorite", color: "text-pink-500", offset: "-16s" },
+                ].map((item, i) => (
+                  <div 
+                    key={`ring1-${i}`}
+                    className="absolute left-1/2 top-1/2 -ml-5 -mt-5 transition-all duration-300"
+                    style={{ 
+                      animation: `orbit 20s linear infinite ${item.offset}`,
+                      ["--orbit-radius" as any]: "140px",
+                      transformStyle: "preserve-3d"
+                    }}
+                  >
+                    {/* Counter-rotation to keep icons billboarded + icon-depth animation */}
+                    <div style={{ animation: `icon-depth 20s linear infinite ${item.offset}` }} className="transition-all duration-300">
+                      {/* Simplified Frosted Glass Bubble (Reduced 3D) */}
+                      <div className="relative flex h-10 w-10 transform items-center justify-center rounded-full bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] transition-all hover:scale-110">
+                        {/* Subdued Inner Glow */}
+                        <div className={`absolute inset-1 rounded-full opacity-10 blur-sm bg-current ${item.color}`}></div>
+                        <span className={`material-symbols-outlined relative z-10 drop-shadow-sm ${item.color}`} style={{ fontSize: "16px" }}>{item.icon}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Orbiting Icons - Ring 2 (Reverse) */}
+                {[
+                  { icon: "code", color: "text-indigo-500", offset: "0s" },
+                  { icon: "flight", color: "text-cyan-500", offset: "-6s" },
+                  { icon: "movie", color: "text-red-500", offset: "-12s" },
+                  { icon: "schedule", color: "text-teal-500", offset: "-18s" },
+                  { icon: "lightbulb", color: "text-amber-500", offset: "-24s" },
+                ].map((item, i) => (
+                  <div 
+                    key={`ring2-${i}`}
+                    className="absolute left-1/2 top-1/2 -ml-6 -mt-6 transition-all duration-300"
+                    style={{ 
+                      animation: `orbit-reverse 30s linear infinite ${item.offset}`,
+                      ["--orbit-radius" as any]: "220px",
+                      transformStyle: "preserve-3d"
+                    }}
+                  >
+                    {/* Counter-rotation to keep icons billboarded + icon-depth animation */}
+                    <div style={{ animation: `icon-depth 30s linear infinite ${item.offset}` }} className="transition-all duration-300">
+                      {/* Simplified Frosted Glass Bubble (Reduced 3D) */}
+                      <div className="relative flex h-12 w-12 transform items-center justify-center rounded-full bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-[0_5px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_5px_20px_rgba(0,0,0,0.4)] transition-all hover:scale-110">
+                        {/* Subdued Inner Glow */}
+                        <div className={`absolute inset-1 rounded-full opacity-10 blur-sm bg-current ${item.color}`}></div>
+                        <span className={`material-symbols-outlined relative z-10 drop-shadow-sm ${item.color}`} style={{ fontSize: "18px" }}>{item.icon}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Right Section: Sign In Form */}
-        <div className="relative z-20 flex w-full flex-col items-center justify-center bg-slate-50/50 p-6 lg:w-1/2 lg:p-12">
+        <div className="relative z-20 flex w-full flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-900/20 p-6 lg:w-1/2 lg:p-12">
           {/* Decorative Backdrops */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -right-[10%] -top-[10%] h-[400px] w-[400px] rounded-full bg-primary/5 blur-[80px]"></div>
-            <div className="absolute left-[10%] top-[40%] h-[250px] w-[250px] rounded-full bg-indigo-500/5 blur-[60px]"></div>
+            <div className="absolute -right-[10%] -top-[10%] h-[500px] w-[500px] rounded-full bg-primary/10 blur-[100px]"></div>
+            <div className="absolute left-[10%] top-[40%] h-[350px] w-[350px] rounded-full bg-indigo-500/10 blur-[80px]"></div>
           </div>
 
-          <div className="relative z-30 w-full max-w-[380px] -mt-12">
-            <div className="glass-card w-full rounded-2xl bg-white/80 p-7 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl border border-white/50">
-              <div className="mb-6 text-left">
-                <h3 className="mb-1.5 text-2xl font-bold text-text-main">Welcome!</h3>
-                <p className="text-text-sub text-xs">SearchWeb에 오신 것을 환영합니다.</p>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative z-30 w-full max-w-[420px] -mt-20 text-center"
+          >
+            <div className="glass-card w-full rounded-3xl bg-white/70 dark:bg-slate-900/70 p-10 shadow-[0_32px_64px_rgba(124,58,237,0.12)] dark:shadow-[0_32px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl border border-white/40 dark:border-white/5">
+              <div className="mb-4 flex flex-col items-center">
+                {/* Brand Logo Image - Max Quality (Unoptimized) */}
+                <div className="mb-0 flex h-20 w-20 items-center justify-center relative">
+                  {/* Soft Background Glow */}
+                  <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-50 opacity-50"></div>
+                  
+                  <div className="relative h-[52px] w-[52px] transition-transform duration-500 hover:scale-105">
+                    <Image 
+                      src="/logo.png" 
+                      alt="SearchWeb Logo" 
+                      width={512} 
+                      height={512}
+                      unoptimized={true}
+                      priority
+                      className="h-full w-full object-contain rounded-[14px] drop-shadow-[0_8px_16px_rgba(109,40,217,0.3)] transition-all"
+                    />
+                  </div>
+                </div>
+                <h3 className="mb-2 text-2xl font-bold text-text-main tracking-tight">Hello SearchWeb!</h3>
+                <p className="text-text-sub text-[13px] font-medium leading-relaxed">당신의 링크, 이제 AI와 함께<br/>스마트하게 관리하세요</p>
               </div>
 
-              {/* Google Sign In - Purple Gradient Background */}
+              {/* Enhanced Google Sign In Button */}
               <button 
                 type="button" 
                 onClick={() => { window.location.href = buildBackendUrl('/oauth2/authorization/google'); }} 
-                className="group relative mb-6 flex h-11 w-full items-center justify-center gap-3 rounded-lg border-t border-white/20 bg-[linear-gradient(135deg,#6d28d9,#8b5cf6)] text-white shadow-md transition-all hover:brightness-110 hover:shadow-primary/25"
+                className="group relative mb-6 flex h-[42px] w-[260px] max-w-full mx-auto items-center justify-center gap-2 rounded-lg border border-white/20 bg-gradient-to-br from-primary via-violet-500 to-indigo-600 text-white shadow-[0_8px_16px_-6px_rgba(109,40,217,0.5)] transition-all hover:scale-[1.01] hover:brightness-110 active:scale-[0.99]"
               >
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white p-1">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white p-1 shadow-sm">
                   <svg className="h-full w-full" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <title>Google Logo</title>
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
@@ -131,55 +283,48 @@ export default function LoginPage() {
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
                   </svg>
                 </div>
-                <span className="text-sm font-bold">Google 계정으로 로그인</span>
+                <span className="text-[13px] font-bold tracking-tight">Google 계정으로 계속하기</span>
+                
+                {/* Subtle Shine Effect */}
+                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
 
-              {/* Divider */}
-              <div className="relative mb-6 flex items-center justify-center">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200/60"></div>
+              {/* Benefits Section - Sophisticated Icon Cards */}
+              <div className="space-y-4 pt-8 mt-2 border-t border-slate-200/50 dark:border-white/5">
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-[0.2em] text-center mb-6">Why SearchWeb?</p>
+                <div className="grid grid-cols-3 gap-2 max-w-[220px] mx-auto">
+                  {/* AI Feature */}
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 shadow-sm border border-indigo-100/50 dark:border-indigo-500/20">
+                      <span className="material-symbols-outlined !text-base">auto_awesome</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-text-sub dark:text-slate-400 whitespace-nowrap">AI 자동 분류</span>
+                  </div>
+
+                  {/* Sync Feature */}
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 shadow-sm border border-blue-100/50 dark:border-blue-500/20">
+                      <span className="material-symbols-outlined !text-base">sync</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-text-sub dark:text-slate-400 whitespace-nowrap">자동 동기화</span>
+                  </div>
+
+                  {/* Search Feature */}
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400 shadow-sm border border-purple-100/50 dark:border-purple-500/20">
+                      <span className="material-symbols-outlined !text-base">search</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-text-sub dark:text-slate-400 whitespace-nowrap">강력한 검색</span>
+                  </div>
                 </div>
-                <span className="relative bg-white/10 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">or</span>
               </div>
 
-              {/* Email Form */}
-              <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-text-sub" htmlFor="email">이메일</label>
-                  <Input 
-                    id="email" 
-                    placeholder="이메일을 입력하세요" 
-                    type="email"
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-text-sub" htmlFor="password">비밀번호</label>
-                  <Input 
-                    id="password" 
-                    placeholder="••••••••" 
-                    type="password"
-                    autoComplete="off"
-                  />
-                </div>
-
-                <div className="mb-1 flex items-center justify-end">
-                  <NextLink className="text-[11px] font-semibold text-gray-300 hover:text-primary-dark" href="#">Forgot password?</NextLink>
-                </div>
-
-                <button 
-                  className="mt-2 flex h-11 w-full items-center justify-center rounded-xl bg-black text-sm font-bold text-white shadow-lg shadow-black/10 transition-all hover:bg-slate-800"
-                  type="submit"
-                >
-                  Log in
-                </button>
-              </form>
-
-              <p className="mt-7 text-center text-xs text-gray-400">
-                Don't have an account? <NextLink className="font-bold text-primary transition-colors hover:text-primary-dark" href="#">Sign up</NextLink>
+              <p className="mt-10 text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
+                로그인함으로써 SearchWeb의 <br />
+                <a href="#" className="underline hover:text-primary transition-colors font-medium">이용약관</a> 및 <a href="#" className="underline hover:text-primary transition-colors font-medium">개인정보처리방침</a>에 동의하게 됩니다.
               </p>
             </div>
-          </div>
+          </motion.div>
         </div>
       </main>
     </div>

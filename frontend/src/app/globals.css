@@ -133,6 +133,10 @@
   --border: rgba(255, 255, 255, 0.06); 
   --input: rgba(255, 255, 255, 0.08);
   --ring: rgba(124, 58, 237, 0.5); /* Purple Transparent */
+  
+  /* SearchWeb specific custom colors for dark mode */
+  --text-main: #f8fafc; /* slate-50 */
+  --text-sub: #94a3b8; /* slate-400 */
 }
 
 
@@ -211,8 +215,8 @@
 }
 
 @keyframes float-folder {
-  0%, 100% { transform: translateZ(20px) translateY(0); }
-  50% { transform: translateZ(20px) translateY(-15px); }
+  0%, 100% { transform: translateY(0) rotateX(2deg) rotateY(-2deg); }
+  50% { transform: translateY(-12px) rotateX(-2deg) rotateY(2deg); }
 }
 
 @keyframes pulse-glow {
@@ -228,4 +232,42 @@
 
 .dark .glass-card {
   background: rgba(15, 23, 42, 0.7);
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+.animate-shine {
+  animation: shine 1.5s infinite;
+  opacity: 1;
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes icon-depth {
+  0%, 100% { 
+    transform: rotateY(5deg) rotateX(-60deg) scale(1.05); 
+    filter: blur(0px); 
+    opacity: 1; 
+  }
+  50% { 
+    transform: rotateY(5deg) rotateX(-60deg) scale(0.92); 
+    filter: blur(0.8px); 
+    opacity: 0.7; 
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes nebula-pulse {
+  0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+  50% { transform: scale(1.1) translate(10px, -10px); opacity: 0.7; }
 }
