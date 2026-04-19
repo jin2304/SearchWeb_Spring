@@ -277,7 +277,12 @@ export function SaveLinkDialog() {
         }
       );
     } else {
-      saveBookmark(selectedFolderId);
+      // Quick Save 경로: 폴더 미지정 시 미분류(UNORGANIZED) 폴더로 저장
+      const fallbackFolderId =
+        selectedFolderId
+        ?? folders?.find((f) => f.folderType === 'UNORGANIZED')?.memberFolderId
+        ?? null;
+      saveBookmark(fallbackFolderId);
     }
   };
 
@@ -398,7 +403,7 @@ export function SaveLinkDialog() {
                             <span className="material-symbols-outlined !text-[13px] !leading-none block text-white font-bold">link</span>
                           </span>
                         </div>
-                        <span className="text-[11px] font-bold text-slate-700 dark:text-gray-100 tracking-tight pr-1">복사한 링크 붙여넣기</span>
+                        <span className="text-[11px] font-bold text-slate-700 dark:text-gray-100 tracking-tight pr-1">Paste copied link</span>
                       </div>
                       {/* 부드럽고 존재감 있는 곡선형 SVG 꼬리표 - 크기 확대 및 실루엣 최적화 */}
                       <svg 
@@ -432,7 +437,7 @@ export function SaveLinkDialog() {
               {url.trim() && !(url.startsWith('http://') || url.startsWith('https://')) && (
                 <p className="text-[10px] text-red-500 dark:text-red-400 font-medium flex items-center gap-1 mt-1 ml-10">
                   <span className="material-symbols-outlined !text-[12px]">error</span>
-                  URL은 http:// 또는 https://로 시작해야 합니다.
+                  URL must start with http:// or https://
                 </p>
               )}
             </div>

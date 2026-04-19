@@ -5,6 +5,7 @@ import { useBookmarks, useDeleteBookmark, useUpdateBookmark } from '@/lib/api/bo
 import { useTags } from '@/lib/api/tagApi';
 import { useFolderStore } from '@/lib/store/folderStore';
 import { useAuthStore } from '@/lib/store/authStore';
+import { useLinkStore } from '@/lib/store/linkStore';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
 
@@ -495,6 +496,26 @@ export function RightPanel() {
   const { rightPanelOpen } = useUIStore(); // 패널 오픈 여부
   const selectedFolderId = useFolderStore((s) => s.selectedFolderId); // 현재 선택된 폴더 ID
   const memberId = useAuthStore((s) => s.member?.memberId);
+  const linkSearchQuery = useLinkStore((s) => s.filters.searchQuery); // 현재 검색어 상태 구독
+  const setLinkSearchQuery = useLinkStore((s) => s.setSearchQuery);   // 검색어 변경 함수
+
+  // 검색어 디바운스 처리를 위한 로컬 상태
+  const [pendingSearch, setPendingSearch] = useState(linkSearchQuery);
+
+  // 외부(스토어)에서 검색어가 변경될 경우 로컬 상태와 동기화
+  useEffect(() => {
+    setPendingSearch(linkSearchQuery);
+  }, [linkSearchQuery]);
+
+  // 디바운스 로직: pendingSearch가 변경되면 250ms 후에 스토어 업데이트
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (pendingSearch !== linkSearchQuery) {
+        setLinkSearchQuery(pendingSearch);
+      }
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [pendingSearch, setLinkSearchQuery, linkSearchQuery]);
 
   // --- API Data Fetching (React Query) | 서버 데이터 조회 ---
   const { data: myFolders, isLoading: isFoldersLoading } = useFolders(memberId); // 폴더 목록
@@ -516,11 +537,14 @@ export function RightPanel() {
   // UI 정렬 옵션을 백엔드 파라미터로 매핑
   const backendSort = sortOption === 'newest' ? 'Newest' as const : sortOption === 'oldest' ? 'Oldest' as const : 'Alphabetical' as const;
 
-  // 북마크 데이터 조회
-  const { data: bookmarks, isLoading: isBookmarksLoading } = useBookmarks({
+  // 북마크 데이터 조회 (검색 결과 및 매칭 폴더 IDs 포함)
+  const { data: bookmarksData, isLoading: isBookmarksLoading } = useBookmarks({
     folderId: selectedFolderId,
     sort: backendSort,
+    query: linkSearchQuery,
   });
+
+  const bookmarks = bookmarksData?.bookmarks;
 
   // API 뮤테이션 (수정/삭제)
   const deleteBookmarkMutation = useDeleteBookmark();
@@ -779,9 +803,11 @@ export function RightPanel() {
             {/* Search Bar | 검색창 */}
             <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-md w-[110px]">
               <span className="material-symbols-outlined !text-[12px] text-gray-400">search</span>
-              <input 
-                type="text" 
-                placeholder="Search link" 
+              <input
+                type="text"
+                placeholder="Search link"
+                value={pendingSearch}
+                onChange={(e) => setPendingSearch(e.target.value)}
                 className="bg-transparent border-none focus:outline-none focus:ring-0 text-[9px] text-gray-700 dark:text-gray-200 placeholder-gray-400 w-full p-0 h-4"
               />
             </div>

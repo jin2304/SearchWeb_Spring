@@ -26,6 +26,12 @@ export interface BookmarkResponse {
   updatedAt: string | null;
 }
 
+// 검색 결과 응답 타입
+export interface BookmarkSearchResponse {
+  bookmarks: BookmarkResponse[];
+  matchingFolderIds: number[];
+}
+
 // POST /api/bookmarks 요청 바디
 export interface CreateBookmarkRequest {
   memberFolderId?: number | null;

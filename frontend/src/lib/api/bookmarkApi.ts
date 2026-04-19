@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchClient } from './fetchClient';
 import type {
   BookmarkResponse,
+  BookmarkSearchResponse,
   BookmarkSearchParams,
   CreateBookmarkRequest,
   UpdateBookmarkRequest,
@@ -11,7 +12,7 @@ import type {
  * 북마크(링크) 목록 조회 (GET /api/bookmarks)
  * @param params 검색 필터 (폴더 ID, 정렬, 검색어 등)
  */
-async function fetchBookmarks(params: BookmarkSearchParams): Promise<BookmarkResponse[]> {
+async function fetchBookmarks(params: BookmarkSearchParams): Promise<BookmarkSearchResponse> {
   const searchParams = new URLSearchParams();
   if (params.folderId != null) searchParams.set('folderId', String(params.folderId));
   if (params.sort) searchParams.set('sort', params.sort);
@@ -19,7 +20,7 @@ async function fetchBookmarks(params: BookmarkSearchParams): Promise<BookmarkRes
   if (params.categoryId != null) searchParams.set('categoryId', String(params.categoryId));
 
   const qs = searchParams.toString();
-  return fetchClient<BookmarkResponse[]>(`/api/bookmarks${qs ? `?${qs}` : ''}`);
+  return fetchClient<BookmarkSearchResponse>(`/api/bookmarks${qs ? `?${qs}` : ''}`);
 }
 
 /**
@@ -71,10 +72,11 @@ async function analyzeUrl(url: string): Promise<string> {
 /**
  * [조회 Hook] 북마크 목록을 가져오고 캐싱합니다.
  */
-export function useBookmarks(params: BookmarkSearchParams) {
+export function useBookmarks(params: BookmarkSearchParams, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['bookmarks', params], // 검색 조건이 바뀌면 새로운 쿼리로 취급
     queryFn: () => fetchBookmarks(params),
+    enabled: options?.enabled,
   });
 }
 
