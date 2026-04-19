@@ -123,6 +123,26 @@
     </select>
 
 
+    <!-- 검색 조건에 매칭되는 폴더 ID 목록 조회 -->
+    <select id="selectMatchingFolderIds" parameterType="com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand" resultType="long">
+        SELECT DISTINCT msl.member_folder_id
+          FROM member_saved_link msl
+          JOIN link l
+            ON msl.link_id = l.link_id
+         WHERE msl.created_by_member_id = #{memberId}
+           AND msl.deleted_at IS NULL
+        <if test="folderId != null">
+           AND msl.member_folder_id = #{folderId}
+        </if>
+        <if test="categoryId != null">
+           AND msl.primary_category_id = #{categoryId}
+        </if>
+        <if test="query != null and query != ''">
+           AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%'
+        </if>
+    </select>
+
+
     <!-- 링크 조회 (canonical_url로) -->
     <select id="selectLinkByCanonicalUrl" parameterType="String" resultMap="LinkResultMap">
         SELECT * FROM link

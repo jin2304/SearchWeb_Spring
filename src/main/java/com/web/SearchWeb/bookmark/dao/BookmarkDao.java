@@ -17,6 +17,9 @@ public interface BookmarkDao {
     //북마크 목록 조회
     List<Bookmark> selectBookmarkList(BookmarkSearchCommand searchCommand);
 
+    // 검색 조건에 매칭되는 북마크들이 속한 고유 폴더 ID 목록 조회
+    List<Long> selectMatchingFolderIds(BookmarkSearchCommand searchCommand);
+
     //북마크 수정
     int updateBookmark(Bookmark bookmark);
 

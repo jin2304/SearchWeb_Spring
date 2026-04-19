@@ -39,12 +39,18 @@ public class MybatisBookmarkDao implements BookmarkDao {
     }
 
 
-    /**
-     *  북마크 목록 조회
-     */
     @Override
     public List<Bookmark> selectBookmarkList(BookmarkSearchCommand searchCommand) {
         return mapper.selectBookmarkList(searchCommand);
+    }
+
+
+    /**
+     *  매칭 폴더 ID 목록 조회
+     */
+    @Override
+    public List<Long> selectMatchingFolderIds(BookmarkSearchCommand searchCommand) {
+        return mapper.selectMatchingFolderIds(searchCommand);
     }
 
 

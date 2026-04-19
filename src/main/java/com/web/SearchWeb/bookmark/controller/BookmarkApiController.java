@@ -2,6 +2,7 @@ package com.web.SearchWeb.bookmark.controller;
 
 
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkSearchResponse;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.config.common.ApiResponse;
@@ -67,15 +68,15 @@ public class BookmarkApiController {
 
 
     /**
-     *  북마크 목록 조회
+     *  북마크 목록 조회 (검색 결과 및 매칭 폴더 포함)
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Bookmark>>> selectBookmarkList(
+    public ResponseEntity<ApiResponse<BookmarkSearchResponse>> selectBookmarkList(
             @CurrentMemberId Long memberId,
             @ModelAttribute BookmarkRequests.SearchDto searchDto) {
         
-        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
-        return ResponseEntity.ok(ApiResponse.success(bookmarks));
+        BookmarkSearchResponse results = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
+        return ResponseEntity.ok(ApiResponse.success(results));
     }
 
 

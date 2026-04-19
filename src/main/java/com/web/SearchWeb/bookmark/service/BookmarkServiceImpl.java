@@ -1,5 +1,6 @@
 package com.web.SearchWeb.bookmark.service;
 
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkSearchResponse;
 import com.web.SearchWeb.bookmark.dao.BookmarkDao;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
@@ -100,11 +101,17 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
-     *  북마크 목록 조회
+     *  북마크 목록 조회 (검색 결과 및 매칭 폴더 포함)
      */
     @Override
-    public List<Bookmark> selectBookmarkList(BookmarkSearchCommand command) {
-        return bookmarkDao.selectBookmarkList(command);
+    public BookmarkSearchResponse selectBookmarkList(BookmarkSearchCommand command) {
+        List<Bookmark> bookmarks = bookmarkDao.selectBookmarkList(command);
+        List<Long> matchingFolderIds = bookmarkDao.selectMatchingFolderIds(command);
+        
+        return BookmarkSearchResponse.builder()
+                .bookmarks(bookmarks)
+                .matchingFolderIds(matchingFolderIds)
+                .build();
     }
 
 
