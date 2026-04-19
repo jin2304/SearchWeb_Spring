@@ -2,7 +2,6 @@ package com.web.SearchWeb.folder.service;
 
 import com.web.SearchWeb.folder.domain.MemberFolder;
 import java.util.List;
-import java.util.Optional;
 
 public interface MemberFolderService {
 
@@ -19,4 +18,10 @@ public interface MemberFolderService {
     void move(Long memberId, Long memberFolderId, Long newParentFolderId);
 
     void delete(Long memberId, Long memberFolderId);
+
+    /** 없으면 생성하고, 있으면 기존 ID를 반환. idempotent. (미분류(UNORGANIZED) 폴더를 보장) */
+    Long getOrCreateUnorganizedFolderId(Long memberId);
+
+    /** 미분류 폴더를 단건으로 반환한다. 없으면 getOrCreate 경로로 생성 후 반환. */
+    MemberFolder getDefaultFolder(Long memberId);
 }

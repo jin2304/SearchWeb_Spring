@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS "member_folder" (
   "parent_folder_id" int,
   "folder_name" varchar(80) NOT NULL,
   "description" text,
+  "folder_type" varchar(20) DEFAULT 'CUSTOM' NOT NULL,
   "created_at" timestamptz DEFAULT now() NOT NULL,
   "updated_at" timestamptz DEFAULT now() NOT NULL,
   "deleted_at" timestamptz,
@@ -106,6 +107,7 @@ CREATE TABLE IF NOT EXISTS "member_folder" (
   "updated_by_member_id" bigint,
   "deleted_by_member_id" bigint,
   CONSTRAINT pk_member_folder PRIMARY KEY ("member_folder_id"),
+  CONSTRAINT ck_member_folder_type CHECK (folder_type IN ('CUSTOM', 'UNORGANIZED')),
   CONSTRAINT fk_member_folder_parent_folder_id
     FOREIGN KEY ("parent_folder_id") REFERENCES "member_folder"("member_folder_id"),
   CONSTRAINT fk_member_folder_owner_member_id
@@ -406,7 +408,8 @@ CREATE TABLE IF NOT EXISTS "member_saved_link" (
   CONSTRAINT ck_member_saved_link_category_source CHECK (category_source in ('system','member')),
   CONSTRAINT ck_member_saved_link_category_score CHECK (category_score is null or (category_score between 0 and 1)),
   CONSTRAINT fk_member_saved_link_link_id FOREIGN KEY ("link_id") REFERENCES "link"("link_id"),
-  CONSTRAINT fk_member_saved_link_link_enrichment_id FOREIGN KEY ("link_enrichment_id") REFERENCES "link_enrichment"("link_enrichment_id")
+  CONSTRAINT fk_member_saved_link_link_enrichment_id FOREIGN KEY ("link_enrichment_id") REFERENCES "link_enrichment"("link_enrichment_id"),
+  CONSTRAINT fk_member_saved_link_member_folder_id FOREIGN KEY ("member_folder_id") REFERENCES "member_folder"("member_folder_id")
 );
 
 CREATE TABLE IF NOT EXISTS "link_enrichment_feedback" (
@@ -572,6 +575,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_member_folder_parent_name
 CREATE INDEX IF NOT EXISTS idx_member_folder_name ON "member_folder" ("folder_name");
 CREATE INDEX IF NOT EXISTS idx_member_folder_created ON "member_folder" ("created_at");
 CREATE INDEX IF NOT EXISTS idx_member_folder_deleted ON "member_folder" ("deleted_at");
+-- 한 사용자당 시스템 폴더(UNORGANIZED)는 정확히 1개만 활성 상태로 존재
+CREATE UNIQUE INDEX IF NOT EXISTS uq_member_folder_owner_unorganized
+  ON "member_folder" ("owner_member_id")
+  WHERE folder_type = 'UNORGANIZED' AND deleted_at IS NULL;
 
 CREATE INDEX IF NOT EXISTS idx_member_tag_owner ON "member_tag" ("owner_member_id");
 CREATE INDEX IF NOT EXISTS idx_member_tag_deleted_at ON "member_tag" ("deleted_at");

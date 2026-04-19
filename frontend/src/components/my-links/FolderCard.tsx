@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { FolderResponse } from '@/lib/types/folder';
 import { useFolderStore } from '@/lib/store/folderStore';
+import { useLinkStore } from '@/lib/store/linkStore';
 import { FolderEditModal, FolderDeleteModal, FolderMoveModal } from './FolderManagementModals';
 
 interface FolderCardProps {
@@ -15,8 +16,12 @@ const MENU_OFFSET_Y = 4; // 버튼과 메뉴 사이의 상하 간격
 
 export function FolderCard({ folder, color }: FolderCardProps) {
   const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
+  const searchQuery = useFolderStore((s) => s.searchQuery);
+  const setLinkSearchQuery = useLinkStore((s) => s.setSearchQuery);
   const [showMenu, setShowMenu] = useState(false); // 드롭다운 메뉴 표시 여부
   const [modalType, setModalType] = useState<'edit' | 'delete' | 'move' | null>(null); // 현재 열린 모달 타입
+  // 시스템 폴더(미분류)는 Move/Delete 불가 (Rename 만 허용)
+  const isSystemFolder = folder.folderType === 'UNORGANIZED';
   
   // DOM 참조 (메뉴 외부 클릭 감지 및 위치 계산용)
   const menuRef = useRef<HTMLDivElement>(null);
@@ -71,7 +76,13 @@ export function FolderCard({ folder, color }: FolderCardProps) {
   // 카드 클릭 시 폴더 선택 처리 (메뉴가 열려있지 않을 때만)
   const handleCardClick = () => {
     if (!showMenu) {
+      // 선택된 폴더 ID 변경 -> 우측 패널 데이터 갱신 트리거
       setSelectedFolderId(folder.memberFolderId);
+      
+      // 기존 폴더 검색어가 있다면 링크 검색어로 전달 (경험 최적화)
+      if (searchQuery) {
+        setLinkSearchQuery(searchQuery);
+      }
     }
   };
 
@@ -84,6 +95,10 @@ export function FolderCard({ folder, color }: FolderCardProps) {
   // 메뉴 항목 클릭 시 모달 열기 및 메뉴 닫기
   const handleMenuItemClick = (type: 'edit' | 'delete' | 'move', e: React.MouseEvent) => {
     e.stopPropagation();
+    // 시스템 폴더는 Move/Delete 를 허용하지 않음
+    if (isSystemFolder && (type === 'move' || type === 'delete')) {
+      return;
+    }
     setModalType(type);
     setShowMenu(false);
   };
@@ -103,7 +118,7 @@ export function FolderCard({ folder, color }: FolderCardProps) {
         className={`bg-white dark:bg-card-dark rounded-lg p-2.5 border border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10 transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between focus:ring-1 focus:ring-purple-300 dark:focus:ring-purple-500 outline-none hover:bg-purple-50/30 dark:hover:bg-white/[0.03] relative overflow-visible ${color || ''}`}
       >
         <div className="flex justify-between items-start">
-          <div className="p-1.5 bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-gray-400 group-hover:dark:text-white transition-colors rounded-md flex items-center justify-center w-8 h-8">
+          <div className={`p-1.5 bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-gray-400 group-hover:dark:text-white transition-colors rounded-md flex items-center justify-center w-8 h-8`}>
             <span className="material-symbols-outlined text-[16px]">folder_open</span>
           </div>
 
@@ -148,7 +163,8 @@ export function FolderCard({ folder, color }: FolderCardProps) {
           </button>
           <button
             onClick={(e) => handleMenuItemClick('move', e)}
-            className="w-full text-left px-3 py-2 text-[11px] text-gray-700 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors"
+            disabled={isSystemFolder}
+            className="w-full text-left px-3 py-2 text-[11px] text-gray-700 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
           >
             <span className="material-symbols-outlined !text-[16px] !leading-none">drive_file_move</span>
             <span className="font-medium">Move</span>
@@ -156,7 +172,8 @@ export function FolderCard({ folder, color }: FolderCardProps) {
           <div className="h-px bg-gray-50 dark:bg-white/8 my-0.5" />
           <button
             onClick={(e) => handleMenuItemClick('delete', e)}
-            className="w-full text-left px-3 py-2 text-[11px] text-rose-500 dark:text-red-400 hover:bg-rose-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors"
+            disabled={isSystemFolder}
+            className="w-full text-left px-3 py-2 text-[11px] text-rose-500 dark:text-red-400 hover:bg-rose-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
           >
             <span className="material-symbols-outlined !text-[16px] !leading-none text-rose-500 dark:text-red-400">delete</span>
             <span className="font-medium">Delete</span>
