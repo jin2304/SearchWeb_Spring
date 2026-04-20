@@ -8,6 +8,7 @@ import { useAuthStore } from '@/lib/store/authStore';
 import { useLinkStore } from '@/lib/store/linkStore';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
+import { isCreatedToday } from '@/lib/dateUtils';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -498,6 +499,7 @@ export function RightPanel() {
   const memberId = useAuthStore((s) => s.member?.memberId);
   const linkSearchQuery = useLinkStore((s) => s.filters.searchQuery); // 현재 검색어 상태 구독
   const setLinkSearchQuery = useLinkStore((s) => s.setSearchQuery);   // 검색어 변경 함수
+  const savedTodayFilter = useFolderStore((s) => s.savedTodayFilter); // 오늘 저장 필터 상태
 
   // 검색어 디바운스 처리를 위한 로컬 상태
   const [pendingSearch, setPendingSearch] = useState(linkSearchQuery);
@@ -577,11 +579,15 @@ export function RightPanel() {
     };
   }, [isTagDropdownOpen, isMoreMenuOpen]);
 
-  // Client-side tag filtering logic | 태그 필터링 처리 (클라이언트 사이드 필터링)
+  // Client-side filtering logic (Tags & Saved Today)
   const allLinks = bookmarks ?? [];
-  const filteredLinks = selectedTags.length > 0
+  let filteredLinks = selectedTags.length > 0
     ? allLinks.filter(link => link.tags?.some(tag => selectedTags.includes(tag)))
     : allLinks;
+
+  if (savedTodayFilter) {
+    filteredLinks = filteredLinks.filter(link => isCreatedToday(link.createdAt));
+  }
 
   /** 태그 선택/해제 */
   const toggleTag = (tag: string) => {

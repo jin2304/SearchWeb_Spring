@@ -165,6 +165,9 @@
   * {
     @apply border-border outline-ring/50;
   }
+  button, [role="button"] {
+    @apply cursor-pointer;
+  }
   body {
     /* bg, text is handled via layout.tsx classes directly */
   }

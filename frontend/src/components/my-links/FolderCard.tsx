@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import type { FolderResponse } from '@/lib/types/folder';
 import { useFolderStore } from '@/lib/store/folderStore';
 import { useLinkStore } from '@/lib/store/linkStore';
+import { useUIStore } from '@/lib/store/uiStore';
 import { FolderEditModal, FolderDeleteModal, FolderMoveModal } from './FolderManagementModals';
 
 interface FolderCardProps {
@@ -76,13 +77,16 @@ export function FolderCard({ folder, color }: FolderCardProps) {
   // 카드 클릭 시 폴더 선택 처리 (메뉴가 열려있지 않을 때만)
   const handleCardClick = () => {
     if (!showMenu) {
-      // 선택된 폴더 ID 변경 -> 우측 패널 데이터 갱신 트리거
+      // 1. 선택된 폴더 ID 변경 -> 우측 패널 데이터 갱신 트리거
       setSelectedFolderId(folder.memberFolderId);
       
-      // 기존 폴더 검색어가 있다면 링크 검색어로 전달 (경험 최적화)
+      // 2. 기존 폴더 검색어가 있다면 링크 검색어로 전이 (사용자 요청: 클릭 시 링크 필터링되도록)
       if (searchQuery) {
         setLinkSearchQuery(searchQuery);
       }
+      
+      // 3. 우측 패널이 닫혀있다면 자동으로 열어줌
+      useUIStore.getState().toggleRightPanel(true);
     }
   };
 
