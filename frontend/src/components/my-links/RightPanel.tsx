@@ -518,6 +518,7 @@ export function RightPanel() {
   const setLinkSearchQuery = useLinkStore((s) => s.setSearchQuery);   // 검색어 변경 함수
   const savedTodayFilter = useFolderStore((s) => s.savedTodayFilter); // 오늘 저장 필터 상태
   const unreadFilter = useFolderStore((s) => s.unreadFilter);         // Unread 필터 상태 (view_count = 0)
+  const unorganizedFilter = useFolderStore((s) => s.unorganizedFilter); // 미분류 필터 상태
 
   // 검색어 디바운스 처리를 위한 로컬 상태
   const [pendingSearch, setPendingSearch] = useState(linkSearchQuery);
@@ -755,8 +756,24 @@ export function RightPanel() {
     }
   };
 
-  // Determine the current folder name | 현재 폴더 이름 결정
-  const currentFolderName = myFolders?.find(f => f.memberFolderId === selectedFolderId)?.folderName ?? 'All Links';
+  // Determine the display title based on selected folder and active filters | 선택된 폴더 및 활성 필터에 따른 제목 결정
+  const folderName = myFolders?.find(f => f.memberFolderId === selectedFolderId)?.folderName;
+  
+  const activeFilters: string[] = [];
+  if (unreadFilter) activeFilters.push('Unread');
+  if (savedTodayFilter) activeFilters.push('Saved today');
+  if (unorganizedFilter) activeFilters.push('Unorganized');
+
+  let displayTitle = folderName || 'All Links';
+  
+  if (activeFilters.length > 0) {
+    const filtersLabel = activeFilters.join(' + ');
+    if (folderName) {
+      displayTitle = `${folderName} + ${filtersLabel}`;
+    } else {
+      displayTitle = filtersLabel;
+    }
+  }
 
   if (!rightPanelOpen) return null;
 
@@ -774,7 +791,7 @@ export function RightPanel() {
               <div className="p-1.5 bg-slate-50 dark:bg-slate-900/20 text-slate-400 rounded-md flex items-center justify-center w-8 h-8">
                 <span className="material-symbols-outlined text-[16px] block">folder_open</span>
               </div>
-              <h2 className="text-sm font-bold text-gray-900 dark:text-white">{currentFolderName}</h2>
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white">{displayTitle}</h2>
             </div>
             <p className="text-[10px] text-gray-500">{filteredLinks.length} Links</p>
           </div>

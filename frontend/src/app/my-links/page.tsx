@@ -27,6 +27,8 @@ export default function MyLinksPage() {
   const toggleSavedTodayFilter = useFolderStore((s) => s.toggleSavedTodayFilter); // 필터 토글 함수
   const unreadFilter = useFolderStore((s) => s.unreadFilter);         // 'Unread' 필터 상태 (view_count = 0)
   const toggleUnreadFilter = useFolderStore((s) => s.toggleUnreadFilter); // Unread 필터 토글 함수
+  const unorganizedFilter = useFolderStore((s) => s.unorganizedFilter); // 미분류 필터 상태
+  const toggleUnorganizedFilter = useFolderStore((s) => s.toggleUnorganizedFilter); // 미분류 필터 토글 함수
   const memberId = useAuthStore((s) => s.member?.memberId);           // 로그인된 사용자 ID
   const isAuthInitializing = useAuthStore((s) => s.isInitializing);   // 인증 세션 복구 중 여부
   const { data: folders, isLoading: isFoldersLoading, error } = useFolders(memberId); // 전체 폴더 목록 조회
@@ -128,12 +130,21 @@ export default function MyLinksPage() {
     );
   }
 
+  // '미분류' 필터링 (O(M)): 미분류 시스템 폴더만 유지
+  if (unorganizedFilter) {
+    searchResultFolders = searchResultFolders.filter((folder) =>
+      folder.folderType === 'UNORGANIZED'
+    );
+  }
+
   const searchResultFolderCount = searchResultFolders.length;
   const matchedLinksCount = allBookmarks?.bookmarks?.length ?? 0;
 
   // 헤더 메시지 생성
   let headerLabel = '';
-  if (unreadFilter) {
+  if (unorganizedFilter) {
+    headerLabel = `Unorganized: ${searchResultFolderCount} folders found`;
+  } else if (unreadFilter) {
     headerLabel = `Unread: ${searchResultFolderCount} folders found`;
   } else if (savedTodayFilter) {
     headerLabel = `Saved Today: ${searchResultFolderCount} folders found`;
@@ -147,7 +158,7 @@ export default function MyLinksPage() {
 
   // 필터 또는 검색 활성화 시 결과 표시
   // 대시보드 대신 검색 결과 화면을 보여줄지 여부 (검색 중이거나 필터 활성화 시)
-  const isShowingFiltered = isSearching || savedTodayFilter || unreadFilter;
+  const isShowingFiltered = isSearching || savedTodayFilter || unreadFilter || unorganizedFilter;
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -224,9 +235,20 @@ export default function MyLinksPage() {
               <span className="material-symbols-outlined !text-[12px]">tune</span> Filter
             </button>
             <div className="h-2.5 w-px bg-gray-300 dark:bg-gray-700 mx-0.5"></div>
-            <button 
-              type="button" 
-              className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm"
+            <button
+              type="button"
+              onClick={() => {
+                const nextValue = !unorganizedFilter;
+                toggleUnorganizedFilter();
+                if (nextValue) {
+                  setSelectedFolderId(null);
+                }
+              }}
+              className={`flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors shadow-sm border ${
+                unorganizedFilter
+                  ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-600 text-rose-700 dark:text-rose-300'
+                  : 'bg-white dark:bg-card-dark border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+              }`}
             >
               <span className="material-symbols-outlined !text-[12px] text-rose-400">inventory_2</span> Unorganized
             </button>
