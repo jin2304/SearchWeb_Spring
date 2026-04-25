@@ -20,6 +20,8 @@ export interface BookmarkResponse {
   displayTitle: string;
   note: string | null;
   primaryCategoryId: number | null;
+  viewCount: number;
+  lastViewedAt: string | null;
   tags: string[];
   link: LinkResponse | null;
   createdAt: string;
@@ -57,4 +59,5 @@ export interface BookmarkSearchParams {
   sort?: 'Newest' | 'Oldest' | 'Alphabetical';
   query?: string;
   categoryId?: number | null;
+  unreadOnly?: boolean;
 }

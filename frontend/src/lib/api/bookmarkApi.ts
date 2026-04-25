@@ -18,6 +18,7 @@ async function fetchBookmarks(params: BookmarkSearchParams): Promise<BookmarkSea
   if (params.sort) searchParams.set('sort', params.sort);
   if (params.query) searchParams.set('query', params.query);
   if (params.categoryId != null) searchParams.set('categoryId', String(params.categoryId));
+  if (params.unreadOnly === true) searchParams.set('unreadOnly', 'true');
 
   const qs = searchParams.toString();
   return fetchClient<BookmarkSearchResponse>(`/api/bookmarks${qs ? `?${qs}` : ''}`);
@@ -53,6 +54,16 @@ async function updateBookmark({ bookmarkId, ...data }: UpdateBookmarkRequest & {
 async function deleteBookmark(bookmarkId: number): Promise<number> {
   return fetchClient<number>(`/api/bookmarks/${bookmarkId}`, {
     method: 'DELETE',
+  });
+}
+
+/**
+ * 북마크 조회 기록 (PATCH /api/bookmarks/{bookmarkId}/read)
+ * - 서버에서 view_count += 1, last_viewed_at = now() 처리
+ */
+async function recordBookmarkView(bookmarkId: number): Promise<void> {
+  await fetchClient<void>(`/api/bookmarks/${bookmarkId}/read`, {
+    method: 'PATCH',
   });
 }
 
@@ -115,6 +126,20 @@ export function useDeleteBookmark() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteBookmark,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+    },
+  });
+}
+
+/**
+ * [조회 기록 Hook] 북마크 열람 시 view_count 증가 및 읽음 처리.
+ * 성공 시 'bookmarks' 캐시를 무효화하여 Unread 필터 목록 등이 자동 갱신됩니다.
+ */
+export function useRecordBookmarkView() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: recordBookmarkView,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
     },
