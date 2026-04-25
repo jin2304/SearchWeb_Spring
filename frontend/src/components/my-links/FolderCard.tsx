@@ -17,6 +17,7 @@ const MENU_OFFSET_Y = 4; // 버튼과 메뉴 사이의 상하 간격
 
 export function FolderCard({ folder, color }: FolderCardProps) {
   const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
+  const currentSelectedFolderId = useFolderStore((s) => s.selectedFolderId);
   const searchQuery = useFolderStore((s) => s.searchQuery);
   const setLinkSearchQuery = useLinkStore((s) => s.setSearchQuery);
   const [showMenu, setShowMenu] = useState(false); // 드롭다운 메뉴 표시 여부
@@ -77,8 +78,12 @@ export function FolderCard({ folder, color }: FolderCardProps) {
   // 카드 클릭 시 폴더 선택 처리 (메뉴가 열려있지 않을 때만)
   const handleCardClick = () => {
     if (!showMenu) {
-      // 1. 선택된 폴더 ID 변경 -> 우측 패널 데이터 갱신 트리거
-      setSelectedFolderId(folder.memberFolderId);
+      // 1. 이미 선택된 폴더를 다시 클릭하면 선택 해제, 아니면 해당 폴더 선택
+      if (currentSelectedFolderId === folder.memberFolderId) {
+        setSelectedFolderId(null);
+      } else {
+        setSelectedFolderId(folder.memberFolderId);
+      }
       
       // 2. 기존 폴더 검색어가 있다면 링크 검색어로 전이 (사용자 요청: 클릭 시 링크 필터링되도록)
       if (searchQuery) {
@@ -107,6 +112,8 @@ export function FolderCard({ folder, color }: FolderCardProps) {
     setShowMenu(false);
   };
 
+  const isSelected = currentSelectedFolderId === folder.memberFolderId;
+
   return (
     <>
       <div
@@ -119,7 +126,11 @@ export function FolderCard({ folder, color }: FolderCardProps) {
             handleCardClick();
           }
         }}
-        className={`bg-white dark:bg-card-dark rounded-lg p-2.5 border border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10 transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between focus:ring-1 focus:ring-purple-300 dark:focus:ring-purple-500 outline-none hover:bg-purple-50/30 dark:hover:bg-white/[0.03] relative overflow-visible ${color || ''}`}
+        className={`bg-white dark:bg-card-dark rounded-lg p-2.5 border transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between outline-none hover:bg-purple-50/30 dark:hover:bg-white/[0.03] relative overflow-visible ${
+          isSelected 
+            ? 'border-purple-500 ring-1 ring-purple-500/20 shadow-md' 
+            : 'border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10'
+        } ${color || ''}`}
       >
         <div className="flex justify-between items-start">
           <div className={`p-1.5 bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-gray-400 group-hover:dark:text-white transition-colors rounded-md flex items-center justify-center w-8 h-8`}>

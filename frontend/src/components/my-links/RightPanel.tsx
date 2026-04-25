@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useFolders } from '@/lib/api/folderApi';
-import { useBookmarks, useDeleteBookmark, useUpdateBookmark } from '@/lib/api/bookmarkApi';
+import { useBookmarks, useDeleteBookmark, useUpdateBookmark, useRecordBookmarkView } from '@/lib/api/bookmarkApi';
 import { useTags } from '@/lib/api/tagApi';
 import { useFolderStore } from '@/lib/store/folderStore';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -43,6 +43,7 @@ function LinkItem({
   onUpdateTitle,
   onUpdateFolder,
   onUpdateTags,
+  onOpenLink,
 }: {
   data: BookmarkResponse;
   isBulkEditMode?: boolean;
@@ -54,6 +55,7 @@ function LinkItem({
   onUpdateTitle?: (id: number, title: string) => void;
   onUpdateFolder?: (id: number, folderId: number) => void;
   onUpdateTags?: (id: number, tags: string) => void;
+  onOpenLink?: (bookmark: BookmarkResponse) => void;
 }) {
   // --- State Management | 상태 관리 ---
   const [isNoteEditing, setIsNoteEditing] = useState(false);                 // 메모 편집 모드 여부
@@ -229,6 +231,7 @@ function LinkItem({
         if (isBulkEditMode && onToggleSelect) {
           onToggleSelect(data.bookmarkId);
         } else if (!isNoteEditing && !isTitleEditing && data.link?.originalUrl) {
+          onOpenLink?.(data);
           window.open(data.link.originalUrl, '_blank', 'noopener,noreferrer');
         }
       }}
@@ -445,12 +448,26 @@ function LinkItem({
           }}
           title={(isNoteEditing || isTitleEditing) ? "Cancel editing" : "More actions"}
         >
-          <span 
-            className="material-symbols-outlined !text-[16px] block"
-            style={{ fontVariationSettings: "'wght' 300" }}
+          <svg 
+            className="w-3.5 h-3.5 transition-transform duration-200" 
+            style={{ transform: (isNoteEditing || isTitleEditing) ? 'rotate(90deg)' : 'none' }}
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
           >
-            {(isNoteEditing || isTitleEditing) ? 'close' : 'more_vert'}
-          </span>
+            {(isNoteEditing || isTitleEditing) ? (
+              <path d="M18 6L6 18M6 6l12 12" />
+            ) : (
+              <>
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </>
+            )}
+          </svg>
         </button>
 
         {/* Dropdown Menu | 드롭다운 메뉴 (수정/삭제) */}
@@ -500,6 +517,7 @@ export function RightPanel() {
   const linkSearchQuery = useLinkStore((s) => s.filters.searchQuery); // 현재 검색어 상태 구독
   const setLinkSearchQuery = useLinkStore((s) => s.setSearchQuery);   // 검색어 변경 함수
   const savedTodayFilter = useFolderStore((s) => s.savedTodayFilter); // 오늘 저장 필터 상태
+  const unreadFilter = useFolderStore((s) => s.unreadFilter);         // Unread 필터 상태 (view_count = 0)
 
   // 검색어 디바운스 처리를 위한 로컬 상태
   const [pendingSearch, setPendingSearch] = useState(linkSearchQuery);
@@ -544,13 +562,20 @@ export function RightPanel() {
     folderId: selectedFolderId,
     sort: backendSort,
     query: linkSearchQuery,
+    unreadOnly: unreadFilter || undefined,
   });
 
   const bookmarks = bookmarksData?.bookmarks;
 
-  // API 뮤테이션 (수정/삭제)
+  // API 뮤테이션 (수정/삭제/조회기록)
   const deleteBookmarkMutation = useDeleteBookmark();
   const updateBookmarkMutation = useUpdateBookmark();
+  const recordViewMutation = useRecordBookmarkView();
+
+  /** 링크 카드 클릭 시 조회 기록 (view_count += 1, last_viewed_at = now()) */
+  const handleOpenLink = (bookmark: BookmarkResponse) => {
+    recordViewMutation.mutate(bookmark.bookmarkId);
+  };
 
   // 대량 편집 관련 상태
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false); // 헤더 더보기 메뉴
@@ -863,9 +888,19 @@ export function RightPanel() {
                     {tag}
                     <button 
                       onClick={() => toggleTag(tag)}
-                      className="flex items-center justify-center rounded-sm hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors opacity-70 hover:opacity-100"
+                      className="group/tag-close flex items-center justify-center rounded-sm hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors opacity-70 hover:opacity-100"
                     >
-                      <span className="material-symbols-outlined !text-[11px]">close</span>
+                      <svg 
+                        className="w-2.5 h-2.5 transition-transform duration-200 group-hover/tag-close:scale-110" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="3" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
                     </button>
                   </span>
                 ))}
@@ -911,6 +946,7 @@ export function RightPanel() {
               onUpdateTitle={handleUpdateTitle}
               onUpdateFolder={handleUpdateFolder}
               onUpdateTags={handleUpdateTags}
+              onOpenLink={handleOpenLink}
             />
           ))
         ) : (
@@ -962,9 +998,19 @@ export function RightPanel() {
             <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
             <button 
               onClick={exitBulkMode}
-              className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="group/bulk-close flex items-center justify-center h-[20px] w-[20px] aspect-square bg-gray-200/70 dark:bg-gray-700/50 rounded-lg text-gray-500 dark:hover:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 shrink-0"
             >
-              <span className="material-symbols-outlined !text-[16px]">close</span>
+              <svg 
+                className="w-2.5 h-2.5 transition-transform duration-200 group-hover/bulk-close:rotate-90" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="3.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
@@ -986,9 +1032,19 @@ export function RightPanel() {
               </div>
               <button 
                 onClick={() => setIsMoveModalOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-800 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                className="group/modal-close w-[22px] h-[22px] aspect-square flex items-center justify-center rounded-full bg-slate-200/70 dark:bg-gray-700/50 text-slate-500 hover:text-slate-800 hover:bg-slate-300 dark:hover:bg-gray-600 transition-all duration-200 shrink-0"
               >
-                <span className="material-symbols-outlined !text-[18px]">close</span>
+                <svg 
+                  className="w-3 h-3 transition-transform duration-200 group-hover/modal-close:rotate-90" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="3" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
               </button>
             </div>
             
