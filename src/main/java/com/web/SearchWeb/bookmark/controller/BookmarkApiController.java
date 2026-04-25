@@ -116,6 +116,19 @@ public class BookmarkApiController {
 
 
     /**
+     *  북마크 조회 기록
+     */
+    @PatchMapping("/{bookmarkId}/read")
+    public ResponseEntity<ApiResponse<Void>> recordView(
+            @CurrentMemberId Long memberId,
+            @PathVariable Long bookmarkId) {
+
+        bookmarkService.recordView(memberId, bookmarkId);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+
+    /**
      *  북마크 확인
      */
     @GetMapping("/check")

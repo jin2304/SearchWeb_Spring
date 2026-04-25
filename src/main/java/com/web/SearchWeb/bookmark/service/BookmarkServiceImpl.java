@@ -160,6 +160,19 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
+     *  북마크 조회 기록 (view_count 증가, last_viewed_at 업데이트)
+     */
+    @Override
+    @Transactional
+    public void recordView(Long memberId, Long bookmarkId) {
+        int affected = bookmarkDao.incrementViewCount(bookmarkId, memberId);
+        if (affected == 0) {
+            throw BookmarkException.of(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+        }
+    }
+
+
+    /**
      *  북마크 삭제 (soft delete)
      */
     @Override

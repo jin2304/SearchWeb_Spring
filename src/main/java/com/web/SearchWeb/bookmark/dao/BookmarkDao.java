@@ -26,6 +26,9 @@ public interface BookmarkDao {
     //북마크 삭제
     int deleteBookmark(Long memberId, Long bookmarkId);
 
+    //북마크 조회수 증가 (읽음 처리)
+    int incrementViewCount(Long bookmarkId, Long memberId);
+
     //북마크 태그 연결 삭제
     int deleteBookmarkTags(Long bookmarkId, Long memberId);
 

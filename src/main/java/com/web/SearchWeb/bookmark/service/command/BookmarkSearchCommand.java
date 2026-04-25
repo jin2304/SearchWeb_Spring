@@ -18,4 +18,5 @@ public class BookmarkSearchCommand {
     private String sort;                  // 정렬 기준 (Newest, Oldest)
     private String query;                 // 검색어 (display_title 검색)
     private Long categoryId;              // primary_category_id로 필터 (태그 대체)
+    private Boolean unreadOnly;           // true이면 view_count = 0 인 북마크만 조회
 }

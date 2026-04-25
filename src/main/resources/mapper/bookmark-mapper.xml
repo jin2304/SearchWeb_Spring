@@ -17,6 +17,8 @@
         <result property="primaryCategoryId" column="primary_category_id"/>
         <result property="categorySource" column="category_source"/>
         <result property="categoryScore" column="category_score"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="lastViewedAt" column="last_viewed_at"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="deletedAt" column="deleted_at"/>
@@ -108,6 +110,9 @@
         <if test="query != null and query != ''">
            AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%'
         </if>
+        <if test="unreadOnly != null and unreadOnly == true">
+           AND msl.view_count = 0
+        </if>
          ORDER BY
         <choose>
             <when test="sort == 'Newest'">
@@ -140,7 +145,23 @@
         <if test="query != null and query != ''">
            AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%'
         </if>
+        <if test="unreadOnly != null and unreadOnly == true">
+           AND msl.view_count = 0
+        </if>
     </select>
+
+
+    <!-- 북마크 조회수 증가 (읽음 처리) -->
+    <update id="incrementViewCount" parameterType="map">
+        UPDATE member_saved_link
+           SET view_count = view_count + 1,
+               last_viewed_at = now(),
+               updated_at = now(),
+               updated_by_member_id = #{memberId}
+         WHERE member_saved_link_id = #{bookmarkId}
+           AND created_by_member_id = #{memberId}
+           AND deleted_at IS NULL
+    </update>
 
 
     <!-- 링크 조회 (canonical_url로) -->

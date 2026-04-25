@@ -38,6 +38,7 @@ public class BookmarkRequests {
         public String sort = "Newest"; // 기본값 설정
         public String query;
         public Long categoryId;
+        public Boolean unreadOnly;
 
         public BookmarkSearchCommand toCommand(Long memberId) {
             return BookmarkSearchCommand.builder()
@@ -46,6 +47,7 @@ public class BookmarkRequests {
                 .sort(this.sort)
                 .query(this.query)
                 .categoryId(this.categoryId)
+                .unreadOnly(this.unreadOnly)
                 .build();
         }
     }

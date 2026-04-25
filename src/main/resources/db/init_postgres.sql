@@ -398,6 +398,8 @@ CREATE TABLE IF NOT EXISTS "member_saved_link" (
   "primary_category_id" int,
   "category_source" varchar(10) DEFAULT 'system' NOT NULL,
   "category_score" numeric(5,4),
+  "view_count" integer DEFAULT 0 NOT NULL,
+  "last_viewed_at" timestamptz,
   "created_at" timestamptz DEFAULT now() NOT NULL,
   "updated_at" timestamptz DEFAULT now() NOT NULL,
   "deleted_at" timestamptz,
@@ -407,10 +409,15 @@ CREATE TABLE IF NOT EXISTS "member_saved_link" (
   CONSTRAINT pk_member_saved_link PRIMARY KEY ("member_saved_link_id"),
   CONSTRAINT ck_member_saved_link_category_source CHECK (category_source in ('system','member')),
   CONSTRAINT ck_member_saved_link_category_score CHECK (category_score is null or (category_score between 0 and 1)),
+  CONSTRAINT ck_member_saved_link_view_count_nonneg CHECK (view_count >= 0),
   CONSTRAINT fk_member_saved_link_link_id FOREIGN KEY ("link_id") REFERENCES "link"("link_id"),
   CONSTRAINT fk_member_saved_link_link_enrichment_id FOREIGN KEY ("link_enrichment_id") REFERENCES "link_enrichment"("link_enrichment_id"),
   CONSTRAINT fk_member_saved_link_member_folder_id FOREIGN KEY ("member_folder_id") REFERENCES "member_folder"("member_folder_id")
 );
+
+-- (idempotent) 기존 DB에 대해 view_count / last_viewed_at 컬럼 추가
+ALTER TABLE "member_saved_link" ADD COLUMN IF NOT EXISTS "view_count" integer DEFAULT 0 NOT NULL;
+ALTER TABLE "member_saved_link" ADD COLUMN IF NOT EXISTS "last_viewed_at" timestamptz;
 
 CREATE TABLE IF NOT EXISTS "link_enrichment_feedback" (
   "link_enrichment_feedback_id" int GENERATED ALWAYS AS IDENTITY NOT NULL,

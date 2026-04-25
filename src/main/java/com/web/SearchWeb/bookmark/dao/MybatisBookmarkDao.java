@@ -82,6 +82,15 @@ public class MybatisBookmarkDao implements BookmarkDao {
 
 
     /**
+     *  북마크 조회수 증가 (읽음 처리)
+     */
+    @Override
+    public int incrementViewCount(Long bookmarkId, Long memberId) {
+        return mapper.incrementViewCount(bookmarkId, memberId);
+    }
+
+
+    /**
      *  북마크 삭제 (Link ID 기반 - soft delete)
      */
     @Override
