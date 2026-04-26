@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useFolders } from '@/lib/api/folderApi';
-import { useBookmarks, useDeleteBookmark, useUpdateBookmark, useRecordBookmarkView } from '@/lib/api/bookmarkApi';
+import { useInfiniteBookmarks, useDeleteBookmark, useUpdateBookmark, useRecordBookmarkView } from '@/lib/api/bookmarkApi';
 import { useTags } from '@/lib/api/tagApi';
 import { useFolderStore } from '@/lib/store/folderStore';
 import { useAuthStore } from '@/lib/store/authStore';
 import { useLinkStore } from '@/lib/store/linkStore';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
-import { isCreatedToday } from '@/lib/dateUtils';
+import { FOLDER_TYPE } from '@/lib/types/folder';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -543,7 +543,7 @@ export function RightPanel() {
   const { data: tagsData } = useTags(memberId); // 전체 태그 목록
 
   // 미분류 폴더 ID 찾기
-  const unorganizedFolder = myFolders?.find(f => f.folderType === 'UNORGANIZED');
+  const unorganizedFolder = myFolders?.find(f => f.folderType === FOLDER_TYPE.UNORGANIZED);
   const unorganizedFolderId = unorganizedFolder?.memberFolderId;
 
   // --- Local UI State | UI 전용 로컬 상태 ---
@@ -562,16 +562,45 @@ export function RightPanel() {
   // UI 정렬 옵션을 백엔드 파라미터로 매핑
   const backendSort = sortOption === 'newest' ? 'Newest' as const : sortOption === 'oldest' ? 'Oldest' as const : 'Alphabetical' as const;
 
-  // 북마크 데이터 조회 (검색 결과 및 매칭 폴더 IDs 포함)
-  const { data: bookmarksData, isLoading: isBookmarksLoading } = useBookmarks({
+  // 북마크 데이터 조회 (무한 스크롤 페이징 지원)
+  const { 
+    data: infiniteData, 
+    isLoading: isBookmarksLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteBookmarks({
     folderId: unorganizedFilter && unorganizedFolderId ? unorganizedFolderId : selectedFolderId,
     sort: backendSort,
     query: linkSearchQuery,
     unreadOnly: unreadFilter || undefined,
     savedTodayOnly: savedTodayFilter || undefined,
+    limit: 100, // 한 페이지당 100개씩 로드
   });
 
-  const bookmarks = bookmarksData?.bookmarks;
+  // 모든 페이지의 북마크를 하나의 배열로 펼침
+  const bookmarks = infiniteData?.pages.flatMap(page => page.bookmarks) ?? [];
+  const totalCount = infiniteData?.pages[0]?.totalCount ?? 0;
+
+  // 스크롤 하단 감지를 위한 Ref 및 Observer
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 } // 10% 정도 보일 때 미리 로드
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   // API 뮤테이션 (수정/삭제/조회기록)
   const deleteBookmarkMutation = useDeleteBookmark();
@@ -610,15 +639,21 @@ export function RightPanel() {
     };
   }, [isTagDropdownOpen, isMoreMenuOpen]);
 
-  // Client-side filtering logic (Tags & Saved Today)
+  // Client-side filtering logic (Tags only; date/unread/folder filters are handled by the API)
   const allLinks = bookmarks ?? [];
   let filteredLinks = selectedTags.length > 0
     ? allLinks.filter(link => link.tags?.some(tag => selectedTags.includes(tag)))
     : allLinks;
-
-  if (savedTodayFilter) {
-    filteredLinks = filteredLinks.filter(link => isCreatedToday(link.createdAt));
-  }
+  const emptyLinksMessage = (() => {
+    if (selectedTags.length > 0) return 'No links match selected tags';
+    if (unreadFilter && savedTodayFilter) return 'No unread links saved today';
+    if (unorganizedFilter && savedTodayFilter) return 'No unorganized links saved today';
+    if (unreadFilter) return 'No unread links';
+    if (savedTodayFilter) return 'No links saved today';
+    if (unorganizedFilter) return 'No unorganized links';
+    if (linkSearchQuery.trim()) return 'No links match your search';
+    return 'No links saved yet';
+  })();
 
   /** 태그 선택/해제 */
   const toggleTag = (tag: string) => {
@@ -798,7 +833,7 @@ export function RightPanel() {
               </div>
               <h2 className="text-sm font-bold text-gray-900 dark:text-white">{displayTitle}</h2>
             </div>
-            <p className="text-[10px] text-gray-500">{filteredLinks.length} Links</p>
+            <p className="text-[10px] text-gray-500">{totalCount} Links</p>
           </div>
 
           {/* Right: Action Buttons & Search | 우측 액션 버튼 및 검색창 */}
@@ -974,9 +1009,19 @@ export function RightPanel() {
         ) : (
           <div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-2">
             <span className="material-symbols-outlined text-3xl opacity-50">search_off</span>
-            <p className="text-xs font-medium">{selectedTags.length > 0 ? 'No links match selected tags' : 'No links saved yet'}</p>
+            <p className="text-xs font-medium">{emptyLinksMessage}</p>
           </div>
         )}
+
+        {/* Infinite Scroll Trigger & Loader | 무한 스크롤 트리거 및 로딩 표시 */}
+        <div ref={observerTarget} className="h-10 flex items-center justify-center w-full">
+          {isFetchingNextPage && (
+            <div className="flex items-center gap-2 text-gray-400 py-4">
+              <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+              <span className="text-[10px] font-medium">Loading more...</span>
+            </div>
+          )}
+        </div>
       </div>
 
 

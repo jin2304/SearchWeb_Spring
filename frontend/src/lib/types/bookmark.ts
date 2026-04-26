@@ -32,6 +32,7 @@ export interface BookmarkResponse {
 export interface BookmarkSearchResponse {
   bookmarks: BookmarkResponse[];
   matchingFolderIds: number[];
+  totalCount: number;
 }
 
 // POST /api/bookmarks 요청 바디
@@ -60,4 +61,7 @@ export interface BookmarkSearchParams {
   query?: string;
   categoryId?: number | null;
   unreadOnly?: boolean;
+  savedTodayOnly?: boolean;
+  limit?: number;
+  offset?: number;
 }
