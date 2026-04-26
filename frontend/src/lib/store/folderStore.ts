@@ -28,8 +28,33 @@ export const useFolderStore = create<FolderStore>((set) => ({
   setSelectedFolderId: (id) => set({ selectedFolderId: id }),
   setSearchScope: (scope) => set({ searchScope: scope }),
   setSearchQuery: (query) => set({ searchQuery: query }),
-  toggleSavedTodayFilter: () => set((state) => ({ savedTodayFilter: !state.savedTodayFilter })),
-  toggleUnreadFilter: () => set((state) => ({ unreadFilter: !state.unreadFilter })),
-  toggleUnorganizedFilter: () => set((state) => ({ unorganizedFilter: !state.unorganizedFilter })),
-  clearSearch: () => set({ searchQuery: '', searchScope: 'all', savedTodayFilter: false, unreadFilter: false, unorganizedFilter: false }),
+  toggleSavedTodayFilter: () => set((state) => {
+    const nextValue = !state.savedTodayFilter;
+    return {
+      savedTodayFilter: nextValue,
+      selectedFolderId: nextValue ? null : state.selectedFolderId,
+    };
+  }),
+  toggleUnreadFilter: () => set((state) => {
+    const nextValue = !state.unreadFilter;
+    return {
+      unreadFilter: nextValue,
+      selectedFolderId: nextValue ? null : state.selectedFolderId,
+    };
+  }),
+  toggleUnorganizedFilter: () => set((state) => {
+    const nextValue = !state.unorganizedFilter;
+    return {
+      unorganizedFilter: nextValue,
+      selectedFolderId: nextValue ? null : state.selectedFolderId,
+    };
+  }),
+  clearSearch: () => set({
+    selectedFolderId: null,
+    searchQuery: '',
+    searchScope: 'all',
+    savedTodayFilter: false,
+    unreadFilter: false,
+    unorganizedFilter: false,
+  }),
 }));

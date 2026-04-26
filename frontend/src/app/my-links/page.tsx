@@ -10,8 +10,8 @@ import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import { useBookmarks } from '@/lib/api/bookmarkApi';
 import { useLinkStore } from '@/lib/store/linkStore';
 import { useState, useEffect, useRef } from 'react';
-import { isCreatedToday } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
+import { FOLDER_TYPE } from '@/lib/types/folder';
 
 const PINNED_COLORS = ['bg-blue-600/90', 'bg-indigo-500/90', 'bg-teal-500/90', 'bg-amber-500/90', 'bg-emerald-600/90'];
 
@@ -72,33 +72,29 @@ export default function MyLinksPage() {
   // 검색 필터링 로직
   const isSearching = searchQuery.trim().length > 0;
 
+  // 미분류 폴더 ID 찾기
+  const unorganizedFolder = folders?.find(f => f.folderType === FOLDER_TYPE.UNORGANIZED);
+  const unorganizedFolderId = unorganizedFolder?.memberFolderId;
+
   // 북마크 데이터 조회 조건 결정:
   // 1. 전체 또는 링크 범위 검색 중이거나
   // 2. 오늘 저장 필터가 활성화된 경우
-  // 3. Unread 필터가 활성화된 경우 서버에서 북마크 정보를 가져옴
-  const shouldFetchBookmarks = ((searchScope === 'all' || searchScope === 'links') && isSearching) || savedTodayFilter || unreadFilter;
+  // 3. Unread 필터가 활성화된 경우
+  // 4. 미분류 필터가 활성화된 경우 서버에서 북마크 정보를 가져옴
+  const shouldFetchBookmarks = ((searchScope === 'all' || searchScope === 'links') && isSearching) || savedTodayFilter || unreadFilter || unorganizedFilter;
   const bookmarkParams: Parameters<typeof useBookmarks>[0] = {};
   if (isSearching && (searchScope === 'all' || searchScope === 'links')) bookmarkParams.query = searchQuery;
   if (unreadFilter) bookmarkParams.unreadOnly = true;
+  if (savedTodayFilter) bookmarkParams.savedTodayOnly = true;
+  if (unorganizedFilter && unorganizedFolderId) bookmarkParams.folderId = unorganizedFolderId;
   const { data: allBookmarks } = useBookmarks(
     bookmarkParams,
     { enabled: shouldFetchBookmarks }
   );
 
   // 북마크 데이터로부터 필터링에 필요한 ID 집합(Set) 추출 (O(N))
+  // matchingFolderIdsSet은 백엔드에서 정확하게 필터링된 폴더들
   const matchingFolderIdsSet = new Set(allBookmarks?.matchingFolderIds ?? []);
-  const todayFolderIdsSet = new Set(
-    savedTodayFilter && allBookmarks?.bookmarks
-      ? allBookmarks.bookmarks
-          .filter((b) => isCreatedToday(b.createdAt))
-          .map((b) => b.memberFolderId)
-      : []
-  );
-  const unreadFolderIdsSet = new Set(
-    unreadFilter && allBookmarks?.bookmarks
-      ? allBookmarks.bookmarks.map((b) => b.memberFolderId)
-      : []
-  );
 
   // 폴더 필터링: 폴더명 매칭 또는 백엔드에서 판별된 매칭 폴더 확인 (O(M))
   let searchResultFolders = isSearching
@@ -116,24 +112,26 @@ export default function MyLinksPage() {
       })
     : (folders ?? []);
 
-  // '오늘 저장한 링크' 필터링 최적화 (O(M))
+  // '오늘 저장한 링크' 필터링 (O(M))
+  // 백엔드에서 이미 savedTodayOnly=true로 필터링되었으므로 matchingFolderIdsSet이 정확함
   if (savedTodayFilter) {
     searchResultFolders = searchResultFolders.filter((folder) =>
-      todayFolderIdsSet.has(folder.memberFolderId)
+      matchingFolderIdsSet.has(folder.memberFolderId)
     );
   }
 
   // 'Unread' 필터링 (O(M)): 안 읽은 북마크가 포함된 폴더만 유지
+  // 백엔드에서 이미 unreadOnly=true로 필터링되었으므로 matchingFolderIdsSet이 정확함 (불완전한 bookmarks 페이지 대신)
   if (unreadFilter) {
     searchResultFolders = searchResultFolders.filter((folder) =>
-      unreadFolderIdsSet.has(folder.memberFolderId)
+      matchingFolderIdsSet.has(folder.memberFolderId)
     );
   }
 
   // '미분류' 필터링 (O(M)): 미분류 시스템 폴더만 유지
   if (unorganizedFilter) {
     searchResultFolders = searchResultFolders.filter((folder) =>
-      folder.folderType === 'UNORGANIZED'
+      folder.folderType === FOLDER_TYPE.UNORGANIZED
     );
   }
 
@@ -159,6 +157,15 @@ export default function MyLinksPage() {
   // 필터 또는 검색 활성화 시 결과 표시
   // 대시보드 대신 검색 결과 화면을 보여줄지 여부 (검색 중이거나 필터 활성화 시)
   const isShowingFiltered = isSearching || savedTodayFilter || unreadFilter || unorganizedFilter;
+  const emptyFilteredMessage = (() => {
+    if (unreadFilter && savedTodayFilter) return 'No unread links saved today';
+    if (unorganizedFilter && savedTodayFilter) return 'No unorganized links saved today';
+    if (unreadFilter) return 'No unread links';
+    if (savedTodayFilter) return 'No links saved today';
+    if (unorganizedFilter) return 'No unorganized links';
+    if (isSearching) return 'No results match your search';
+    return 'No matching folders';
+  })();
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -237,13 +244,7 @@ export default function MyLinksPage() {
             <div className="h-2.5 w-px bg-gray-300 dark:bg-gray-700 mx-0.5"></div>
             <button
               type="button"
-              onClick={() => {
-                const nextValue = !unorganizedFilter;
-                toggleUnorganizedFilter();
-                if (nextValue) {
-                  setSelectedFolderId(null);
-                }
-              }}
+              onClick={toggleUnorganizedFilter}
               className={`flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors shadow-sm border ${
                 unorganizedFilter
                   ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-600 text-rose-700 dark:text-rose-300'
@@ -254,13 +255,7 @@ export default function MyLinksPage() {
             </button>
             <button
               type="button"
-              onClick={() => {
-                const nextValue = !unreadFilter;
-                toggleUnreadFilter();
-                if (nextValue) {
-                  setSelectedFolderId(null);
-                }
-              }}
+              onClick={toggleUnreadFilter}
               className={`flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors shadow-sm border ${
                 unreadFilter
                   ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-600 text-blue-700 dark:text-blue-300'
@@ -276,13 +271,7 @@ export default function MyLinksPage() {
             */}
             <button
               type="button"
-              onClick={() => {
-                const nextValue = !savedTodayFilter;
-                toggleSavedTodayFilter();
-                if (nextValue) {
-                  setSelectedFolderId(null);
-                }
-              }}
+              onClick={toggleSavedTodayFilter}
               className={`flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors shadow-sm border ${
                 savedTodayFilter
                   ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-600 text-purple-700 dark:text-purple-300'
@@ -308,12 +297,12 @@ export default function MyLinksPage() {
               {searchResultFolderCount === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-12 bg-white/40 dark:bg-white/5 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
                   <span className="material-symbols-outlined text-3xl text-gray-300 dark:text-gray-700 mb-2">search_off</span>
-                  <span className="text-xs text-gray-400 font-medium">No results match your search</span>
+                  <span className="text-xs text-gray-400 font-medium">{emptyFilteredMessage}</span>
                 </div>
               ) : (
                 searchResultFolders.sort((a, b) => {
-                  if (a.folderType === 'UNORGANIZED' && b.folderType !== 'UNORGANIZED') return -1;
-                  if (b.folderType === 'UNORGANIZED' && a.folderType !== 'UNORGANIZED') return 1;
+                  if (a.folderType === FOLDER_TYPE.UNORGANIZED && b.folderType !== FOLDER_TYPE.UNORGANIZED) return -1;
+                  if (b.folderType === FOLDER_TYPE.UNORGANIZED && a.folderType !== FOLDER_TYPE.UNORGANIZED) return 1;
                   return 0;
                 }).map((folder) => (
                   <FolderCard key={folder.memberFolderId} folder={folder} />
@@ -426,8 +415,8 @@ export default function MyLinksPage() {
               {/* ── 폴더 카드 목록 (백엔드 데이터 반복 렌더링) ── */}
               {(folders ? [...folders] : []).sort((a, b) => {
                 // 시스템(미분류) 폴더는 항상 최상단 고정
-                if (a.folderType === 'UNORGANIZED' && b.folderType !== 'UNORGANIZED') return -1;
-                if (b.folderType === 'UNORGANIZED' && a.folderType !== 'UNORGANIZED') return 1;
+                if (a.folderType === FOLDER_TYPE.UNORGANIZED && b.folderType !== FOLDER_TYPE.UNORGANIZED) return -1;
+                if (b.folderType === FOLDER_TYPE.UNORGANIZED && a.folderType !== FOLDER_TYPE.UNORGANIZED) return 1;
                 if (folderSort === 'recently') return b.memberFolderId - a.memberFolderId;
                 if (folderSort === 'a-z') return a.folderName.localeCompare(b.folderName);
                 return 0;

@@ -12,6 +12,7 @@ import { useCreateBookmark, useAnalyzeUrl } from '@/lib/api/bookmarkApi';
 import { useAnalyzeLink } from '@/lib/api/linkAnalysisApi';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { LinkAnalysisResponse } from '@/lib/types/linkAnalysis';
+import { FOLDER_TYPE } from '@/lib/types/folder';
 
 // 디자인 시안에서 추출한 커스텀 테마 매핑
 const theme = {
@@ -280,7 +281,7 @@ export function SaveLinkDialog() {
       // Quick Save 경로: 폴더 미지정 시 미분류(UNORGANIZED) 폴더로 저장
       const fallbackFolderId =
         selectedFolderId
-        ?? folders?.find((f) => f.folderType === 'UNORGANIZED')?.memberFolderId
+        ?? folders?.find((f) => f.folderType === FOLDER_TYPE.UNORGANIZED)?.memberFolderId
         ?? null;
       saveBookmark(fallbackFolderId);
     }

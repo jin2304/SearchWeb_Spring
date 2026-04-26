@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { FolderResponse } from '@/lib/types/folder';
+import { FOLDER_TYPE, type FolderResponse } from '@/lib/types/folder';
 import { useFolderStore } from '@/lib/store/folderStore';
 import { useLinkStore } from '@/lib/store/linkStore';
 import { useUIStore } from '@/lib/store/uiStore';
@@ -23,7 +23,7 @@ export function FolderCard({ folder, color }: FolderCardProps) {
   const [showMenu, setShowMenu] = useState(false); // 드롭다운 메뉴 표시 여부
   const [modalType, setModalType] = useState<'edit' | 'delete' | 'move' | null>(null); // 현재 열린 모달 타입
   // 시스템 폴더(미분류)는 Move/Delete 불가 (Rename 만 허용)
-  const isSystemFolder = folder.folderType === 'UNORGANIZED';
+  const isSystemFolder = folder.folderType === FOLDER_TYPE.UNORGANIZED;
   
   // DOM 참조 (메뉴 외부 클릭 감지 및 위치 계산용)
   const menuRef = useRef<HTMLDivElement>(null);

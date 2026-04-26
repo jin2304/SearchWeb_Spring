@@ -542,6 +542,10 @@ export function RightPanel() {
   const { data: myFolders, isLoading: isFoldersLoading } = useFolders(memberId); // 폴더 목록
   const { data: tagsData } = useTags(memberId); // 전체 태그 목록
 
+  // 미분류 폴더 ID 찾기
+  const unorganizedFolder = myFolders?.find(f => f.folderType === 'UNORGANIZED');
+  const unorganizedFolderId = unorganizedFolder?.memberFolderId;
+
   // --- Local UI State | UI 전용 로컬 상태 ---
   const [selectedTags, setSelectedTags] = useState<string[]>([]);    // 선택된 필터 태그
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false); // 태그 필터 드롭다운 오픈 여부
@@ -560,10 +564,11 @@ export function RightPanel() {
 
   // 북마크 데이터 조회 (검색 결과 및 매칭 폴더 IDs 포함)
   const { data: bookmarksData, isLoading: isBookmarksLoading } = useBookmarks({
-    folderId: selectedFolderId,
+    folderId: unorganizedFilter && unorganizedFolderId ? unorganizedFolderId : selectedFolderId,
     sort: backendSort,
     query: linkSearchQuery,
     unreadOnly: unreadFilter || undefined,
+    savedTodayOnly: savedTodayFilter || undefined,
   });
 
   const bookmarks = bookmarksData?.bookmarks;
