@@ -53,6 +53,11 @@ public class MybatisBookmarkDao implements BookmarkDao {
         return mapper.selectMatchingFolderIds(searchCommand);
     }
 
+    @Override
+    public int countBookmarkList(BookmarkSearchCommand searchCommand) {
+        return mapper.countBookmarkList(searchCommand);
+    }
+
 
     /**
      *  북마크 수정

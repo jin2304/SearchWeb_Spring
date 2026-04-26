@@ -133,11 +133,11 @@ public class MyPageController {
         Long updatedBookmarkId = bookmarkService.updateBookmark(
             memberId,
             bookmarkId,
-            request.memberFolderId,
-            request.displayTitle,
-            request.note,
-            request.primaryCategoryId,
-            request.tags
+            request.getMemberFolderId(),
+            request.getDisplayTitle(),
+            request.getNote(),
+            request.getPrimaryCategoryId(),
+            request.getTags()
         );
         return ResponseEntity.ok(ApiResponse.success(updatedBookmarkId));
     }

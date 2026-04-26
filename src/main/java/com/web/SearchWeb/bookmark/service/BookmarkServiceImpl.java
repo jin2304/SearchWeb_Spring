@@ -107,10 +107,12 @@ public class BookmarkServiceImpl implements BookmarkService {
     public BookmarkSearchResponse selectBookmarkList(BookmarkSearchCommand command) {
         List<Bookmark> bookmarks = bookmarkDao.selectBookmarkList(command);
         List<Long> matchingFolderIds = bookmarkDao.selectMatchingFolderIds(command);
+        int totalCount = bookmarkDao.countBookmarkList(command);
         
         return BookmarkSearchResponse.builder()
                 .bookmarks(bookmarks)
                 .matchingFolderIds(matchingFolderIds)
+                .totalCount(totalCount)
                 .build();
     }
 

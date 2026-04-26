@@ -90,7 +90,27 @@
         SELECT msl.*,
                l.original_url, l.canonical_url, l.domain, l.thumbnail_url,
                mt.tag_name
-          FROM member_saved_link msl
+          FROM (
+            SELECT msl.*
+              FROM member_saved_link msl
+              JOIN link l
+                ON msl.link_id = l.link_id
+            <include refid="bookmarkSearchPredicates" />
+             ORDER BY
+            <choose>
+                <when test="sort == 'Newest'">
+                    msl.updated_at DESC, msl.member_saved_link_id DESC
+                </when>
+                <when test="sort == 'Oldest'">
+                    msl.updated_at ASC, msl.member_saved_link_id ASC
+                </when>
+                <otherwise>
+                    msl.updated_at DESC, msl.member_saved_link_id DESC
+                </otherwise>
+            </choose>
+             LIMIT #{limit, jdbcType=INTEGER}
+             OFFSET #{offset, jdbcType=INTEGER}
+          ) msl
           JOIN link l
             ON msl.link_id = l.link_id
           LEFT JOIN member_saved_link_tag mslt
@@ -99,32 +119,19 @@
           LEFT JOIN member_tag mt
             ON mslt.member_tag_id = mt.member_tag_id
            AND mt.deleted_at IS NULL
-         WHERE msl.created_by_member_id = #{memberId}
-           AND msl.deleted_at IS NULL
-        <if test="folderId != null">
-           AND msl.member_folder_id = #{folderId}
-        </if>
-        <if test="categoryId != null">
-           AND msl.primary_category_id = #{categoryId}
-        </if>
-        <if test="query != null and query != ''">
-           AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%'
-        </if>
-        <if test="unreadOnly != null and unreadOnly == true">
-           AND msl.view_count = 0
-        </if>
          ORDER BY
         <choose>
             <when test="sort == 'Newest'">
-                msl.updated_at DESC
+                msl.updated_at DESC, msl.member_saved_link_id DESC
             </when>
             <when test="sort == 'Oldest'">
-                msl.updated_at ASC
+                msl.updated_at ASC, msl.member_saved_link_id ASC
             </when>
             <otherwise>
-                msl.updated_at DESC
+                msl.updated_at DESC, msl.member_saved_link_id DESC
             </otherwise>
-        </choose>
+        </choose>,
+                 mt.tag_name ASC
     </select>
 
 
@@ -134,21 +141,41 @@
           FROM member_saved_link msl
           JOIN link l
             ON msl.link_id = l.link_id
-         WHERE msl.created_by_member_id = #{memberId}
-           AND msl.deleted_at IS NULL
-        <if test="folderId != null">
-           AND msl.member_folder_id = #{folderId}
-        </if>
-        <if test="categoryId != null">
-           AND msl.primary_category_id = #{categoryId}
-        </if>
-        <if test="query != null and query != ''">
-           AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%'
-        </if>
-        <if test="unreadOnly != null and unreadOnly == true">
-           AND msl.view_count = 0
-        </if>
+        <include refid="bookmarkSearchPredicates" />
     </select>
+    
+    <!-- 전체 검색 결과 개수 조회 -->
+    <select id="countBookmarkList" parameterType="com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand" resultType="int">
+        SELECT COUNT(*)
+          FROM member_saved_link msl
+          JOIN link l
+            ON msl.link_id = l.link_id
+        <include refid="bookmarkSearchPredicates" />
+    </select>
+
+    <!-- 검색 조건 공통 Predicate -->
+    <sql id="bookmarkSearchPredicates">
+        <where>
+            AND msl.created_by_member_id = #{memberId}
+            AND msl.deleted_at IS NULL
+            <if test="folderId != null">
+                AND msl.member_folder_id = #{folderId}
+            </if>
+            <if test="categoryId != null">
+                AND msl.primary_category_id = #{categoryId}
+            </if>
+            <if test="query != null and query != ''">
+                AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%' ESCAPE '\'
+            </if>
+            <if test="unreadOnly">
+                AND msl.view_count = 0
+            </if>
+            <if test="savedTodayOnly">
+                AND msl.created_at &gt;= (date_trunc('day', now() AT TIME ZONE 'Asia/Seoul') AT TIME ZONE 'Asia/Seoul')
+                AND msl.created_at &lt; ((date_trunc('day', now() AT TIME ZONE 'Asia/Seoul') + INTERVAL '1 day') AT TIME ZONE 'Asia/Seoul')
+            </if>
+        </where>
+    </sql>
 
 
     <!-- 북마크 조회수 증가 (읽음 처리) -->
