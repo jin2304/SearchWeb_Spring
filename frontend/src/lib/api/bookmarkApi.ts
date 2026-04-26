@@ -70,6 +70,68 @@ async function recordBookmarkView(bookmarkId: number): Promise<void> {
   });
 }
 
+function queryKeyHasUnreadOnly(queryKey: readonly unknown[]): boolean {
+  return queryKey.some((part) => {
+    if (!part || typeof part !== 'object' || Array.isArray(part)) return false;
+    return (part as { unreadOnly?: unknown }).unreadOnly === true;
+  });
+}
+
+function updateReadStateInResponse(
+  data: BookmarkSearchResponse,
+  bookmarkId: number,
+  removeFromUnreadQuery: boolean,
+): BookmarkSearchResponse {
+  let changed = false;
+  let removed = false;
+  const now = new Date().toISOString();
+  const bookmarks = data.bookmarks.flatMap((bookmark) => {
+    if (bookmark.bookmarkId !== bookmarkId) return [bookmark];
+    changed = true;
+    if (removeFromUnreadQuery) {
+      removed = true;
+      return [];
+    }
+    return [{
+      ...bookmark,
+      viewCount: (bookmark.viewCount ?? 0) + 1,
+      lastViewedAt: now,
+    }];
+  });
+
+  if (!changed) return data;
+  return {
+    ...data,
+    bookmarks,
+    totalCount: removed ? Math.max(data.totalCount - 1, 0) : data.totalCount,
+  };
+}
+
+function isInfiniteBookmarkData(data: unknown): data is InfiniteData<BookmarkSearchResponse> {
+  return Boolean(data && typeof data === 'object' && Array.isArray((data as { pages?: unknown }).pages));
+}
+
+function isBookmarkSearchResponse(data: unknown): data is BookmarkSearchResponse {
+  return Boolean(data && typeof data === 'object' && Array.isArray((data as { bookmarks?: unknown }).bookmarks));
+}
+
+function updateReadStateInCacheData(
+  data: unknown,
+  bookmarkId: number,
+  removeFromUnreadQuery: boolean,
+): unknown {
+  if (isInfiniteBookmarkData(data)) {
+    return {
+      ...data,
+      pages: data.pages.map((page) => updateReadStateInResponse(page, bookmarkId, removeFromUnreadQuery)),
+    };
+  }
+  if (isBookmarkSearchResponse(data)) {
+    return updateReadStateInResponse(data, bookmarkId, removeFromUnreadQuery);
+  }
+  return data;
+}
+
 /**
  * URL 분석 (GET /api/bookmarks/analyze)
  * @param url 분석할 URL
@@ -155,14 +217,22 @@ export function useDeleteBookmark() {
 
 /**
  * [조회 기록 Hook] 북마크 열람 시 view_count 증가 및 읽음 처리.
- * 성공 시 'bookmarks' 캐시를 무효화하여 Unread 필터 목록 등이 자동 갱신됩니다.
  */
 export function useRecordBookmarkView() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: recordBookmarkView,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+    onSuccess: (_, bookmarkId) => {
+      const bookmarkQueries = queryClient.getQueryCache().findAll({ queryKey: ['bookmarks'] });
+      bookmarkQueries.forEach((query) => {
+        const removeFromUnreadQuery = queryKeyHasUnreadOnly(query.queryKey);
+        queryClient.setQueryData(query.queryKey, (oldData) =>
+          updateReadStateInCacheData(oldData, bookmarkId, removeFromUnreadQuery)
+        );
+      });
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === 'bookmarks' && queryKeyHasUnreadOnly(query.queryKey),
+      });
     },
   });
 }
