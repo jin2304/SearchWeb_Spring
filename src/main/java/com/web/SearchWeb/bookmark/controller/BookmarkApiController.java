@@ -40,12 +40,12 @@ public class BookmarkApiController {
         
         Long bookmarkId = bookmarkService.insertBookmark(
             memberId, 
-            request.url, 
-            request.memberFolderId,
-            request.displayTitle, 
-            request.note, 
-            request.primaryCategoryId, 
-            request.tags
+            request.getUrl(),
+            request.getMemberFolderId(),
+            request.getDisplayTitle(),
+            request.getNote(),
+            request.getPrimaryCategoryId(),
+            request.getTags()
         );
         
         return ResponseEntity
