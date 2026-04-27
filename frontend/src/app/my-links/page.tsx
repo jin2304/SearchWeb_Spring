@@ -4,16 +4,15 @@ import { FolderCard } from '@/components/my-links/FolderCard';
 import { RightPanel } from '@/components/my-links/RightPanel';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useFolders } from '@/lib/api/folderApi';
-import { useFolderStore } from '@/lib/store/folderStore';
+import { useFolderStore, type SearchScope } from '@/lib/store/folderStore';
 import { useAuthStore } from '@/lib/store/authStore';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import { useBookmarks } from '@/lib/api/bookmarkApi';
 import { useLinkStore } from '@/lib/store/linkStore';
-import { useState, useEffect, useRef } from 'react';
-import { cn } from '@/lib/utils';
 import { FOLDER_TYPE } from '@/lib/types/folder';
-
-const PINNED_COLORS = ['bg-blue-600/90', 'bg-indigo-500/90', 'bg-teal-500/90', 'bg-amber-500/90', 'bg-emerald-600/90'];
+import { useState, useEffect, useMemo } from 'react';
+import { cn } from '@/lib/utils';
+import { compareFolders } from '@/lib/utils/folderUtils';
 
 export default function MyLinksPage() {
   const { toggleRightPanel } = useUIStore();
@@ -31,6 +30,25 @@ export default function MyLinksPage() {
   const toggleUnorganizedFilter = useFolderStore((s) => s.toggleUnorganizedFilter); // 미분류 필터 토글 함수
   const memberId = useAuthStore((s) => s.member?.memberId);           // 로그인된 사용자 ID
   const isAuthInitializing = useAuthStore((s) => s.isInitializing);   // 인증 세션 복구 중 여부
+
+  // 검색어 디바운스 처리를 위한 로컬 상태
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+
+  // 외부(스토어)에서 검색어가 직접 변경될 경우(예: 초기화 버튼) 로컬 상태와 동기화
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery);
+  }, [searchQuery]);
+
+  // 디바운스 로직: localSearchQuery가 변경되면 250ms 후에 스토어 업데이트
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (localSearchQuery !== searchQuery) {
+        setSearchQuery(localSearchQuery);
+      }
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [localSearchQuery, searchQuery, setSearchQuery]);
+
   const { data: folders, isLoading: isFoldersLoading, error } = useFolders(memberId); // 전체 폴더 목록 조회
 
   // 인증 또는 폴더 로딩 중
@@ -57,17 +75,33 @@ export default function MyLinksPage() {
       setSelectedFolderId(null);
     } else {
       setSelectedFolderId(folderId); // 선택된 폴더 변경
+      
+      // 선택 시에만 수행: 현재 폴더 검색어를 링크 검색어로 동기화
+      if (searchQuery) {
+        useLinkStore.getState().setSearchQuery(searchQuery);
+      }
+      
+      // 선택 시에만 수행: 우측 패널 열기
+      toggleRightPanel(true);
     }
-    useLinkStore.getState().setSearchQuery(searchQuery); // 현재 폴더 검색어를 링크 검색어로 동기화
   };
 
-  // all 또는 links 검색 스코프일 때 자동으로 전체 폴더 선택 해제 및 링크 검색어 동기화
+  // 검색 범위가 '전체' 또는 '링크'로 변경될 때 폴더 선택 해제
   useEffect(() => {
     if (searchScope === 'all' || searchScope === 'links') {
-      useLinkStore.getState().setSearchQuery(searchQuery);
       setSelectedFolderId(null);
     }
-  }, [searchQuery, searchScope, setSelectedFolderId]);
+  }, [searchScope, setSelectedFolderId]);
+
+  // 검색어 동기화: 검색 범위가 '전체' 또는 '링크'일 때만 링크 스토어와 검색어 연동
+  useEffect(() => {
+    if (searchScope === 'all' || searchScope === 'links') {
+      const currentLinkQuery = useLinkStore.getState().filters.searchQuery;
+      if (currentLinkQuery !== searchQuery) {
+        useLinkStore.getState().setSearchQuery(searchQuery);
+      }
+    }
+  }, [searchQuery, searchScope]);
 
   // 검색 필터링 로직
   const isSearching = searchQuery.trim().length > 0;
@@ -81,7 +115,13 @@ export default function MyLinksPage() {
   // 2. 오늘 저장 필터가 활성화된 경우
   // 3. Unread 필터가 활성화된 경우
   // 4. 미분류 필터가 활성화된 경우 서버에서 북마크 정보를 가져옴
-  const shouldFetchBookmarks = ((searchScope === 'all' || searchScope === 'links') && isSearching) || savedTodayFilter || unreadFilter || unorganizedFilter;
+  // 단, 미분류 필터가 활성화되었지만 아직 폴더 정보(unorganizedFolderId)를 불러오지 못한 경우 요청을 보류합니다.
+  const shouldFetchBookmarks = 
+    ((searchScope === 'all' || searchScope === 'links') && isSearching) || 
+    savedTodayFilter || 
+    unreadFilter || 
+    (unorganizedFilter && unorganizedFolderId != null);
+    
   const bookmarkParams: Parameters<typeof useBookmarks>[0] = {};
   if (isSearching && (searchScope === 'all' || searchScope === 'links')) bookmarkParams.query = searchQuery;
   if (unreadFilter) bookmarkParams.unreadOnly = true;
@@ -96,46 +136,49 @@ export default function MyLinksPage() {
   // matchingFolderIdsSet은 백엔드에서 정확하게 필터링된 폴더들
   const matchingFolderIdsSet = new Set(allBookmarks?.matchingFolderIds ?? []);
 
-  // 폴더 필터링: 폴더명 매칭 또는 백엔드에서 판별된 매칭 폴더 확인 (O(M))
-  let searchResultFolders = isSearching
-    ? (folders ?? []).filter((folder) => {
-        const queryLower = searchQuery.toLowerCase();
-        
-        // 검색 범위에 따른 매칭 확인
-        const matchFolderName = (searchScope === 'all' || searchScope === 'folders') 
-          && folder.folderName.toLowerCase().includes(queryLower);
+  // --- Folder Logic (Filtering & Sorting) ---
+
+  // 1. 검색/필터링 결과 폴더 목록 메모이제이션
+  const processedSearchResultFolders = useMemo(() => {
+    if (!folders) return [];
+    
+    // 필터링 로직 수행
+    let filtered = isSearching
+      ? folders.filter((folder) => {
+          const queryLower = searchQuery.toLowerCase();
           
-        const matchBookmark = (searchScope === 'all' || searchScope === 'links') 
-          && matchingFolderIdsSet.has(folder.memberFolderId);
-          
-        return matchFolderName || matchBookmark;
-      })
-    : (folders ?? []);
+          // 검색 범위에 따른 매칭 확인
+          const matchFolderName = (searchScope === 'all' || searchScope === 'folders') 
+            && folder.folderName.toLowerCase().includes(queryLower);
+            
+          const matchBookmark = (searchScope === 'all' || searchScope === 'links') 
+            && matchingFolderIdsSet.has(folder.memberFolderId);
+            
+          return matchFolderName || matchBookmark;
+        })
+      : [...folders];
 
-  // '오늘 저장한 링크' 필터링 (O(M))
-  // 백엔드에서 이미 savedTodayOnly=true로 필터링되었으므로 matchingFolderIdsSet이 정확함
-  if (savedTodayFilter) {
-    searchResultFolders = searchResultFolders.filter((folder) =>
-      matchingFolderIdsSet.has(folder.memberFolderId)
-    );
-  }
+    // 추가 필터링 (오늘 저장, 안 읽음, 미분류)
+    if (savedTodayFilter) {
+      filtered = filtered.filter((f) => matchingFolderIdsSet.has(f.memberFolderId));
+    }
+    if (unreadFilter) {
+      filtered = filtered.filter((f) => matchingFolderIdsSet.has(f.memberFolderId));
+    }
+    if (unorganizedFilter) {
+      filtered = filtered.filter((f) => f.folderType === FOLDER_TYPE.UNORGANIZED);
+    }
 
-  // 'Unread' 필터링 (O(M)): 안 읽은 북마크가 포함된 폴더만 유지
-  // 백엔드에서 이미 unreadOnly=true로 필터링되었으므로 matchingFolderIdsSet이 정확함 (불완전한 bookmarks 페이지 대신)
-  if (unreadFilter) {
-    searchResultFolders = searchResultFolders.filter((folder) =>
-      matchingFolderIdsSet.has(folder.memberFolderId)
-    );
-  }
+    // 최종 정렬 적용
+    return [...filtered].sort((a, b) => compareFolders(a, b, folderSort));
+  }, [folders, isSearching, searchQuery, searchScope, matchingFolderIdsSet, savedTodayFilter, unreadFilter, unorganizedFilter, folderSort]);
 
-  // '미분류' 필터링 (O(M)): 미분류 시스템 폴더만 유지
-  if (unorganizedFilter) {
-    searchResultFolders = searchResultFolders.filter((folder) =>
-      folder.folderType === FOLDER_TYPE.UNORGANIZED
-    );
-  }
+  // 2. 대시보드용 전체 폴더 목록 메모이제이션 (정렬만 적용)
+  const processedAllFolders = useMemo(() => {
+    return (folders ?? []).slice().sort((a, b) => compareFolders(a, b, folderSort));
+  }, [folders, folderSort]);
 
-  const searchResultFolderCount = searchResultFolders.length;
+  const searchResultFolderCount = processedSearchResultFolders.length;
   const matchedLinksCount = allBookmarks?.bookmarks?.length ?? 0;
 
   // 헤더 메시지 생성
@@ -167,6 +210,14 @@ export default function MyLinksPage() {
     return 'No matching folders';
   })();
 
+  const PINNED_COLORS = [
+    'bg-gradient-to-br from-indigo-500 to-purple-600',
+    'bg-gradient-to-br from-blue-500 to-cyan-500',
+    'bg-gradient-to-br from-emerald-500 to-teal-600',
+    'bg-gradient-to-br from-rose-500 to-pink-600',
+    'bg-gradient-to-br from-amber-500 to-orange-600'
+  ];
+
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* Main Content Area */}
@@ -184,14 +235,14 @@ export default function MyLinksPage() {
                 className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-xs py-1.5 px-1 text-gray-800 dark:text-gray-100 placeholder-gray-400 font-normal" 
                 placeholder="Search folders or links" 
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
               />
               
               {/* Search Scope Toggle Dropdown using common component */}
               <SortDropdown 
                 value={searchScope}
-                onChange={(val) => setSearchScope(val as 'all' | 'folders' | 'links')}
+                onChange={(val) => setSearchScope(val as SearchScope)}
                 options={scopeOptions}
                 className="shrink-0 mr-1 ml-1"
                 panelClassName="w-28"
@@ -217,7 +268,6 @@ export default function MyLinksPage() {
                   type="button" 
                   onClick={() => {
                     setSearchQuery('');
-                    // 검색어 삭제 시 필요하면 범위도 초기화하거나 유지 (여기선 유지)
                   }}
                   className="group/close flex items-center justify-center h-[18px] w-[18px] aspect-square bg-gray-200/70 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-full transition-all duration-200 mr-1.5 shrink-0"
                 >
@@ -264,21 +314,16 @@ export default function MyLinksPage() {
             >
               <span className="material-symbols-outlined !text-[12px] text-blue-500">mark_email_unread</span> Unread
             </button>
-            {/* 
-            <button type="button" className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
-              <span className="material-symbols-outlined !text-[12px] text-amber-500">priority_high</span> High Priority
-            </button> 
-            */}
             <button
               type="button"
               onClick={toggleSavedTodayFilter}
               className={`flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors shadow-sm border ${
                 savedTodayFilter
-                  ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-600 text-purple-700 dark:text-purple-300'
+                  ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300'
                   : 'bg-white dark:bg-card-dark border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
-              <span className="material-symbols-outlined !text-[12px] text-green-500">today</span> Saved today
+              <span className={`material-symbols-outlined !text-[12px] ${savedTodayFilter ? 'text-emerald-500' : 'text-green-500'}`}>today</span> Saved today
             </button>
           </div>
         </div>
@@ -300,11 +345,7 @@ export default function MyLinksPage() {
                   <span className="text-xs text-gray-400 font-medium">{emptyFilteredMessage}</span>
                 </div>
               ) : (
-                searchResultFolders.sort((a, b) => {
-                  if (a.folderType === FOLDER_TYPE.UNORGANIZED && b.folderType !== FOLDER_TYPE.UNORGANIZED) return -1;
-                  if (b.folderType === FOLDER_TYPE.UNORGANIZED && a.folderType !== FOLDER_TYPE.UNORGANIZED) return 1;
-                  return 0;
-                }).map((folder) => (
+                processedSearchResultFolders.map((folder) => (
                   <FolderCard key={folder.memberFolderId} folder={folder} />
                 ))
               )}
@@ -413,14 +454,7 @@ export default function MyLinksPage() {
               )}
 
               {/* ── 폴더 카드 목록 (백엔드 데이터 반복 렌더링) ── */}
-              {(folders ? [...folders] : []).sort((a, b) => {
-                // 시스템(미분류) 폴더는 항상 최상단 고정
-                if (a.folderType === FOLDER_TYPE.UNORGANIZED && b.folderType !== FOLDER_TYPE.UNORGANIZED) return -1;
-                if (b.folderType === FOLDER_TYPE.UNORGANIZED && a.folderType !== FOLDER_TYPE.UNORGANIZED) return 1;
-                if (folderSort === 'recently') return b.memberFolderId - a.memberFolderId;
-                if (folderSort === 'a-z') return a.folderName.localeCompare(b.folderName);
-                return 0;
-              }).map((folder) => (
+              {processedAllFolders.map((folder) => (
                 <FolderCard key={folder.memberFolderId} folder={folder} />
               ))}
             </div>

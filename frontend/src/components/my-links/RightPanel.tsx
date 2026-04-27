@@ -9,6 +9,7 @@ import { useLinkStore } from '@/lib/store/linkStore';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
 import { FOLDER_TYPE } from '@/lib/types/folder';
+import { compareFolders } from '@/lib/utils/folderUtils';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -337,7 +338,7 @@ function LinkItem({
                 {isFolderDropdownOpen && (
                   <div className="absolute left-0 top-full mt-1 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 py-1 z-30 max-h-40 overflow-y-auto animate-in fade-in slide-in-from-top-1">
                     <div className="px-2 py-1 text-[8px] font-bold text-gray-400 uppercase tracking-tight border-b border-gray-50 dark:border-gray-700 mb-1">Move to</div>
-                    {folders?.map(folder => (
+                    {(folders ? [...folders] : []).sort((a, b) => compareFolders(a, b, 'a-z')).map(folder => (
                       <button
                         key={folder.memberFolderId}
                         className={`w-full text-left px-2 py-1.5 text-[9px] font-medium transition-colors flex items-center justify-between ${folder.memberFolderId === data.memberFolderId ? 'text-gray-900 bg-gray-100 dark:bg-gray-700' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
@@ -563,6 +564,8 @@ export function RightPanel() {
   const backendSort = sortOption === 'newest' ? 'Newest' as const : sortOption === 'oldest' ? 'Oldest' as const : 'Alphabetical' as const;
 
   // 북마크 데이터 조회 (무한 스크롤 페이징 지원)
+  // 미분류 필터가 켜져 있지만 아직 미분류 폴더 ID를 모를 경우 요청 지연 방어 로직 추가
+  const isReadyToFetchBookmarks = !unorganizedFilter || unorganizedFolderId != null;
   const { 
     data: infiniteData, 
     isLoading: isBookmarksLoading,
@@ -576,6 +579,8 @@ export function RightPanel() {
     unreadOnly: unreadFilter || undefined,
     savedTodayOnly: savedTodayFilter || undefined,
     limit: 100, // 한 페이지당 100개씩 로드
+  }, {
+    enabled: isReadyToFetchBookmarks
   });
 
   // 모든 페이지의 북마크를 하나의 배열로 펼침
@@ -646,13 +651,30 @@ export function RightPanel() {
     : allLinks;
   const emptyLinksMessage = (() => {
     if (selectedTags.length > 0) return 'No links match selected tags';
-    if (unreadFilter && savedTodayFilter) return 'No unread links saved today';
-    if (unorganizedFilter && savedTodayFilter) return 'No unorganized links saved today';
-    if (unreadFilter) return 'No unread links';
-    if (savedTodayFilter) return 'No links saved today';
-    if (unorganizedFilter) return 'No unorganized links';
-    if (linkSearchQuery.trim()) return 'No links match your search';
-    return 'No links saved yet';
+    
+    const activeFilters: string[] = [];
+    if (unreadFilter) activeFilters.push('unread');
+    if (unorganizedFilter) activeFilters.push('unorganized');
+    if (savedTodayFilter) activeFilters.push('saved today');
+
+    const hasQuery = linkSearchQuery.trim().length > 0;
+    
+    if (activeFilters.length === 0) {
+      if (hasQuery) return 'No links match your search';
+      return 'No links saved yet';
+    }
+
+    const filterText = activeFilters.join(' and ');
+    
+    if (hasQuery) {
+      return `No ${filterText} links match your search`;
+    }
+    
+    // 기본 필터 메시지 (복합 필터의 경우 기존 가독성 유지)
+    if (unreadFilter && savedTodayFilter && activeFilters.length === 2) return 'No unread links saved today';
+    if (unorganizedFilter && savedTodayFilter && activeFilters.length === 2) return 'No unorganized links saved today';
+    
+    return `No ${filterText} links found`;
   })();
 
   /** 태그 선택/해제 */

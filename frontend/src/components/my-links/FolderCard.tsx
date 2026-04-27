@@ -83,15 +83,15 @@ export function FolderCard({ folder, color }: FolderCardProps) {
         setSelectedFolderId(null);
       } else {
         setSelectedFolderId(folder.memberFolderId);
+        
+        // 2. 선택 시에만 수행: 기존 폴더 검색어가 있다면 링크 검색어로 전이
+        if (searchQuery) {
+          setLinkSearchQuery(searchQuery);
+        }
+        
+        // 3. 선택 시에만 수행: 우측 패널이 닫혀있다면 자동으로 열어줌
+        useUIStore.getState().toggleRightPanel(true);
       }
-      
-      // 2. 기존 폴더 검색어가 있다면 링크 검색어로 전이 (사용자 요청: 클릭 시 링크 필터링되도록)
-      if (searchQuery) {
-        setLinkSearchQuery(searchQuery);
-      }
-      
-      // 3. 우측 패널이 닫혀있다면 자동으로 열어줌
-      useUIStore.getState().toggleRightPanel(true);
     }
   };
 

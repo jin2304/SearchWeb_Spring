@@ -64,8 +64,8 @@ async function deleteBookmark(bookmarkId: number): Promise<number> {
  * 북마크 조회 기록 (PATCH /api/bookmarks/{bookmarkId}/read)
  * - 서버에서 view_count += 1, last_viewed_at = now() 처리
  */
-async function recordBookmarkView(bookmarkId: number): Promise<void> {
-  await fetchClient<void>(`/api/bookmarks/${bookmarkId}/read`, {
+async function recordBookmarkView(bookmarkId: number): Promise<BookmarkResponse> {
+  return fetchClient<BookmarkResponse>(`/api/bookmarks/${bookmarkId}/read`, {
     method: 'PATCH',
   });
 }
@@ -79,24 +79,19 @@ function queryKeyHasUnreadOnly(queryKey: readonly unknown[]): boolean {
 
 function updateReadStateInResponse(
   data: BookmarkSearchResponse,
-  bookmarkId: number,
+  updatedBookmark: BookmarkResponse,
   removeFromUnreadQuery: boolean,
 ): BookmarkSearchResponse {
   let changed = false;
   let removed = false;
-  const now = new Date().toISOString();
   const bookmarks = data.bookmarks.flatMap((bookmark) => {
-    if (bookmark.bookmarkId !== bookmarkId) return [bookmark];
+    if (bookmark.bookmarkId !== updatedBookmark.bookmarkId) return [bookmark];
     changed = true;
     if (removeFromUnreadQuery) {
       removed = true;
       return [];
     }
-    return [{
-      ...bookmark,
-      viewCount: (bookmark.viewCount ?? 0) + 1,
-      lastViewedAt: now,
-    }];
+    return [updatedBookmark];
   });
 
   if (!changed) return data;
@@ -117,17 +112,17 @@ function isBookmarkSearchResponse(data: unknown): data is BookmarkSearchResponse
 
 function updateReadStateInCacheData(
   data: unknown,
-  bookmarkId: number,
+  updatedBookmark: BookmarkResponse,
   removeFromUnreadQuery: boolean,
 ): unknown {
   if (isInfiniteBookmarkData(data)) {
     return {
       ...data,
-      pages: data.pages.map((page) => updateReadStateInResponse(page, bookmarkId, removeFromUnreadQuery)),
+      pages: data.pages.map((page) => updateReadStateInResponse(page, updatedBookmark, removeFromUnreadQuery)),
     };
   }
   if (isBookmarkSearchResponse(data)) {
-    return updateReadStateInResponse(data, bookmarkId, removeFromUnreadQuery);
+    return updateReadStateInResponse(data, updatedBookmark, removeFromUnreadQuery);
   }
   return data;
 }
@@ -222,16 +217,17 @@ export function useRecordBookmarkView() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: recordBookmarkView,
-    onSuccess: (_, bookmarkId) => {
+    onSuccess: (updatedBookmark) => {
       const bookmarkQueries = queryClient.getQueryCache().findAll({ queryKey: ['bookmarks'] });
       bookmarkQueries.forEach((query) => {
         const removeFromUnreadQuery = queryKeyHasUnreadOnly(query.queryKey);
-        queryClient.setQueryData(query.queryKey, (oldData) =>
-          updateReadStateInCacheData(oldData, bookmarkId, removeFromUnreadQuery)
+        queryClient.setQueryData(query.queryKey, (oldData: unknown) =>
+          updateReadStateInCacheData(oldData, updatedBookmark, removeFromUnreadQuery)
         );
       });
       queryClient.invalidateQueries({
         predicate: (query) => query.queryKey[0] === 'bookmarks' && queryKeyHasUnreadOnly(query.queryKey),
+        refetchType: 'none',
       });
     },
   });

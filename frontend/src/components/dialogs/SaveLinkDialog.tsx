@@ -62,7 +62,7 @@ export function SaveLinkDialog() {
 
   // --- API 연동 (React Query Hooks) ---
   const memberId = useAuthStore((s) => s.member?.memberId);
-  const { data: folders } = useFolders(memberId);          // 기존 폴더 목록 조회
+  const { data: folders, isLoading: isFoldersLoading } = useFolders(memberId); // 기존 폴더 목록 조회
   const { data: tagsData } = useTags(memberId);            // 기존 태그 목록 조회
   const createBookmarkMutation = useCreateBookmark();      // 북마크 생성 API 연동
   const createFolderMutation = useCreateFolder();          // 폴더 생성 API 연동
@@ -283,6 +283,13 @@ export function SaveLinkDialog() {
         selectedFolderId
         ?? folders?.find((f) => f.folderType === FOLDER_TYPE.UNORGANIZED)?.memberFolderId
         ?? null;
+
+      // [추가] 폴더 목록 로딩이 끝났음에도 불구하고 대상 폴더를 결정할 수 없는 경우 예외 처리
+      if (fallbackFolderId === null) {
+        alert('폴더 정보를 불러오는 중이거나 폴더가 존재하지 않습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
+
       saveBookmark(fallbackFolderId);
     }
   };
@@ -824,7 +831,7 @@ export function SaveLinkDialog() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending || createFolderMutation.isPending}
+                disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending || createFolderMutation.isPending || isFoldersLoading}
                 className={`${styles.btnGradient} text-xs font-bold px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg`}
               >
                 {(createBookmarkMutation.isPending || createFolderMutation.isPending) ? 'Saving...' : 'Save to Workspace'}
