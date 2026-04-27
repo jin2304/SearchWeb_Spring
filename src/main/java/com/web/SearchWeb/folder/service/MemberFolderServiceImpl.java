@@ -11,7 +11,10 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -23,6 +26,12 @@ public class MemberFolderServiceImpl implements MemberFolderService {
 
     private final MemberFolderJpaDao memberFolderJpaRepository;
     private final BookmarkDao bookmarkDao;
+    private MemberFolderService self;
+
+    @Autowired
+    public void setSelf(@Lazy MemberFolderService self) {
+        this.self = self;
+    }
 
     @Override
     @Transactional
@@ -104,11 +113,13 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<MemberFolder> listRootFolders(Long memberId, Long ownerMemberId) {
         validateOwner(memberId, ownerMemberId);
         // 기존 회원 대상 lazy 백필: 조회 호출 시 미분류 폴더가 없으면 이 시점에 생성
-        getOrCreateUnorganizedFolderId(ownerMemberId);
+        if (!memberFolderJpaRepository.existsByOwnerMemberIdAndFolderType(ownerMemberId, FolderType.UNORGANIZED)) {
+            self.getOrCreateUnorganizedFolderId(ownerMemberId);
+        }
         return memberFolderJpaRepository.findAllByOwnerMemberIdAndParentFolderIdIsNull(ownerMemberId);
     }
 
@@ -221,7 +232,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Long getOrCreateUnorganizedFolderId(Long memberId) {
         // 1. 이미 시스템 폴더가 존재하면 해당 ID 반환 (idempotent)
         Optional<MemberFolder> existing = memberFolderJpaRepository
@@ -230,25 +241,27 @@ public class MemberFolderServiceImpl implements MemberFolderService {
             return existing.get().getMemberFolderId();
         }
 
-        // 2. 이름("미분류") 이 루트에 이미 있으면 그 커스텀 폴더를 시스템 폴더로 전환
-        Optional<MemberFolder> sameName = memberFolderJpaRepository
-            .findFirstByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(memberId, UNORGANIZED_FOLDER_NAME);
-        if (sameName.isPresent()) {
-            MemberFolder existingFolder = sameName.get();
-            existingFolder.markAsUnorganized();
-            return memberFolderJpaRepository.save(existingFolder).getMemberFolderId();
-        }
-
-        // 3. 신규 생성 — 동시 호출은 partial unique index 로 DB 에서 차단, catch 후 재조회
+        // 2 & 3. 동시 호출은 partial unique index 로 DB 에서 차단됨 -> catch 후 재조회
         try {
+            // 2. 이름("미분류") 이 루트에 이미 있으면 그 커스텀 폴더를 시스템 폴더로 전환
+            Optional<MemberFolder> sameName = memberFolderJpaRepository
+                .findFirstByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(memberId, UNORGANIZED_FOLDER_NAME);
+            if (sameName.isPresent()) {
+                MemberFolder existingFolder = sameName.get();
+                existingFolder.markAsUnorganized();
+                return memberFolderJpaRepository.save(existingFolder).getMemberFolderId();
+            }
+
+            // 3. 신규 생성
             MemberFolder newFolder = MemberFolder.builder()
                 .ownerMemberId(memberId)
                 .folderName(UNORGANIZED_FOLDER_NAME)
                 .folderType(FolderType.UNORGANIZED)
                 .build();
             return memberFolderJpaRepository.save(newFolder).getMemberFolderId();
+
         } catch (DataIntegrityViolationException e) {
-            // 동시 요청으로 인한 중복 생성 방지: 제약 조건 위반 시 이미 생성된 폴더를 재조회하여 반환
+            // 동시 요청으로 인한 중복 생성/전환 방지: 제약 조건 위반 시 이미 생성된 폴더를 재조회하여 반환
             return memberFolderJpaRepository
                 .findFirstByOwnerMemberIdAndFolderType(memberId, FolderType.UNORGANIZED)
                 .orElseThrow(() -> new FolderException(FolderErrorCode.DEFAULT_FOLDER_NAME_CONFLICT))

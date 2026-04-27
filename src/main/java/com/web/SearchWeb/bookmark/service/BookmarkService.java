@@ -29,7 +29,7 @@ public interface BookmarkService {
     Long deleteBookmark(Long memberId, Long bookmarkId);
 
     //북마크 조회 기록
-    void recordView(Long memberId, Long bookmarkId);
+    Bookmark recordView(Long memberId, Long bookmarkId);
 
     // 링크 조회 또는 생성 (URL 정규화)
     Link getOrCreateLink(String url, Long createdByMemberId);

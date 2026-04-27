@@ -119,12 +119,12 @@ public class BookmarkApiController {
      *  북마크 조회 기록
      */
     @PatchMapping("/{bookmarkId}/read")
-    public ResponseEntity<ApiResponse<Void>> recordView(
+    public ResponseEntity<ApiResponse<Bookmark>> recordView(
             @CurrentMemberId Long memberId,
             @PathVariable Long bookmarkId) {
 
-        bookmarkService.recordView(memberId, bookmarkId);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        Bookmark updatedBookmark = bookmarkService.recordView(memberId, bookmarkId);
+        return ResponseEntity.ok(ApiResponse.success(updatedBookmark));
     }
 
 

@@ -48,6 +48,7 @@ public class MemberFolder {
 
     /** 기존 폴더를 시스템 폴더(UNORGANIZED)로 마킹. 이름 충돌 흡수(absorb) 경로에서 사용. */
     public void markAsUnorganized() {
+        if (isUnorganized()) return;
         this.folderType = FolderType.UNORGANIZED;
     }
 

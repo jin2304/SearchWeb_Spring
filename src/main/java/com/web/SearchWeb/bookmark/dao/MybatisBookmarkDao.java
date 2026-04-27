@@ -38,6 +38,14 @@ public class MybatisBookmarkDao implements BookmarkDao {
         return mapper.selectBookmark(memberId, bookmarkId);
     }
 
+    /**
+     *  북마크 기본 조회 (ID 기반, 권한 체크용)
+     */
+    @Override
+    public Bookmark findById(Long bookmarkId) {
+        return mapper.findById(bookmarkId);
+    }
+
 
     @Override
     public List<Bookmark> selectBookmarkList(BookmarkSearchCommand searchCommand) {

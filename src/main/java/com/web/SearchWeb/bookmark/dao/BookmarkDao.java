@@ -14,6 +14,9 @@ public interface BookmarkDao {
     
     //북마크 단일 조회
     Bookmark selectBookmark(@Param("memberId") Long memberId, @Param("bookmarkId") Long bookmarkId);
+
+    //북마크 기본 조회 (ID 기반, 권한 체크용)
+    Bookmark findById(@Param("bookmarkId") Long bookmarkId);
     
     //북마크 목록 조회
     List<Bookmark> selectBookmarkList(BookmarkSearchCommand searchCommand);

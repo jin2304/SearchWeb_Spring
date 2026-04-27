@@ -85,6 +85,14 @@
     </select>
 
 
+    <!-- 북마크 기본 조회 (ID 기반, 권한 체크용) -->
+    <select id="findById" parameterType="long" resultMap="BookmarkResultMap">
+        SELECT *
+          FROM member_saved_link
+         WHERE member_saved_link_id = #{bookmarkId}
+    </select>
+
+
     <!-- 북마크 목록 조회 -->
     <select id="selectBookmarkList" parameterType="com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand" resultMap="BookmarkResultMap">
         SELECT msl.*,
@@ -167,10 +175,10 @@
             <if test="query != null and query != ''">
                 AND LOWER(msl.display_title) LIKE '%' || LOWER(#{query}) || '%' ESCAPE '\'
             </if>
-            <if test="unreadOnly">
+            <if test="unreadOnly == true">
                 AND msl.view_count = 0
             </if>
-            <if test="savedTodayOnly">
+            <if test="savedTodayOnly == true">
                 AND msl.created_at &gt;= (date_trunc('day', now() AT TIME ZONE 'Asia/Seoul') AT TIME ZONE 'Asia/Seoul')
                 AND msl.created_at &lt; ((date_trunc('day', now() AT TIME ZONE 'Asia/Seoul') + INTERVAL '1 day') AT TIME ZONE 'Asia/Seoul')
             </if>
@@ -182,9 +190,7 @@
     <update id="incrementViewCount" parameterType="map">
         UPDATE member_saved_link
            SET view_count = view_count + 1,
-               last_viewed_at = now(),
-               updated_at = now(),
-               updated_by_member_id = #{memberId}
+               last_viewed_at = now()
          WHERE member_saved_link_id = #{bookmarkId}
            AND created_by_member_id = #{memberId}
            AND deleted_at IS NULL

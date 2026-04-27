@@ -23,9 +23,11 @@ public interface MemberFolderJpaDao extends JpaRepository<MemberFolder, Long> {
 
     boolean existsByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(Long ownerMemberId, String normalizedFolderName);
 
+    boolean existsByOwnerMemberIdAndFolderType(Long ownerMemberId, FolderType folderType);
+    
     // 시스템 폴더(UNORGANIZED) 조회 — 한 사용자당 최대 1개 (partial unique index 로 보장)
     Optional<MemberFolder> findFirstByOwnerMemberIdAndFolderType(Long ownerMemberId, FolderType folderType);
 
     // 루트에 같은 이름 폴더가 이미 있는지 조회 (흡수(absorb) 처리에 사용)
-    Optional<MemberFolder> findFirstByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(Long ownerMemberId, String folderName);
+    Optional<MemberFolder> findFirstByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(Long ownerMemberId, String normalizedFolderName);
 }
