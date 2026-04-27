@@ -1,5 +1,6 @@
 package com.web.SearchWeb.bookmark.service.command;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,8 +10,8 @@ import lombok.NoArgsConstructor;
  * Bookmark 검색 요청 Command
  */
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class BookmarkSearchCommand {
     private Long memberId;                // created_by_member_id로 필터
@@ -18,4 +19,10 @@ public class BookmarkSearchCommand {
     private String sort;                  // 정렬 기준 (Newest, Oldest)
     private String query;                 // 검색어 (display_title 검색)
     private Long categoryId;              // primary_category_id로 필터 (태그 대체)
+    private Boolean unreadOnly;           // true이면 view_count = 0 인 북마크만 조회
+    private Boolean savedTodayOnly;       // true이면 오늘 생성된 북마크만 조회
+    @Builder.Default
+    private Integer limit = 100;          // 최대 조회 개수 (Limit)
+    @Builder.Default
+    private Integer offset = 0;           // 조회 시작 위치 (Offset)
 }

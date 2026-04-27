@@ -12,6 +12,7 @@ import { useCreateBookmark, useAnalyzeUrl } from '@/lib/api/bookmarkApi';
 import { useAnalyzeLink } from '@/lib/api/linkAnalysisApi';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { LinkAnalysisResponse } from '@/lib/types/linkAnalysis';
+import { FOLDER_TYPE } from '@/lib/types/folder';
 
 // 디자인 시안에서 추출한 커스텀 테마 매핑
 const theme = {
@@ -61,7 +62,7 @@ export function SaveLinkDialog() {
 
   // --- API 연동 (React Query Hooks) ---
   const memberId = useAuthStore((s) => s.member?.memberId);
-  const { data: folders } = useFolders(memberId);          // 기존 폴더 목록 조회
+  const { data: folders, isLoading: isFoldersLoading } = useFolders(memberId); // 기존 폴더 목록 조회
   const { data: tagsData } = useTags(memberId);            // 기존 태그 목록 조회
   const createBookmarkMutation = useCreateBookmark();      // 북마크 생성 API 연동
   const createFolderMutation = useCreateFolder();          // 폴더 생성 API 연동
@@ -277,7 +278,19 @@ export function SaveLinkDialog() {
         }
       );
     } else {
-      saveBookmark(selectedFolderId);
+      // Quick Save 경로: 폴더 미지정 시 미분류(UNORGANIZED) 폴더로 저장
+      const fallbackFolderId =
+        selectedFolderId
+        ?? folders?.find((f) => f.folderType === FOLDER_TYPE.UNORGANIZED)?.memberFolderId
+        ?? null;
+
+      // [추가] 폴더 목록 로딩이 끝났음에도 불구하고 대상 폴더를 결정할 수 없는 경우 예외 처리
+      if (fallbackFolderId === null) {
+        alert('폴더 정보를 불러오는 중이거나 폴더가 존재하지 않습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
+
+      saveBookmark(fallbackFolderId);
     }
   };
 
@@ -398,7 +411,7 @@ export function SaveLinkDialog() {
                             <span className="material-symbols-outlined !text-[13px] !leading-none block text-white font-bold">link</span>
                           </span>
                         </div>
-                        <span className="text-[11px] font-bold text-slate-700 dark:text-gray-100 tracking-tight pr-1">복사한 링크 붙여넣기</span>
+                        <span className="text-[11px] font-bold text-slate-700 dark:text-gray-100 tracking-tight pr-1">Paste copied link</span>
                       </div>
                       {/* 부드럽고 존재감 있는 곡선형 SVG 꼬리표 - 크기 확대 및 실루엣 최적화 */}
                       <svg 
@@ -432,7 +445,7 @@ export function SaveLinkDialog() {
               {url.trim() && !(url.startsWith('http://') || url.startsWith('https://')) && (
                 <p className="text-[10px] text-red-500 dark:text-red-400 font-medium flex items-center gap-1 mt-1 ml-10">
                   <span className="material-symbols-outlined !text-[12px]">error</span>
-                  URL은 http:// 또는 https://로 시작해야 합니다.
+                  URL must start with http:// or https://
                 </p>
               )}
             </div>
@@ -818,7 +831,7 @@ export function SaveLinkDialog() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending || createFolderMutation.isPending}
+                disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending || createFolderMutation.isPending || isFoldersLoading}
                 className={`${styles.btnGradient} text-xs font-bold px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg`}
               >
                 {(createBookmarkMutation.isPending || createFolderMutation.isPending) ? 'Saving...' : 'Save to Workspace'}

@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useFolders } from '@/lib/api/folderApi';
-import { useBookmarks, useDeleteBookmark, useUpdateBookmark } from '@/lib/api/bookmarkApi';
+import { useInfiniteBookmarks, useDeleteBookmark, useUpdateBookmark, useRecordBookmarkView } from '@/lib/api/bookmarkApi';
 import { useTags } from '@/lib/api/tagApi';
 import { useFolderStore } from '@/lib/store/folderStore';
 import { useAuthStore } from '@/lib/store/authStore';
+import { useLinkStore } from '@/lib/store/linkStore';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
+import { FOLDER_TYPE } from '@/lib/types/folder';
+import { compareFolders } from '@/lib/utils/folderUtils';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -41,6 +44,7 @@ function LinkItem({
   onUpdateTitle,
   onUpdateFolder,
   onUpdateTags,
+  onOpenLink,
 }: {
   data: BookmarkResponse;
   isBulkEditMode?: boolean;
@@ -52,6 +56,7 @@ function LinkItem({
   onUpdateTitle?: (id: number, title: string) => void;
   onUpdateFolder?: (id: number, folderId: number) => void;
   onUpdateTags?: (id: number, tags: string) => void;
+  onOpenLink?: (bookmark: BookmarkResponse) => void;
 }) {
   // --- State Management | 상태 관리 ---
   const [isNoteEditing, setIsNoteEditing] = useState(false);                 // 메모 편집 모드 여부
@@ -227,6 +232,7 @@ function LinkItem({
         if (isBulkEditMode && onToggleSelect) {
           onToggleSelect(data.bookmarkId);
         } else if (!isNoteEditing && !isTitleEditing && data.link?.originalUrl) {
+          onOpenLink?.(data);
           window.open(data.link.originalUrl, '_blank', 'noopener,noreferrer');
         }
       }}
@@ -332,7 +338,7 @@ function LinkItem({
                 {isFolderDropdownOpen && (
                   <div className="absolute left-0 top-full mt-1 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 py-1 z-30 max-h-40 overflow-y-auto animate-in fade-in slide-in-from-top-1">
                     <div className="px-2 py-1 text-[8px] font-bold text-gray-400 uppercase tracking-tight border-b border-gray-50 dark:border-gray-700 mb-1">Move to</div>
-                    {folders?.map(folder => (
+                    {(folders ? [...folders] : []).sort((a, b) => compareFolders(a, b, 'a-z')).map(folder => (
                       <button
                         key={folder.memberFolderId}
                         className={`w-full text-left px-2 py-1.5 text-[9px] font-medium transition-colors flex items-center justify-between ${folder.memberFolderId === data.memberFolderId ? 'text-gray-900 bg-gray-100 dark:bg-gray-700' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
@@ -443,12 +449,26 @@ function LinkItem({
           }}
           title={(isNoteEditing || isTitleEditing) ? "Cancel editing" : "More actions"}
         >
-          <span 
-            className="material-symbols-outlined !text-[16px] block"
-            style={{ fontVariationSettings: "'wght' 300" }}
+          <svg 
+            className="w-3.5 h-3.5 transition-transform duration-200" 
+            style={{ transform: (isNoteEditing || isTitleEditing) ? 'rotate(90deg)' : 'none' }}
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
           >
-            {(isNoteEditing || isTitleEditing) ? 'close' : 'more_vert'}
-          </span>
+            {(isNoteEditing || isTitleEditing) ? (
+              <path d="M18 6L6 18M6 6l12 12" />
+            ) : (
+              <>
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </>
+            )}
+          </svg>
         </button>
 
         {/* Dropdown Menu | 드롭다운 메뉴 (수정/삭제) */}
@@ -495,10 +515,37 @@ export function RightPanel() {
   const { rightPanelOpen } = useUIStore(); // 패널 오픈 여부
   const selectedFolderId = useFolderStore((s) => s.selectedFolderId); // 현재 선택된 폴더 ID
   const memberId = useAuthStore((s) => s.member?.memberId);
+  const linkSearchQuery = useLinkStore((s) => s.filters.searchQuery); // 현재 검색어 상태 구독
+  const setLinkSearchQuery = useLinkStore((s) => s.setSearchQuery);   // 검색어 변경 함수
+  const savedTodayFilter = useFolderStore((s) => s.savedTodayFilter); // 오늘 저장 필터 상태
+  const unreadFilter = useFolderStore((s) => s.unreadFilter);         // Unread 필터 상태 (view_count = 0)
+  const unorganizedFilter = useFolderStore((s) => s.unorganizedFilter); // 미분류 필터 상태
+
+  // 검색어 디바운스 처리를 위한 로컬 상태
+  const [pendingSearch, setPendingSearch] = useState(linkSearchQuery);
+
+  // 외부(스토어)에서 검색어가 변경될 경우 로컬 상태와 동기화
+  useEffect(() => {
+    setPendingSearch(linkSearchQuery);
+  }, [linkSearchQuery]);
+
+  // 디바운스 로직: pendingSearch가 변경되면 250ms 후에 스토어 업데이트
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (pendingSearch !== linkSearchQuery) {
+        setLinkSearchQuery(pendingSearch);
+      }
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [pendingSearch, setLinkSearchQuery, linkSearchQuery]);
 
   // --- API Data Fetching (React Query) | 서버 데이터 조회 ---
   const { data: myFolders, isLoading: isFoldersLoading } = useFolders(memberId); // 폴더 목록
   const { data: tagsData } = useTags(memberId); // 전체 태그 목록
+
+  // 미분류 폴더 ID 찾기
+  const unorganizedFolder = myFolders?.find(f => f.folderType === FOLDER_TYPE.UNORGANIZED);
+  const unorganizedFolderId = unorganizedFolder?.memberFolderId;
 
   // --- Local UI State | UI 전용 로컬 상태 ---
   const [selectedTags, setSelectedTags] = useState<string[]>([]);    // 선택된 필터 태그
@@ -516,15 +563,59 @@ export function RightPanel() {
   // UI 정렬 옵션을 백엔드 파라미터로 매핑
   const backendSort = sortOption === 'newest' ? 'Newest' as const : sortOption === 'oldest' ? 'Oldest' as const : 'Alphabetical' as const;
 
-  // 북마크 데이터 조회
-  const { data: bookmarks, isLoading: isBookmarksLoading } = useBookmarks({
-    folderId: selectedFolderId,
+  // 북마크 데이터 조회 (무한 스크롤 페이징 지원)
+  // 미분류 필터가 켜져 있지만 아직 미분류 폴더 ID를 모를 경우 요청 지연 방어 로직 추가
+  const isReadyToFetchBookmarks = !unorganizedFilter || unorganizedFolderId != null;
+  const { 
+    data: infiniteData, 
+    isLoading: isBookmarksLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteBookmarks({
+    folderId: unorganizedFilter && unorganizedFolderId ? unorganizedFolderId : selectedFolderId,
     sort: backendSort,
+    query: linkSearchQuery,
+    unreadOnly: unreadFilter || undefined,
+    savedTodayOnly: savedTodayFilter || undefined,
+    limit: 100, // 한 페이지당 100개씩 로드
+  }, {
+    enabled: isReadyToFetchBookmarks
   });
 
-  // API 뮤테이션 (수정/삭제)
+  // 모든 페이지의 북마크를 하나의 배열로 펼침
+  const bookmarks = infiniteData?.pages.flatMap(page => page.bookmarks) ?? [];
+  const totalCount = infiniteData?.pages[0]?.totalCount ?? 0;
+
+  // 스크롤 하단 감지를 위한 Ref 및 Observer
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 } // 10% 정도 보일 때 미리 로드
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  // API 뮤테이션 (수정/삭제/조회기록)
   const deleteBookmarkMutation = useDeleteBookmark();
   const updateBookmarkMutation = useUpdateBookmark();
+  const recordViewMutation = useRecordBookmarkView();
+
+  /** 링크 카드 클릭 시 조회 기록 (view_count += 1, last_viewed_at = now()) */
+  const handleOpenLink = (bookmark: BookmarkResponse) => {
+    recordViewMutation.mutate(bookmark.bookmarkId);
+  };
 
   // 대량 편집 관련 상태
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false); // 헤더 더보기 메뉴
@@ -553,11 +644,38 @@ export function RightPanel() {
     };
   }, [isTagDropdownOpen, isMoreMenuOpen]);
 
-  // Client-side tag filtering logic | 태그 필터링 처리 (클라이언트 사이드 필터링)
+  // Client-side filtering logic (Tags only; date/unread/folder filters are handled by the API)
   const allLinks = bookmarks ?? [];
-  const filteredLinks = selectedTags.length > 0
+  let filteredLinks = selectedTags.length > 0
     ? allLinks.filter(link => link.tags?.some(tag => selectedTags.includes(tag)))
     : allLinks;
+  const emptyLinksMessage = (() => {
+    if (selectedTags.length > 0) return 'No links match selected tags';
+    
+    const activeFilters: string[] = [];
+    if (unreadFilter) activeFilters.push('unread');
+    if (unorganizedFilter) activeFilters.push('unorganized');
+    if (savedTodayFilter) activeFilters.push('saved today');
+
+    const hasQuery = linkSearchQuery.trim().length > 0;
+    
+    if (activeFilters.length === 0) {
+      if (hasQuery) return 'No links match your search';
+      return 'No links saved yet';
+    }
+
+    const filterText = activeFilters.join(' and ');
+    
+    if (hasQuery) {
+      return `No ${filterText} links match your search`;
+    }
+    
+    // 기본 필터 메시지 (복합 필터의 경우 기존 가독성 유지)
+    if (unreadFilter && savedTodayFilter && activeFilters.length === 2) return 'No unread links saved today';
+    if (unorganizedFilter && savedTodayFilter && activeFilters.length === 2) return 'No unorganized links saved today';
+    
+    return `No ${filterText} links found`;
+  })();
 
   /** 태그 선택/해제 */
   const toggleTag = (tag: string) => {
@@ -700,8 +818,24 @@ export function RightPanel() {
     }
   };
 
-  // Determine the current folder name | 현재 폴더 이름 결정
-  const currentFolderName = myFolders?.find(f => f.memberFolderId === selectedFolderId)?.folderName ?? 'All Links';
+  // Determine the display title based on selected folder and active filters | 선택된 폴더 및 활성 필터에 따른 제목 결정
+  const folderName = myFolders?.find(f => f.memberFolderId === selectedFolderId)?.folderName;
+  
+  const activeFilters: string[] = [];
+  if (unreadFilter) activeFilters.push('Unread');
+  if (savedTodayFilter) activeFilters.push('Saved today');
+  if (unorganizedFilter) activeFilters.push('Unorganized');
+
+  let displayTitle = folderName || 'All Links';
+  
+  if (activeFilters.length > 0) {
+    const filtersLabel = activeFilters.join(' + ');
+    if (folderName) {
+      displayTitle = `${folderName} + ${filtersLabel}`;
+    } else {
+      displayTitle = filtersLabel;
+    }
+  }
 
   if (!rightPanelOpen) return null;
 
@@ -719,9 +853,9 @@ export function RightPanel() {
               <div className="p-1.5 bg-slate-50 dark:bg-slate-900/20 text-slate-400 rounded-md flex items-center justify-center w-8 h-8">
                 <span className="material-symbols-outlined text-[16px] block">folder_open</span>
               </div>
-              <h2 className="text-sm font-bold text-gray-900 dark:text-white">{currentFolderName}</h2>
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white">{displayTitle}</h2>
             </div>
-            <p className="text-[10px] text-gray-500">{filteredLinks.length} Links</p>
+            <p className="text-[10px] text-gray-500">{totalCount} Links</p>
           </div>
 
           {/* Right: Action Buttons & Search | 우측 액션 버튼 및 검색창 */}
@@ -779,9 +913,11 @@ export function RightPanel() {
             {/* Search Bar | 검색창 */}
             <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-md w-[110px]">
               <span className="material-symbols-outlined !text-[12px] text-gray-400">search</span>
-              <input 
-                type="text" 
-                placeholder="Search link" 
+              <input
+                type="text"
+                placeholder="Search link"
+                value={pendingSearch}
+                onChange={(e) => setPendingSearch(e.target.value)}
                 className="bg-transparent border-none focus:outline-none focus:ring-0 text-[9px] text-gray-700 dark:text-gray-200 placeholder-gray-400 w-full p-0 h-4"
               />
             </div>
@@ -831,9 +967,19 @@ export function RightPanel() {
                     {tag}
                     <button 
                       onClick={() => toggleTag(tag)}
-                      className="flex items-center justify-center rounded-sm hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors opacity-70 hover:opacity-100"
+                      className="group/tag-close flex items-center justify-center rounded-sm hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors opacity-70 hover:opacity-100"
                     >
-                      <span className="material-symbols-outlined !text-[11px]">close</span>
+                      <svg 
+                        className="w-2.5 h-2.5 transition-transform duration-200 group-hover/tag-close:scale-110" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="3" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
                     </button>
                   </span>
                 ))}
@@ -879,14 +1025,25 @@ export function RightPanel() {
               onUpdateTitle={handleUpdateTitle}
               onUpdateFolder={handleUpdateFolder}
               onUpdateTags={handleUpdateTags}
+              onOpenLink={handleOpenLink}
             />
           ))
         ) : (
           <div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-2">
             <span className="material-symbols-outlined text-3xl opacity-50">search_off</span>
-            <p className="text-xs font-medium">{selectedTags.length > 0 ? 'No links match selected tags' : 'No links saved yet'}</p>
+            <p className="text-xs font-medium">{emptyLinksMessage}</p>
           </div>
         )}
+
+        {/* Infinite Scroll Trigger & Loader | 무한 스크롤 트리거 및 로딩 표시 */}
+        <div ref={observerTarget} className="h-10 flex items-center justify-center w-full">
+          {isFetchingNextPage && (
+            <div className="flex items-center gap-2 text-gray-400 py-4">
+              <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+              <span className="text-[10px] font-medium">Loading more...</span>
+            </div>
+          )}
+        </div>
       </div>
 
 
@@ -930,9 +1087,19 @@ export function RightPanel() {
             <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
             <button 
               onClick={exitBulkMode}
-              className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="group/bulk-close flex items-center justify-center h-[20px] w-[20px] aspect-square bg-gray-200/70 dark:bg-gray-700/50 rounded-lg text-gray-500 dark:hover:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 shrink-0"
             >
-              <span className="material-symbols-outlined !text-[16px]">close</span>
+              <svg 
+                className="w-2.5 h-2.5 transition-transform duration-200 group-hover/bulk-close:rotate-90" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="3.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
@@ -954,9 +1121,19 @@ export function RightPanel() {
               </div>
               <button 
                 onClick={() => setIsMoveModalOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-800 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                className="group/modal-close w-[22px] h-[22px] aspect-square flex items-center justify-center rounded-full bg-slate-200/70 dark:bg-gray-700/50 text-slate-500 hover:text-slate-800 hover:bg-slate-300 dark:hover:bg-gray-600 transition-all duration-200 shrink-0"
               >
-                <span className="material-symbols-outlined !text-[18px]">close</span>
+                <svg 
+                  className="w-3 h-3 transition-transform duration-200 group-hover/modal-close:rotate-90" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="3" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
               </button>
             </div>
             

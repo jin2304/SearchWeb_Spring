@@ -2,6 +2,7 @@ package com.web.SearchWeb.bookmark.controller;
 
 
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkSearchResponse;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.config.common.ApiResponse;
@@ -39,12 +40,12 @@ public class BookmarkApiController {
         
         Long bookmarkId = bookmarkService.insertBookmark(
             memberId, 
-            request.url, 
-            request.memberFolderId,
-            request.displayTitle, 
-            request.note, 
-            request.primaryCategoryId, 
-            request.tags
+            request.getUrl(),
+            request.getMemberFolderId(),
+            request.getDisplayTitle(),
+            request.getNote(),
+            request.getPrimaryCategoryId(),
+            request.getTags()
         );
         
         return ResponseEntity
@@ -67,15 +68,15 @@ public class BookmarkApiController {
 
 
     /**
-     *  북마크 목록 조회
+     *  북마크 목록 조회 (검색 결과 및 매칭 폴더 포함)
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Bookmark>>> selectBookmarkList(
+    public ResponseEntity<ApiResponse<BookmarkSearchResponse>> selectBookmarkList(
             @CurrentMemberId Long memberId,
             @ModelAttribute BookmarkRequests.SearchDto searchDto) {
         
-        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
-        return ResponseEntity.ok(ApiResponse.success(bookmarks));
+        BookmarkSearchResponse results = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
+        return ResponseEntity.ok(ApiResponse.success(results));
     }
 
 
@@ -91,11 +92,11 @@ public class BookmarkApiController {
         Long updatedBookmarkId = bookmarkService.updateBookmark(
             memberId, 
             bookmarkId, 
-            request.memberFolderId, 
-            request.displayTitle, 
-            request.note, 
-            request.primaryCategoryId, 
-            request.tags
+            request.getMemberFolderId(),
+            request.getDisplayTitle(),
+            request.getNote(),
+            request.getPrimaryCategoryId(),
+            request.getTags()
         );
         return ResponseEntity.ok(ApiResponse.success(updatedBookmarkId));
     }
@@ -111,6 +112,19 @@ public class BookmarkApiController {
 
         Long deletedId = bookmarkService.deleteBookmark(memberId, bookmarkId);
         return ResponseEntity.ok(ApiResponse.success(deletedId));
+    }
+
+
+    /**
+     *  북마크 조회 기록
+     */
+    @PatchMapping("/{bookmarkId}/read")
+    public ResponseEntity<ApiResponse<Bookmark>> recordView(
+            @CurrentMemberId Long memberId,
+            @PathVariable Long bookmarkId) {
+
+        Bookmark updatedBookmark = bookmarkService.recordView(memberId, bookmarkId);
+        return ResponseEntity.ok(ApiResponse.success(updatedBookmark));
     }
 
 

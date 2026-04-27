@@ -104,7 +104,7 @@ public class MyPageController {
     public ResponseEntity<ApiResponse<List<Bookmark>>> getBookmarks(
             @PathVariable final Long memberId,
             @ModelAttribute BookmarkRequests.SearchDto searchDto) {
-        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId));
+        List<Bookmark> bookmarks = bookmarkService.selectBookmarkList(searchDto.toCommand(memberId)).getBookmarks();
         return ResponseEntity.ok(ApiResponse.success(bookmarks));
     }
 
@@ -133,11 +133,11 @@ public class MyPageController {
         Long updatedBookmarkId = bookmarkService.updateBookmark(
             memberId,
             bookmarkId,
-            request.memberFolderId,
-            request.displayTitle,
-            request.note,
-            request.primaryCategoryId,
-            request.tags
+            request.getMemberFolderId(),
+            request.getDisplayTitle(),
+            request.getNote(),
+            request.getPrimaryCategoryId(),
+            request.getTags()
         );
         return ResponseEntity.ok(ApiResponse.success(updatedBookmarkId));
     }

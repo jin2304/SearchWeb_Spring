@@ -38,13 +38,32 @@ public class MybatisBookmarkDao implements BookmarkDao {
         return mapper.selectBookmark(memberId, bookmarkId);
     }
 
-
     /**
-     *  북마크 목록 조회
+     *  북마크 기본 조회 (ID 기반, 권한 체크용)
      */
+    @Override
+    public Bookmark findById(Long bookmarkId) {
+        return mapper.findById(bookmarkId);
+    }
+
+
     @Override
     public List<Bookmark> selectBookmarkList(BookmarkSearchCommand searchCommand) {
         return mapper.selectBookmarkList(searchCommand);
+    }
+
+
+    /**
+     *  매칭 폴더 ID 목록 조회
+     */
+    @Override
+    public List<Long> selectMatchingFolderIds(BookmarkSearchCommand searchCommand) {
+        return mapper.selectMatchingFolderIds(searchCommand);
+    }
+
+    @Override
+    public int countBookmarkList(BookmarkSearchCommand searchCommand) {
+        return mapper.countBookmarkList(searchCommand);
     }
 
 
@@ -72,6 +91,15 @@ public class MybatisBookmarkDao implements BookmarkDao {
     @Override
     public int deleteBookmarkTags(Long bookmarkId, Long memberId) {
         return mapper.deleteBookmarkTags(bookmarkId, memberId);
+    }
+
+
+    /**
+     *  북마크 조회수 증가 (읽음 처리)
+     */
+    @Override
+    public int incrementViewCount(Long bookmarkId, Long memberId) {
+        return mapper.incrementViewCount(bookmarkId, memberId);
     }
 
 

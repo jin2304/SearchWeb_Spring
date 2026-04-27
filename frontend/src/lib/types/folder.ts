@@ -2,12 +2,20 @@
 export type { ApiResponse } from './apiResponse';
 
 // 백엔드 MemberFolderResponses DTO 대응
+export const FOLDER_TYPE = {
+  CUSTOM: 'CUSTOM',
+  UNORGANIZED: 'UNORGANIZED',
+} as const;
+
+export type FolderType = typeof FOLDER_TYPE[keyof typeof FOLDER_TYPE];
+
 export interface FolderResponse {
   memberFolderId: number;
   ownerMemberId: number;
   parentFolderId: number | null;
   folderName: string;
   description: string | null;
+  folderType: FolderType;
 }
 
 // POST /api/folders 요청 바디

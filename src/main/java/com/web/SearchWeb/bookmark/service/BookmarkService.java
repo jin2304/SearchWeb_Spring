@@ -1,5 +1,6 @@
 package com.web.SearchWeb.bookmark.service;
 
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkSearchResponse;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
 // import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
@@ -17,8 +18,8 @@ public interface BookmarkService {
     //북마크 단일 조회
     Bookmark selectBookmark(Long memberId, Long bookmarkId);
     
-    //북마크 목록 조회
-    List<Bookmark> selectBookmarkList(BookmarkSearchCommand command);
+    //북마크 목록 조회 (검색 결과 및 매칭 폴더 포함)
+    BookmarkSearchResponse selectBookmarkList(BookmarkSearchCommand command);
     
     //북마크 수정
     Long updateBookmark(Long memberId, Long bookmarkId, Long memberFolderId, String displayTitle,
@@ -26,6 +27,9 @@ public interface BookmarkService {
 
     //북마크 삭제
     Long deleteBookmark(Long memberId, Long bookmarkId);
+
+    //북마크 조회 기록
+    Bookmark recordView(Long memberId, Long bookmarkId);
 
     // 링크 조회 또는 생성 (URL 정규화)
     Link getOrCreateLink(String url, Long createdByMemberId);

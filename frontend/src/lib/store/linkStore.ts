@@ -23,6 +23,7 @@ export const useLinkStore = create<LinkStore>((set) => ({
     sortType: 'latest',
   },
 
+  // 검색어 상태 업데이트 (다른 컴포넌트 자동 반영)
   setSearchQuery: (query) =>
     set((state) => ({ filters: { ...state.filters, searchQuery: query } })),
 

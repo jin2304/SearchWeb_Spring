@@ -20,10 +20,19 @@ export interface BookmarkResponse {
   displayTitle: string;
   note: string | null;
   primaryCategoryId: number | null;
+  viewCount: number;
+  lastViewedAt: string | null;
   tags: string[];
   link: LinkResponse | null;
   createdAt: string;
   updatedAt: string | null;
+}
+
+// 검색 결과 응답 타입
+export interface BookmarkSearchResponse {
+  bookmarks: BookmarkResponse[];
+  matchingFolderIds: number[];
+  totalCount: number;
 }
 
 // POST /api/bookmarks 요청 바디
@@ -51,4 +60,8 @@ export interface BookmarkSearchParams {
   sort?: 'Newest' | 'Oldest' | 'Alphabetical';
   query?: string;
   categoryId?: number | null;
+  unreadOnly?: boolean;
+  savedTodayOnly?: boolean;
+  limit?: number;
+  offset?: number;
 }

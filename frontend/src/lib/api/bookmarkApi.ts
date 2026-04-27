@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import { fetchClient } from './fetchClient';
 import type {
   BookmarkResponse,
+  BookmarkSearchResponse,
   BookmarkSearchParams,
   CreateBookmarkRequest,
   UpdateBookmarkRequest,
@@ -11,15 +12,19 @@ import type {
  * 북마크(링크) 목록 조회 (GET /api/bookmarks)
  * @param params 검색 필터 (폴더 ID, 정렬, 검색어 등)
  */
-async function fetchBookmarks(params: BookmarkSearchParams): Promise<BookmarkResponse[]> {
+async function fetchBookmarks(params: BookmarkSearchParams): Promise<BookmarkSearchResponse> {
   const searchParams = new URLSearchParams();
   if (params.folderId != null) searchParams.set('folderId', String(params.folderId));
   if (params.sort) searchParams.set('sort', params.sort);
   if (params.query) searchParams.set('query', params.query);
   if (params.categoryId != null) searchParams.set('categoryId', String(params.categoryId));
+  if (params.unreadOnly === true) searchParams.set('unreadOnly', 'true');
+  if (params.savedTodayOnly === true) searchParams.set('savedTodayOnly', 'true');
+  if (params.limit != null) searchParams.set('limit', String(params.limit));
+  if (params.offset != null) searchParams.set('offset', String(params.offset));
 
   const qs = searchParams.toString();
-  return fetchClient<BookmarkResponse[]>(`/api/bookmarks${qs ? `?${qs}` : ''}`);
+  return fetchClient<BookmarkSearchResponse>(`/api/bookmarks${qs ? `?${qs}` : ''}`);
 }
 
 /**
@@ -56,6 +61,73 @@ async function deleteBookmark(bookmarkId: number): Promise<number> {
 }
 
 /**
+ * 북마크 조회 기록 (PATCH /api/bookmarks/{bookmarkId}/read)
+ * - 서버에서 view_count += 1, last_viewed_at = now() 처리
+ */
+async function recordBookmarkView(bookmarkId: number): Promise<BookmarkResponse> {
+  return fetchClient<BookmarkResponse>(`/api/bookmarks/${bookmarkId}/read`, {
+    method: 'PATCH',
+  });
+}
+
+function queryKeyHasUnreadOnly(queryKey: readonly unknown[]): boolean {
+  return queryKey.some((part) => {
+    if (!part || typeof part !== 'object' || Array.isArray(part)) return false;
+    return (part as { unreadOnly?: unknown }).unreadOnly === true;
+  });
+}
+
+function updateReadStateInResponse(
+  data: BookmarkSearchResponse,
+  updatedBookmark: BookmarkResponse,
+  removeFromUnreadQuery: boolean,
+): BookmarkSearchResponse {
+  let changed = false;
+  let removed = false;
+  const bookmarks = data.bookmarks.flatMap((bookmark) => {
+    if (bookmark.bookmarkId !== updatedBookmark.bookmarkId) return [bookmark];
+    changed = true;
+    if (removeFromUnreadQuery) {
+      removed = true;
+      return [];
+    }
+    return [updatedBookmark];
+  });
+
+  if (!changed) return data;
+  return {
+    ...data,
+    bookmarks,
+    totalCount: removed ? Math.max(data.totalCount - 1, 0) : data.totalCount,
+  };
+}
+
+function isInfiniteBookmarkData(data: unknown): data is InfiniteData<BookmarkSearchResponse> {
+  return Boolean(data && typeof data === 'object' && Array.isArray((data as { pages?: unknown }).pages));
+}
+
+function isBookmarkSearchResponse(data: unknown): data is BookmarkSearchResponse {
+  return Boolean(data && typeof data === 'object' && Array.isArray((data as { bookmarks?: unknown }).bookmarks));
+}
+
+function updateReadStateInCacheData(
+  data: unknown,
+  updatedBookmark: BookmarkResponse,
+  removeFromUnreadQuery: boolean,
+): unknown {
+  if (isInfiniteBookmarkData(data)) {
+    return {
+      ...data,
+      pages: data.pages.map((page) => updateReadStateInResponse(page, updatedBookmark, removeFromUnreadQuery)),
+    };
+  }
+  if (isBookmarkSearchResponse(data)) {
+    return updateReadStateInResponse(data, updatedBookmark, removeFromUnreadQuery);
+  }
+  return data;
+}
+
+/**
  * URL 분석 (GET /api/bookmarks/analyze)
  * @param url 분석할 URL
  */
@@ -71,23 +143,42 @@ async function analyzeUrl(url: string): Promise<string> {
 /**
  * [조회 Hook] 북마크 목록을 가져오고 캐싱합니다.
  */
-export function useBookmarks(params: BookmarkSearchParams) {
+export function useBookmarks(params: BookmarkSearchParams, options?: { enabled?: boolean }) {
   return useQuery({
-    queryKey: ['bookmarks', params], // 검색 조건이 바뀌면 새로운 쿼리로 취급
+    queryKey: ['bookmarks', params], 
     queryFn: () => fetchBookmarks(params),
+    enabled: options?.enabled,
+  });
+}
+
+/**
+ * [무한 스크롤 조회 Hook] 북마크 목록을 페이징하여 가져옵니다.
+ */
+export function useInfiniteBookmarks(params: BookmarkSearchParams, options?: { enabled?: boolean }) {
+  const limit = params.limit ?? 100;
+  return useInfiniteQuery({
+    queryKey: ['bookmarks', 'infinite', params],
+    queryFn: ({ pageParam = 0 }) => fetchBookmarks({ ...params, limit, offset: pageParam as number }),
+    getNextPageParam: (lastPage, allPages) => {
+      const currentCount = allPages.length * limit;
+      if (currentCount < lastPage.totalCount) {
+        return currentCount;
+      }
+      return undefined;
+    },
+    initialPageParam: 0,
+    enabled: options?.enabled,
   });
 }
 
 /**
  * [생성 Hook] 새로운 북마크를 생성합니다.
- * 성공 시 'bookmarks' 키를 가진 모든 캐시를 무효화하여 목록을 갱신합니다.
  */
 export function useCreateBookmark() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createBookmark,
     onSuccess: () => {
-      // 캐시 무효화: 목록 화면이 자동으로 다시 그려짐
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
     },
   });
@@ -115,6 +206,29 @@ export function useDeleteBookmark() {
     mutationFn: deleteBookmark,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+    },
+  });
+}
+
+/**
+ * [조회 기록 Hook] 북마크 열람 시 view_count 증가 및 읽음 처리.
+ */
+export function useRecordBookmarkView() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: recordBookmarkView,
+    onSuccess: (updatedBookmark) => {
+      const bookmarkQueries = queryClient.getQueryCache().findAll({ queryKey: ['bookmarks'] });
+      bookmarkQueries.forEach((query) => {
+        const removeFromUnreadQuery = queryKeyHasUnreadOnly(query.queryKey);
+        queryClient.setQueryData(query.queryKey, (oldData: unknown) =>
+          updateReadStateInCacheData(oldData, updatedBookmark, removeFromUnreadQuery)
+        );
+      });
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === 'bookmarks' && queryKeyHasUnreadOnly(query.queryKey),
+        refetchType: 'none',
+      });
     },
   });
 }

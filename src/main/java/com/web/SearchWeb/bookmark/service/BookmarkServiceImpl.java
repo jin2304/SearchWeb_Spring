@@ -1,5 +1,6 @@
 package com.web.SearchWeb.bookmark.service;
 
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkSearchResponse;
 import com.web.SearchWeb.bookmark.dao.BookmarkDao;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
@@ -17,6 +18,7 @@ import com.web.SearchWeb.bookmark.error.BookmarkException;
 import com.web.SearchWeb.config.exception.CommonErrorCode;
 
 import com.web.SearchWeb.bookmark.dto.MemberTagResultDto;
+import com.web.SearchWeb.folder.service.MemberFolderService;
 import com.web.SearchWeb.linkanalysis.service.LinkMetadataExtractor;
 import java.net.URI;
 import java.util.ArrayList;
@@ -32,11 +34,13 @@ public class BookmarkServiceImpl implements BookmarkService {
 
     private final BookmarkDao bookmarkDao;
     private final LinkMetadataExtractor linkMetadataExtractor;
+    private final MemberFolderService memberFolderService;
 
     @Autowired
-    public BookmarkServiceImpl(BookmarkDao bookmarkDao, LinkMetadataExtractor linkMetadataExtractor) {
+    public BookmarkServiceImpl(BookmarkDao bookmarkDao, LinkMetadataExtractor linkMetadataExtractor, MemberFolderService memberFolderService) {
         this.bookmarkDao = bookmarkDao;
         this.linkMetadataExtractor = linkMetadataExtractor;
+        this.memberFolderService = memberFolderService;
     }
 
 
@@ -50,10 +54,9 @@ public class BookmarkServiceImpl implements BookmarkService {
         // 링크 조회 또는 생성
         Link link = getOrCreateLink(url, memberId);
 
-        // TODO: 링크 분석 및 폴더 서비스 완성 후 제거 - 임시 기본 폴더 ID 설정
+        // 폴더 미지정 시 사용자의 미분류(UNORGANIZED) 폴더 ID를 조회하거나 생성
         if (memberFolderId == null) {
-            memberFolderId = 1L;  // 임시 하드코딩 값
-            log.warn("memberFolderId가 null이어서 임시 기본값(1)을 사용합니다. 링크 분석 및 폴더 서비스 연동 후 제거 필요.");
+            memberFolderId = memberFolderService.getOrCreateUnorganizedFolderId(memberId);
         }
 
         // Entity 생성
@@ -93,6 +96,9 @@ public class BookmarkServiceImpl implements BookmarkService {
     public Bookmark selectBookmark(Long memberId, Long bookmarkId) {
         Bookmark bookmark = bookmarkDao.selectBookmark(memberId, bookmarkId);
         if (bookmark == null) {
+            // 상세 조회를 통한 원인 파악 (404 vs 403)
+            validateBookmarkOwner(bookmarkId, memberId);
+            // 위에서 예외가 발생하지 않았다면 (그럴 리 없지만) 기본 NotFound 처리
             throw BookmarkException.of(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
         }
         return bookmark;
@@ -100,11 +106,19 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
-     *  북마크 목록 조회
+     *  북마크 목록 조회 (검색 결과 및 매칭 폴더 포함)
      */
     @Override
-    public List<Bookmark> selectBookmarkList(BookmarkSearchCommand command) {
-        return bookmarkDao.selectBookmarkList(command);
+    public BookmarkSearchResponse selectBookmarkList(BookmarkSearchCommand command) {
+        List<Bookmark> bookmarks = bookmarkDao.selectBookmarkList(command);
+        List<Long> matchingFolderIds = bookmarkDao.selectMatchingFolderIds(command);
+        int totalCount = bookmarkDao.countBookmarkList(command);
+        
+        return BookmarkSearchResponse.builder()
+                .bookmarks(bookmarks)
+                .matchingFolderIds(matchingFolderIds)
+                .totalCount(totalCount)
+                .build();
     }
 
 
@@ -130,6 +144,8 @@ public class BookmarkServiceImpl implements BookmarkService {
             int result = bookmarkDao.updateBookmark(bookmark);
 
             if (result == 0) {
+                // 수정 실패 시 원인 파악 (404 vs 403)
+                validateBookmarkOwner(bookmarkId, memberId);
                 throw BookmarkException.of(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
             }
 
@@ -153,6 +169,22 @@ public class BookmarkServiceImpl implements BookmarkService {
 
 
     /**
+     *  북마크 조회 기록 (view_count 증가, last_viewed_at 업데이트)
+     */
+    @Override
+    @Transactional
+    public Bookmark recordView(Long memberId, Long bookmarkId) {
+        int affected = bookmarkDao.incrementViewCount(bookmarkId, memberId);
+        if (affected == 0) {
+            // 업데이트 실패 시 원인 파악 (404 vs 403)
+            validateBookmarkOwner(bookmarkId, memberId);
+            throw BookmarkException.of(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+        }
+        return bookmarkDao.selectBookmark(memberId, bookmarkId);
+    }
+
+
+    /**
      *  북마크 삭제 (soft delete)
      */
     @Override
@@ -162,6 +194,8 @@ public class BookmarkServiceImpl implements BookmarkService {
         int result = bookmarkDao.deleteBookmark(memberId, bookmarkId);
 
         if (result == 0) {
+            // 삭제 실패 시 원인 파악 (404 vs 403)
+            validateBookmarkOwner(bookmarkId, memberId);
             throw BookmarkException.of(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
         }
 
@@ -172,6 +206,20 @@ public class BookmarkServiceImpl implements BookmarkService {
     }
 
 
+
+
+    /**
+     *  북마크 소유권 및 존재 여부 검증 (에러 구분용)
+     */
+    private void validateBookmarkOwner(Long bookmarkId, Long memberId) {
+        Bookmark bookmark = bookmarkDao.findById(bookmarkId);
+        if (bookmark == null || bookmark.getDeletedAt() != null) {
+            throw BookmarkException.of(BookmarkErrorCode.BOOKMARK_NOT_FOUND);
+        }
+        if (!bookmark.getCreatedByMemberId().equals(memberId)) {
+            throw BookmarkException.of(BookmarkErrorCode.ACCESS_DENIED);
+        }
+    }
 
 
     // ========== Helper Methods ==========

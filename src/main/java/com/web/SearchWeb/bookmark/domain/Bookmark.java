@@ -1,6 +1,7 @@
 package com.web.SearchWeb.bookmark.domain;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import com.web.SearchWeb.common.domain.BaseEntity;
@@ -33,6 +34,8 @@ public class Bookmark extends BaseEntity {
     private Long primaryCategoryId;       // 주 카테고리 ID (선택, AI 분류 또는 사용자 지정)
     private String categorySource;        // 카테고리 출처 ('system', 'member', default 'system')
     private BigDecimal categoryScore;     // 카테고리 정확도 점수 (0.0 ~ 1.0)
+    private Integer viewCount;            // 조회 수 (클릭 1회당 +1, 0이면 unread)
+    private OffsetDateTime lastViewedAt;  // 마지막 조회 시각 (NULL이면 아직 안 읽음)
 
     // Link 객체 (Association)
     private Link link;            // Link 테이블과 조인된 객체
