@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -50,11 +49,14 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
 
     /** 폴더당 샘플 제목 최대 개수 */
     private static final int FOLDER_SAMPLE_LIMIT = 3;
+    /** 폴더별 컨텍스트에 포함할 대표 태그 최대 개수 */
+    private static final int FOLDER_TAG_LIMIT = 8;
     /** 폴더 컨텍스트 조회 소프트 타임아웃 (ms) — 초과 시 log.warn, 하드 컷오프는 JDBC 1s timeout */
     private static final long ENRICH_SOFT_TIMEOUT_MS = 300L;
     /** 샘플 제목 최대 길이 (초과 시 절단 + 말줄임) */
     private static final int MAX_SAMPLE_TITLE_LENGTH = 60;
-
+    /** 컨텍스트 태그(빈도) 최대 길이 */
+    private static final int MAX_CONTEXT_TAG_LENGTH = 80;
     @Qualifier("chatClient")
     private final ChatClient chatClient;                         // LLM 모델 호출 (AiConfig의 기본 provider 사용)
     private final LinkMetadataExtractor linkMetadataExtractor;   // 페이지 크롤링
@@ -112,7 +114,11 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
             String userPrompt = buildPrompt(page, folders, tags, folderContexts);
 
             // 로그용으로 폴더 컨텍스트 블록 미리 생성
-            String folderContextLog = folderContexts.isEmpty() ? "없음" : "\n" + buildFolderContextBlock(folderContexts);
+            boolean hasFolderContext = folderContexts != null && !folderContexts.isEmpty();
+            String folderContextLog = hasFolderContext ? "\n" + buildFolderContextBlock(folderContexts) : "없음";
+            String tagDictionaryText = renderTagDictionary(tags);
+            int tagCount = tags != null ? tags.size() : 0;
+            String tagDictionaryLog = tagCount + "개: [" + tagDictionaryText + "]";
 
             log.debug("""
                     \n┌─────── [AI 분석 요청] ────────
@@ -120,28 +126,26 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
                     │ ┌── 페이지 정보 ──
                     │ │ Title:    {}
                     │ │ Desc:     {}
-                    │ │ Type:     {}
                     │ │ Keywords: {}
                     │ │ Headings: {}
                     │ │ Snippet:  {}자
                     │ └────────────────
                     │ ┌── 사용자 데이터 ──
                     │ │ 폴더 {}개: [{}]
-                    │ │ 태그 {}개: [{}]
+                    │ │ 태그 사전: {}
                     │ └────────────────────
-                    │ ┌── 폴더 컨텍스트 상세 ──
+                    │ ┌── 폴더 컨텍스트 상세 (폴더별 해시태그 빈도 + 대표 링크) ──
                     {}
                     │ └──────────────────────
                     └──────────────────────────────""",
                     userPrompt.length(),
                     page.getTitle(),
                     page.getDescription() != null ? (page.getDescription().length() > 50 ? page.getDescription().substring(0, 50) + "..." : page.getDescription()) : "null",
-                    page.getContentType() != null ? page.getContentType() : "none",
                     page.getKeywords().isEmpty() ? "none" : String.join(", ", page.getKeywords()),
                     page.getHeadings().isEmpty() ? "none" : String.join(" | ", page.getHeadings()),
                     page.getMainTextSnippet() != null ? page.getMainTextSnippet().length() : 0,
                     folders.size(), folders.stream().map(MemberFolder::getFolderName).collect(Collectors.joining(", ")),
-                    tags.size(), tags.stream().map(MemberTag::getTagName).collect(Collectors.joining(", ")),
+                    tagDictionaryLog,
                     folderContextLog);
 
             String aiResponse = chatClient.prompt()
@@ -208,7 +212,7 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
     private List<FolderContext> enrichFolderContext(Long memberId) {
         long t0 = System.currentTimeMillis();
         try {
-            List<Map<String, Object>> rows = bookmarkDao.selectFolderContexts(memberId, FOLDER_SAMPLE_LIMIT);
+            List<Map<String, Object>> rows = bookmarkDao.selectFolderContexts(memberId, FOLDER_SAMPLE_LIMIT, FOLDER_TAG_LIMIT);
             long elapsedMs = System.currentTimeMillis() - t0;
             if (elapsedMs > ENRICH_SOFT_TIMEOUT_MS) {
                 log.warn("[folder-context] slow query: {}ms (soft threshold {}ms)", elapsedMs, ENRICH_SOFT_TIMEOUT_MS);
@@ -242,63 +246,85 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
         return cleaned;
     }
 
+    /**
+     * 태그 sanitization
+     * - 프롬프트 구조를 깨뜨릴 수 있는 제어 문자와 템플릿 marker를 제거/치환
+     * - 긴 태그(빈도)는 컨텍스트 가독성을 위해 절단
+     */
+    private String sanitizeTag(String raw) {
+        if (raw == null || raw.isBlank()) return "";
+        String cleaned = raw.replaceAll("[\\x00-\\x1F\\x7F]", " ")
+                .replace("{", "(")
+                .replace("}", ")")
+                .strip();
+        if (cleaned.length() > MAX_CONTEXT_TAG_LENGTH) {
+            cleaned = cleaned.substring(0, MAX_CONTEXT_TAG_LENGTH) + "…";
+        }
+        return cleaned;
+    }
+
+    private String renderTagDictionary(List<MemberTag> tags) {
+        if (tags == null || tags.isEmpty()) return "";
+
+        return tags.stream()
+                .map(MemberTag::getTagName)
+                .map(this::sanitizeTag)
+                .filter(tagName -> !tagName.isBlank())
+                .distinct()
+                .collect(Collectors.joining(", "));
+    }
+
 
     /**
      * 폴더 컨텍스트 블록 렌더링
-     * - 포맷: "- 폴더명 (N개, 최근 DATE, 주요 카테고리: XXX): 설명. 최근 저장: [title1, title2]"
-     * - UNORGANIZED는 "(시스템 폴더 — 최후의 수단)" 마커 부착
-     * - description blank → ": …" 생략
-     * - sampleTitles 없음 → "최근 저장: …" 생략
-     * - 0개 폴더 → "(0개)"만 표기
-     * - 주요 카테고리: 샘플 제목들에서 자동으로 추론 (OTT, AI, 개발, 디자인 등)
+     * - 포맷: "- 폴더명: 설명\n  해시태그(빈도): [tag1(12), tag2(7)]\n  대표 링크: title1, title2"
+     * - UNORGANIZED는 "(시스템 폴더 - 분석 불가 시에만)" 마커 부착
+     * - description/태그/샘플이 없으면 폴더명만 표시
      */
     private String buildFolderContextBlock(List<FolderContext> folderContexts) {
         StringBuilder sb = new StringBuilder();
         for (FolderContext folderContext : folderContexts) {
             String name = folderContext.getFolderName() != null ? folderContext.getFolderName() : "";
             boolean unorganized = "UNORGANIZED".equalsIgnoreCase(folderContext.getFolderType());
-            long count = folderContext.getBookmarkCount();
-            LocalDate lastDate = folderContext.getLastCreatedAt();
-
             sb.append("- ").append(name);
             if (unorganized) {
-                sb.append(" (기본 폴더 - 다른 카테고리에 해당하지 않는 경우)");
+                sb.append(" (시스템 폴더 - 분석 불가 시에만)");
             }
 
-            // (N개, 최근 DATE, 주요 카테고리: XXX) 또는 (0개)
-            if (count <= 0 || lastDate == null) {
-                sb.append(" (").append(count).append("개)");
-            } else {
-                sb.append(" (").append(count).append("개, 최근 ").append(lastDate);
-
-                // 주요 카테고리 추론 및 추가
-                List<String> samples = folderContext.getSampleTitles();
-                if (samples != null && !samples.isEmpty()) {
-                    String inferredCategory = inferCategoryFromTitles(samples);
-                    if (inferredCategory != null && !inferredCategory.isBlank()) {
-                        sb.append(", 주요 카테고리: ").append(inferredCategory);
-                    }
-                }
-                sb.append(")");
-            }
-
-            // 설명: blank 아니면 ": 설명." 추가
             String desc = folderContext.getDescription();
-            if (desc != null && !desc.isBlank()) {
-                sb.append(": ").append(desc.strip());
-                if (!desc.endsWith(".")) sb.append(".");
-            }
-
-            // 최근 저장 샘플
             List<String> samples = folderContext.getSampleTitles();
-            if (samples != null && !samples.isEmpty()) {
-                List<String> sanitized = new ArrayList<>(samples.size());
+            List<String> tags = folderContext.getTopTags();
+            List<String> sanitized = new ArrayList<>();
+            if (samples != null) {
                 for (String s : samples) {
                     String cleaned = sanitizeTitle(s);
                     if (!cleaned.isEmpty()) sanitized.add(cleaned);
                 }
-                if (!sanitized.isEmpty()) {
-                    sb.append(" 최근 저장: [").append(String.join(", ", sanitized)).append("]");
+            }
+            List<String> sanitizedTags = new ArrayList<>();
+            if (tags != null) {
+                for (String tag : tags) {
+                    String cleaned = sanitizeTag(tag);
+                    if (!cleaned.isEmpty()) sanitizedTags.add(cleaned);
+                }
+            }
+
+            boolean hasDesc = desc != null && !desc.isBlank();
+            boolean hasSamples = !sanitized.isEmpty();
+            boolean hasTags = !sanitizedTags.isEmpty();
+
+            if (hasDesc || hasTags || hasSamples) {
+                if (hasDesc) {
+                    sb.append(": ");
+                    String stripped = desc.strip();
+                    sb.append(stripped);
+                    if (!stripped.endsWith(".")) sb.append(".");
+                }
+                if (hasTags) {
+                    sb.append("\n  해시태그(빈도): [").append(String.join(", ", sanitizedTags)).append("]");
+                }
+                if (hasSamples) {
+                    sb.append("\n  대표 링크: ").append(String.join(", ", sanitized));
                 }
             }
 
@@ -309,81 +335,6 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
             sb.setLength(sb.length() - 1);
         }
         return sb.toString();
-    }
-
-
-    /**
-     * 샘플 제목들에서 폴더의 주요 카테고리를 추론
-     * - 각 제목과 매칭되는 카테고리 키워드를 찾아서 빈도 기반으로 top 카테고리 결정
-     * - 예: ["Netflix", "Coupang Play", "Disney+"] → "OTT"
-     * - 예: ["GitHub", "VSCode", "Spring"] → "개발"
-     * - 예: ["Notion AI", "Gemini", "ChatGPT"] → "AI도구"
-     * - 여러 카테고리가 섞여있으면 "AI도구 & OTT" 형태로 표현
-     */
-    private String inferCategoryFromTitles(List<String> titles) {
-        if (titles == null || titles.isEmpty()) {
-            return null;
-        }
-
-        // 카테고리별 키워드 (대소문자 무시)
-        Map<String, List<String>> categoryKeywords = Map.ofEntries(
-            Map.entry("OTT", List.of("Netflix", "Disney", "Prime Video", "HBO", "Coupang Play", "YouTube", "Tving", "Watcha")),
-            Map.entry("AI도구", List.of("ChatGPT", "Gemini", "Claude", "Notion", "Colab", "Hugging Face")),
-            Map.entry("개발", List.of("GitHub", "GitLab", "VSCode", "Spring", "Docker", "Kubernetes", "Git")),
-            Map.entry("디자인", List.of("Figma", "Adobe", "Sketch", "Canva", "Illustrator", "Photoshop", "XD")),
-            Map.entry("스포츠", List.of("SPOTV", "축구", "야구", "올림픽", "NBA", "EPL", "MLB")),
-            Map.entry("협업", List.of("Slack", "Teams", "Jira", "Confluence", "Trello", "Asana")),
-            Map.entry("콘텐츠", List.of("Medium", "Substack", "Blog", "Vimeo", "Podcast"))
-        );
-
-        // 각 카테고리별 매칭 개수 계산
-        Map<String, Integer> categoryScores = new LinkedHashMap<>();
-        for (Map.Entry<String, List<String>> entry : categoryKeywords.entrySet()) {
-            String category = entry.getKey();
-            List<String> keywords = entry.getValue();
-
-            int score = 0;
-            for (String title : titles) {
-                String titleLower = title.toLowerCase();
-                for (String keyword : keywords) {
-                    if (titleLower.contains(keyword.toLowerCase())) {
-                        score++;
-                        break;  // 한 제목당 최대 1점
-                    }
-                }
-            }
-
-            if (score > 0) {
-                categoryScores.put(category, score);
-            }
-        }
-
-        // 카테고리 선택 로직
-        if (categoryScores.isEmpty()) {
-            return null;  // 매칭 카테고리 없음
-        }
-
-        // 점수가 높은 순으로 정렬
-        List<Map.Entry<String, Integer>> sorted = categoryScores.entrySet().stream()
-            .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
-            .toList();
-
-        // 1순위 카테고리의 점수
-        int topScore = sorted.get(0).getValue();
-        int totalTitles = titles.size();
-
-        // 논리: 샘플의 50% 이상이 같은 카테고리면 단일 카테고리, 아니면 혼합
-        if (topScore >= (totalTitles * 0.5)) {
-            // 단일 카테고리: 1순위만
-            return sorted.get(0).getKey();
-        } else {
-            // 혼합 카테고리: 1순위 & 2순위
-            List<String> topCategories = sorted.stream()
-                .limit(2)
-                .map(Map.Entry::getKey)
-                .toList();
-            return String.join(" & ", topCategories);
-        }
     }
 
 
@@ -403,14 +354,11 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
                 .map(MemberFolder::getFolderName)
                 .collect(Collectors.joining(", "));
 
-        String tagNamesText = tags.stream()
-                .map(MemberTag::getTagName)
-                .collect(Collectors.joining(", "));
+        String tagNamesText = renderTagDictionary(tags);
 
         // ----- 값 준비 (모든 템플릿 렌더링 전에 적용 — Map.of()의 null 금지 + byte-identical 보장) -----
         String title = page.getTitle() != null ? page.getTitle() : "";
         String description = page.getDescription() != null ? page.getDescription() : "";
-        String contentType = page.getContentType() != null ? page.getContentType() : "알 수 없음";
         String keywords = page.getKeywords().isEmpty() ? "없음" : String.join(", ", page.getKeywords());
         String headings = page.getHeadings().isEmpty() ? "없음" : String.join(" | ", page.getHeadings());
         String snippet = page.getMainTextSnippet() != null ? page.getMainTextSnippet() : "";
@@ -421,23 +369,22 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
 
         // ----- 공통 변수 준비 (두 템플릿이 공유하는 데이터) -----
         Map<String, Object> variables = new LinkedHashMap<>();
-        variables.put("tags", tagNamesText);
         variables.put("url", url);
         variables.put("title", title);
         variables.put("description", description);
-        variables.put("contentType", contentType);
         variables.put("keywords", keywords);
         variables.put("headings", headings);
         variables.put("mainTextSnippet", snippet);
 
         // ----- Fallback 경로: 폴더 컨텍스트 정보가 없을 때 (기본형 템플릿 렌더링) -----
         if (folderContexts == null || folderContexts.isEmpty()) {
+            variables.put("tags", tagNamesText);
             variables.put("folders", folderNamesText.isBlank() ? "미분류" : folderNamesText);
             return basicUserPromptTemplate.render(variables);
         }
 
         // ----- Success 경로: 폴더 컨텍스트 정보가 있을 때 (강화형 템플릿 렌더링) -----
-        variables.put("folders", folderNamesText);
+        variables.put("tags", tagNamesText);
         variables.put("folderContext", buildFolderContextBlock(folderContexts));
         return enrichedUserPromptTemplate.render(variables);
     }
@@ -462,25 +409,34 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
             String title = root.path("title").asText(page.getTitle());         // 없으면 크롤링 데이터 사용
             String description = root.path("description").asText(page.getDescription());
 
-            // 추천 태그 → 기존 태그와 매칭 (대소문자 무시), 최대 5개로 제한
+            // 추천 태그 → 기존 태그와 매칭 (대소문자 무시), 2~5개 범위 강제
             List<LinkAnalysisResult.SuggestedTag> suggestedTags = new ArrayList<>();
             JsonNode tagsNode = root.path("suggestedTags");
             if (tagsNode.isArray()) {
-                int maxTags = 5;
+                final int minTags = 2;
+                final int maxTags = 5;
+
                 for (JsonNode tagNode : tagsNode) {
-                    if (suggestedTags.size() >= maxTags) break;
-                    String tagName = tagNode.asText().trim();  // 앞뒤 공백 제거
-                    if (tagName.isBlank()) continue;           // 빈 값 스킵
+                    if (suggestedTags.size() >= maxTags) break;  // 최대 5개 제한
+                    String rawTagName = tagNode.asText().trim();  // 앞뒤 공백 제거
+                    if (rawTagName.isBlank()) continue;           // 빈 값 스킵
+                    MemberTag matchedTag = findMatchingTag(tags, rawTagName);
+                    String tagName = matchedTag != null ? matchedTag.getTagName() : rawTagName;
                     boolean isDuplicate = suggestedTags.stream()
                             .anyMatch(t -> t.getTagName().equalsIgnoreCase(tagName));
                     if (isDuplicate) continue;                 // 중복 스킵
-                    boolean isExisting = tags.stream()
-                            .anyMatch(t -> t.getTagName().equalsIgnoreCase(tagName));
+                    boolean isExisting = matchedTag != null;
 
                     suggestedTags.add(LinkAnalysisResult.SuggestedTag.builder()
                             .tagName(tagName)
                             .isExisting(isExisting)
                             .build());
+                }
+
+                // 최소 2개 미만이면 경고 로그 (AI가 규칙 위반)
+                if (suggestedTags.size() < minTags) {
+                    log.warn("[Tag Count Violation] AI generated {} tags (expected 2~5): {}",
+                        suggestedTags.size(), suggestedTags.stream().map(LinkAnalysisResult.SuggestedTag::getTagName).toList());
                 }
             }
 
@@ -488,10 +444,16 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
             String suggestedFolderName = root.path("suggestedFolder").asText("").trim();  // 앞뒤 공백 제거
             LinkAnalysisResult.SuggestedFolder suggestedFolder = null;
             if (!suggestedFolderName.isBlank()) {
-                MemberFolder matchedFolder = folders.stream()
-                        .filter(f -> f.getFolderName().equalsIgnoreCase(suggestedFolderName))
-                        .findFirst()
-                        .orElse(null);
+                MemberFolder matchedFolder = findMatchingFolder(folders, suggestedFolderName);
+
+                // 미분류 추천 시 태그 기반 폴더명으로 보정
+                if (isUnorganizedSuggestion(suggestedFolderName, matchedFolder)) {
+                    String tagBasedFolderName = pickFolderNameFromTags(suggestedTags);
+                    if (tagBasedFolderName != null) {
+                        suggestedFolderName = tagBasedFolderName;
+                        matchedFolder = findMatchingFolder(folders, suggestedFolderName);
+                    }
+                }
 
                 suggestedFolder = LinkAnalysisResult.SuggestedFolder.builder()
                         .memberFolderId(matchedFolder != null ? matchedFolder.getMemberFolderId() : null)
@@ -510,6 +472,42 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
             log.warn("\n========== [AI 응답 파싱 실패] ==========\n  사유: {}\n==========================================", e.getMessage());
             return buildFallbackResult(page);
         }
+    }
+
+    /** 기존 폴더명 정확 매칭 */
+    private MemberFolder findMatchingFolder(List<MemberFolder> folders, String folderName) {
+        return folders.stream()
+                .filter(f -> f.getFolderName().equalsIgnoreCase(folderName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private MemberTag findMatchingTag(List<MemberTag> tags, String tagName) {
+        if (tags == null || tagName == null || tagName.isBlank()) return null;
+
+        return tags.stream()
+                .filter(t -> t.getTagName() != null)
+                .filter(t -> t.getTagName().equalsIgnoreCase(tagName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /** 시스템 기본 폴더 추천 여부 */
+    private boolean isUnorganizedSuggestion(String suggestedFolderName, MemberFolder matchedFolder) {
+        return (matchedFolder != null && matchedFolder.isUnorganized())
+                || "미분류".equalsIgnoreCase(suggestedFolderName)
+                || "기본 폴더".equalsIgnoreCase(suggestedFolderName);
+    }
+
+    /** 미분류 보정용 폴더명: 첫 유효 태그 */
+    private String pickFolderNameFromTags(List<LinkAnalysisResult.SuggestedTag> suggestedTags) {
+        if (suggestedTags == null || suggestedTags.isEmpty()) return null;
+
+        return suggestedTags.stream()
+                .map(LinkAnalysisResult.SuggestedTag::getTagName)
+                .filter(tagName -> tagName != null && !tagName.isBlank())
+                .findFirst()
+                .orElse(null);
     }
 
 

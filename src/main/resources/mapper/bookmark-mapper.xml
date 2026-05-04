@@ -311,4 +311,72 @@
         )
     </select>
 
+    <!-- 폴더별 컨텍스트 조회 (LLM 폴더 추천용)
+         - LATERAL aggregation: 폴더당 북마크 수, 최근 저장일, 샘플 제목, 자주 쓰인 태그(빈도)를 단일 쿼리로 수집
+         - timeout="1": JDBC Statement.setQueryTimeout(1s) — 백엔드 지연 시 강제 중단
+         - Postgres 전용 (LATERAL, ARRAY subquery) — Postgres 16 기준 작성
+    -->
+    <select id="selectFolderContexts" resultType="map" timeout="1">
+        SELECT mf.member_folder_id              AS "memberFolderId",
+               mf.folder_name                   AS "folderName",
+               mf.description                   AS "description",
+               mf.folder_type                   AS "folderType",
+               COALESCE(stats.cnt, 0)           AS "bookmarkCount",
+               stats.last_created_at            AS "lastCreatedAt",
+               COALESCE(stats.titles, '{}')     AS "sampleTitles",
+               COALESCE(tag_stats.tags, '{}')   AS "topTags"
+          FROM member_folder mf
+          LEFT JOIN LATERAL (
+             SELECT COUNT(*)            AS cnt,
+                    MAX(msl.created_at) AS last_created_at,
+                    ARRAY(
+                       SELECT msl2.display_title
+                         FROM member_saved_link msl2
+                        WHERE msl2.member_folder_id = mf.member_folder_id
+                          AND msl2.created_by_member_id = #{memberId}
+                          AND msl2.deleted_at IS NULL
+                        ORDER BY msl2.created_at DESC
+                        LIMIT #{sampleLimit}
+                    )                   AS titles
+               FROM member_saved_link msl
+              WHERE msl.member_folder_id = mf.member_folder_id
+                AND msl.created_by_member_id = #{memberId}
+                AND msl.deleted_at IS NULL
+          ) stats ON TRUE
+          LEFT JOIN LATERAL (
+             SELECT ARRAY(
+                SELECT tag_row.tag_name || '(' || tag_row.tag_count::text || ')'
+                  FROM (
+                     SELECT mt.tag_name,
+                            COUNT(*)            AS tag_count,
+                            MAX(msl.created_at) AS last_used_at
+                       FROM member_saved_link msl
+                       JOIN member_saved_link_tag mslt
+                         ON msl.member_saved_link_id = mslt.member_saved_link_id
+                        AND mslt.deleted_at IS NULL
+                       JOIN member_tag mt
+                         ON mslt.member_tag_id = mt.member_tag_id
+                        AND mt.deleted_at IS NULL
+                      WHERE msl.member_folder_id = mf.member_folder_id
+                        AND msl.created_by_member_id = #{memberId}
+                        AND mt.owner_member_id = #{memberId}
+                        AND msl.deleted_at IS NULL
+                      GROUP BY mt.tag_name
+                      ORDER BY tag_count DESC,
+                               last_used_at DESC NULLS LAST,
+                               mt.tag_name ASC
+                      LIMIT #{tagLimit}
+                  ) tag_row
+             ) AS tags
+          ) tag_stats ON TRUE
+         WHERE mf.owner_member_id   = #{memberId}
+           AND mf.deleted_at        IS NULL
+           AND mf.parent_folder_id  IS NULL
+         ORDER BY
+           CASE WHEN mf.folder_type = 'UNORGANIZED' THEN 1 ELSE 0 END ASC,
+           stats.last_created_at DESC NULLS LAST,
+           mf.folder_name ASC
+         LIMIT 50
+    </select>
+
 </mapper>

@@ -7,6 +7,7 @@ import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BookmarkDao {
     //북마크 추가
@@ -62,4 +63,9 @@ public interface BookmarkDao {
 
     // 폴더 내 활성 북마크 존재 여부
     boolean existsActiveBookmarkInFolder(Long memberFolderId);
+
+    // 폴더별 컨텍스트 조회 (LLM 폴더 추천용 - LATERAL aggregation)
+    List<Map<String, Object>> selectFolderContexts(@Param("memberId") Long memberId,
+                                                   @Param("sampleLimit") int sampleLimit,
+                                                   @Param("tagLimit") int tagLimit);
 }
