@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -43,6 +44,7 @@ public class CustomOAuth2MemberService extends DefaultOAuth2UserService {
      * OAuth2 로그인 성공 시 호출되어 사용자 정보를 로드하고 DB와 동기화함.
      */
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         // 부모 클래스의 메서드를 호출하여 기본적인 사용자 정보를 가져옴
         OAuth2User oAuth2User = super.loadUser(userRequest);
