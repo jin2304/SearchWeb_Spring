@@ -190,8 +190,10 @@ export function SaveLinkDialog() {
             if (!tagsToSelect.includes(tag.tagName)) {
               tagsToSelect.push(tag.tagName);
             }
-            // Track ALL AI-suggested tags (both existing and new) for cleanup on re-analysis
-            aiTagNames.add(tag.tagName);
+            // 이미 수동으로 선택된 태그가 아닌 경우에만 AI 추천 태그로 기록
+            if (!baseTags.includes(tag.tagName)) {
+              aiTagNames.add(tag.tagName);
+            }
           }
           setSelectedTags(tagsToSelect);
         } else {

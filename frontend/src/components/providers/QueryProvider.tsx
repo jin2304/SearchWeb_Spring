@@ -28,7 +28,12 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
                 }
               }
 
-              // 2. 백엔드가 내려준 사용자용 메시지가 있으면 그대로 안내한다.
+              // 2. 로그인 만료 에러(AUTH_EXPIRED)는 자동 리다이렉트되므로 alert를 띄우지 않음
+              if (error instanceof ApiError && error.code === 'AUTH_EXPIRED') {
+                return;
+              }
+
+              // 3. 그 외 백엔드가 내려준 사용자용 메시지가 있으면 안내한다.
               alert(getApiErrorMessage(error));
             },
           },
