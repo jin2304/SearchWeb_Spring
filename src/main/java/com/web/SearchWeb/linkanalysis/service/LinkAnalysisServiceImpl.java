@@ -51,6 +51,8 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
     private static final int FOLDER_SAMPLE_LIMIT = 3;
     /** 폴더별 컨텍스트에 포함할 대표 태그 최대 개수 */
     private static final int FOLDER_TAG_LIMIT = 8;
+    /** 상세 정보(태그/샘플)를 표시할 상위 폴더 개수 제한 */
+    private static final int DETAILED_FOLDER_LIMIT = 30;
     /** 폴더 컨텍스트 조회 소프트 타임아웃 (ms) — 초과 시 log.warn, 하드 컷오프는 JDBC 1s timeout */
     private static final long ENRICH_SOFT_TIMEOUT_MS = 300L;
     /** 샘플 제목 최대 길이 (초과 시 절단 + 말줄임) */
@@ -283,43 +285,48 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
      */
     private String buildFolderContextBlock(List<FolderContext> folderContexts) {
         StringBuilder sb = new StringBuilder();
-        for (FolderContext folderContext : folderContexts) {
+        for (int i = 0; i < folderContexts.size(); i++) {
+            FolderContext folderContext = folderContexts.get(i);
             String name = folderContext.getFolderName() != null ? folderContext.getFolderName() : "";
             boolean unorganized = "UNORGANIZED".equalsIgnoreCase(folderContext.getFolderType());
+
+            // 모든 폴더: 이름과 설명은 기본적으로 포함 (AI가 존재를 인식하게 함)
             sb.append("- ").append(name);
             if (unorganized) {
                 sb.append(" (시스템 폴더 - 분석 불가 시에만)");
             }
 
             String desc = folderContext.getDescription();
-            List<String> samples = folderContext.getSampleTitles();
-            List<String> tags = folderContext.getTopTags();
-            List<String> sanitized = new ArrayList<>();
-            if (samples != null) {
-                for (String s : samples) {
-                    String cleaned = sanitizeTitle(s);
-                    if (!cleaned.isEmpty()) sanitized.add(cleaned);
-                }
-            }
-            List<String> sanitizedTags = new ArrayList<>();
-            if (tags != null) {
-                for (String tag : tags) {
-                    String cleaned = sanitizeTag(tag);
-                    if (!cleaned.isEmpty()) sanitizedTags.add(cleaned);
-                }
-            }
-
             boolean hasDesc = desc != null && !desc.isBlank();
-            boolean hasSamples = !sanitized.isEmpty();
-            boolean hasTags = !sanitizedTags.isEmpty();
+            if (hasDesc) {
+                sb.append(": ");
+                String stripped = desc.strip();
+                sb.append(stripped);
+                if (!stripped.endsWith(".")) sb.append(".");
+            }
 
-            if (hasDesc || hasTags || hasSamples) {
-                if (hasDesc) {
-                    sb.append(": ");
-                    String stripped = desc.strip();
-                    sb.append(stripped);
-                    if (!stripped.endsWith(".")) sb.append(".");
+            // 상위 N개 폴더에 대해서만 태그와 샘플 제목 등 상세 정보 추가
+            if (i < DETAILED_FOLDER_LIMIT) {
+                List<String> samples = folderContext.getSampleTitles();
+                List<String> tags = folderContext.getTopTags();
+                List<String> sanitized = new ArrayList<>();
+                if (samples != null) {
+                    for (String s : samples) {
+                        String cleaned = sanitizeTitle(s);
+                        if (!cleaned.isEmpty()) sanitized.add(cleaned);
+                    }
                 }
+                List<String> sanitizedTags = new ArrayList<>();
+                if (tags != null) {
+                    for (String tag : tags) {
+                        String cleaned = sanitizeTag(tag);
+                        if (!cleaned.isEmpty()) sanitizedTags.add(cleaned);
+                    }
+                }
+
+                boolean hasSamples = !sanitized.isEmpty();
+                boolean hasTags = !sanitizedTags.isEmpty();
+
                 if (hasTags) {
                     sb.append("\n  해시태그(빈도): [").append(String.join(", ", sanitizedTags)).append("]");
                 }

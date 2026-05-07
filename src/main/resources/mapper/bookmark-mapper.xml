@@ -376,7 +376,7 @@
            CASE WHEN mf.folder_type = 'UNORGANIZED' THEN 1 ELSE 0 END ASC,
            stats.last_created_at DESC NULLS LAST,
            mf.folder_name ASC
-         LIMIT 50
+         LIMIT 100
     </select>
 
 </mapper>

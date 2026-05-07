@@ -2,6 +2,7 @@ package com.web.SearchWeb.linkanalysis.domain;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Array;
 import java.sql.SQLException;
@@ -17,6 +18,7 @@ import java.util.Map;
  * - BookmarkDao.selectFolderContexts() 결과 행을 변환한 불변 DTO
  * - 폴더당 북마크 수, 최근 저장일, 샘플 제목 목록, 자주 쓰인 태그(빈도) 목록을 포함
  */
+@Slf4j
 @Getter
 @Builder
 public class FolderContext {
@@ -120,8 +122,8 @@ public class FolderContext {
                     }
                     return Collections.unmodifiableList(out);
                 }
-            } catch (SQLException ignored) {
-                // fall through to empty
+            } catch (SQLException e) {
+                log.debug("[folder-context] failed to read sql array: {}", e.getMessage());
             }
         }
         return List.of();
