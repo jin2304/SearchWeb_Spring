@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class MybatisBookmarkDao implements BookmarkDao {
@@ -168,5 +169,13 @@ public class MybatisBookmarkDao implements BookmarkDao {
     @Override
     public boolean existsActiveBookmarkInFolder(Long memberFolderId) {
         return mapper.existsActiveBookmarkInFolder(memberFolderId);
+    }
+
+    /**
+     *  폴더별 컨텍스트 조회 (LLM 폴더 추천용 - LATERAL aggregation)
+     */
+    @Override
+    public List<Map<String, Object>> selectFolderContexts(Long memberId, int sampleLimit, int tagLimit) {
+        return mapper.selectFolderContexts(memberId, sampleLimit, tagLimit);
     }
 }

@@ -2,6 +2,34 @@ import type { ApiResponse } from '@/lib/types/apiResponse';
 import { buildBackendUrl } from '@/lib/config/backend';
 import { useAuthStore } from '@/lib/store/authStore';
 
+const DEFAULT_API_ERROR_MESSAGE = '요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+
+type ApiErrorParams = {
+  message: string;
+  status?: number;
+  code?: string;
+};
+
+export class ApiError extends Error {
+  readonly status?: number;
+  readonly code?: string;
+
+  constructor({ message, status, code }: ApiErrorParams) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
+export function getApiErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.message) {
+    return error.message;
+  }
+
+  return DEFAULT_API_ERROR_MESSAGE;
+}
+
 // 여러 API 가 동시에 401 을 받아도 refresh 는 1회만 보내도록 Promise 를 공유한다.
 let refreshPromise: Promise<boolean> | null = null;
 
@@ -80,7 +108,11 @@ export async function fetchClient<T>(
     if (typeof window !== 'undefined') {
       window.location.href = '/login';
     }
-    throw new Error('인증이 만료되었습니다.');
+    throw new ApiError({
+      status: 401,
+      code: 'AUTH_EXPIRED',
+      message: '인증이 만료되었습니다.',
+    });
   }
 
   return parseResponse<T>(response);
@@ -91,14 +123,22 @@ async function parseResponse<T>(response: Response): Promise<T> {
   // 2xx 외 HTTP 오류 처리
   if (!response.ok) {
     const text = await response.text().catch(() => '');
-    let message = `HTTP ${response.status}`;
+    let message = DEFAULT_API_ERROR_MESSAGE;
+    let code: string | undefined;
     try {
       const parsed = JSON.parse(text) as ApiResponse<unknown>;
-      if (parsed.error?.message) message = parsed.error.message;
+      if (parsed.error?.message) {
+        message = parsed.error.message;
+        code = parsed.error.code;
+      }
     } catch {
-      if (text) message = text;
+      // ApiResponse 형식이 아닌 응답 본문은 사용자에게 그대로 노출하지 않는다.
     }
-    throw new Error(message);
+    throw new ApiError({
+      status: response.status,
+      code,
+      message,
+    });
   }
 
   // 204 No Content 또는 빈 응답
@@ -111,7 +151,11 @@ async function parseResponse<T>(response: Response): Promise<T> {
 
   // HTTP는 200이지만 비즈니스 로직 에러인 경우 (success: false)
   if (!json.success) {
-    throw new Error(json.error?.message ?? '알 수 없는 에러');
+    throw new ApiError({
+      status: response.status,
+      code: json.error?.code,
+      message: json.error?.message ?? DEFAULT_API_ERROR_MESSAGE,
+    });
   }
 
   return json.data;

@@ -182,7 +182,7 @@ export function SaveLinkDialog() {
         // 태그: 이전 AI 추천 태그를 제거하고 새 추천 적용 (재분석 시 이전 상태 초기화)
         const prevAiTags = aiSuggestedTags;
         const baseTags = selectedTags.filter(tag => !prevAiTags.has(tag)); // 수동 선택 태그만 남김
-        const newTagNames = new Set<string>();
+        const aiTagNames = new Set<string>();
 
         if (result.suggestedTags?.length) {
           const tagsToSelect = [...baseTags];
@@ -190,15 +190,16 @@ export function SaveLinkDialog() {
             if (!tagsToSelect.includes(tag.tagName)) {
               tagsToSelect.push(tag.tagName);
             }
-            if (!tag.isExisting) {
-              newTagNames.add(tag.tagName);
+            // 이미 수동으로 선택된 태그가 아닌 경우에만 AI 추천 태그로 기록
+            if (!baseTags.includes(tag.tagName)) {
+              aiTagNames.add(tag.tagName);
             }
           }
           setSelectedTags(tagsToSelect);
         } else {
           setSelectedTags(baseTags);
         }
-        setAiSuggestedTags(newTagNames);
+        setAiSuggestedTags(aiTagNames);
 
         // 폴더: 이전 AI 추천 상태 초기화 후 새 추천 적용
         setPinnedFolderId(null);

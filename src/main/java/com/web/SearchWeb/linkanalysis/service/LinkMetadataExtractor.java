@@ -65,15 +65,13 @@ public class LinkMetadataExtractor {
             String title = extractTitle(doc, domain);          // 제목 추출
             String description = extractDescription(doc);      // 설명(Description) 추출
             String mainText = extractMainText(doc);            // 본문 텍스트 추출
-            String contentType = extractContentType(doc);      // 콘텐츠 유형 추출
             List<String> keywords = extractKeywords(doc);      // 메타 키워드 추출
             List<String> headings = extractHeadings(doc);      // 주요 헤딩(H1, H2) 추출
 
-            log.info("\n┌─────── [콘텐츠 추출 완료] ───────\n│ Title:      {}\n│ Desc:       {}\n│ SnippetLen: {}\n│ Type:       {}\n│ Keywords:   {}\n│ Headings:   {}\n└────────────────────────────────",
+            log.info("\n┌─────── [콘텐츠 추출 완료] ───────\n│ Title:      {}\n│ Desc:       {}\n│ SnippetLen: {}\n│ Keywords:   {}\n│ Headings:   {}\n└────────────────────────────────",
                     title,
                     description != null ? (description.length() > 30 ? description.substring(0, 30) + "..." : description) : "null",
                     mainText != null ? mainText.length() : 0,
-                    contentType != null ? contentType : "none",
                     keywords,
                     headings);
 
@@ -84,7 +82,6 @@ public class LinkMetadataExtractor {
                     .mainTextSnippet(mainText)
                     .domain(domain)
                     .url(url)
-                    .contentType(contentType)
                     .keywords(keywords)
                     .headings(headings)
                     .build();
@@ -246,38 +243,6 @@ public class LinkMetadataExtractor {
                 bodyText.length() > 80 ? bodyText.substring(0, 80) + "..." : bodyText);
 
         return bodyText.isBlank() ? null : bodyText;
-    }
-
-
-    /**
-     * 콘텐츠 유형 추출
-     * -페이지가 Article, Product, Video 등인지 판별
-     * 1. JSON-LD (@type)
-     * 2. og:type
-     */
-    private String extractContentType(Document doc) {
-        // 1순위: JSON-LD의 @type
-        Elements jsonLdScripts = doc.select("script[type=application/ld+json]");
-        for (Element script : jsonLdScripts) {
-            try {
-                JsonNode root = objectMapper.readTree(script.data());
-                String type = root.path("@type").asText("");
-                if (!type.isBlank()) {
-                    log.debug("\n│ ┌── [콘텐츠 유형] ─────────────\n│ │ 출처: JSON-LD @type\n│ │ 값:   {}\n│ └──────────────────────────────", type);
-                    return type;
-                }
-            } catch (Exception ignored) {}
-        }
-
-        // 2순위: og:type
-        String ogType = doc.select("meta[property=og:type]").attr("content").trim();
-        if (!ogType.isBlank()) {
-            log.debug("\n│ ┌── [콘텐츠 유형] ─────────────\n│ │ 출처: og:type\n│ │ 값:   {}\n│ └──────────────────────────────", ogType);
-            return ogType;
-        }
-
-        log.debug("\n│ ┌── [콘텐츠 유형] ─────────────\n│ │ 출처: 없음\n│ └──────────────────────────────");
-        return null;
     }
 
 

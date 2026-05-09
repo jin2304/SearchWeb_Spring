@@ -29,9 +29,6 @@ public class PageContent {
     /** 전체 URL */
     private final String url;
 
-    /** 콘텐츠 유형 (JSON-LD @type 또는 og:type, 예: "Article", "Product") */
-    private final String contentType;
-
     /** 페이지 메타 키워드 (최대 10개) */
     @Builder.Default
     private final List<String> keywords = List.of();
