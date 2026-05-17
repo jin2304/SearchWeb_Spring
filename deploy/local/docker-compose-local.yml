@@ -1,0 +1,26 @@
+# local 환경: 프론트(pnpm dev), 백엔드(IDE)는 개별 실행, DB만 Docker로 실행.
+services:
+  postgres:
+    image: postgres:16
+    container_name: local-db
+    environment:
+      POSTGRES_DB: ${DEV_POSTGRES_DB:-searchwebdb}
+      POSTGRES_USER: ${LOCAL_DB_USERNAME}
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD}
+      TZ: Asia/Seoul
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../../src/main/resources/db/init_postgres.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    networks:
+      - local-searchweb-network
+    restart: always
+
+networks:
+  local-searchweb-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    name: local-postgres-data

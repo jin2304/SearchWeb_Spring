@@ -1,0 +1,66 @@
+# dev 환경: 운영(prod)과 동일하게 프론트(Nginx), 백엔드(App), DB를 모두 Docker로 실행.
+services:
+  # (1) dev PostgreSQL 데이터베이스
+  postgres:
+    image: postgres:16
+    container_name: dev-db
+    environment:
+      POSTGRES_DB: ${DEV_POSTGRES_DB}
+      POSTGRES_USER: ${DEV_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DEV_POSTGRES_PASSWORD}
+      TZ: Asia/Seoul
+    ports:
+      - "7000:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../../src/main/resources/db/init_postgres.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - dev-searchweb-network
+
+  # (2) dev Spring Boot 백엔드
+  backend:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    container_name: dev-app
+    ports:
+      - "8000:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${DEV_POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${DEV_POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DEV_POSTGRES_PASSWORD}
+    env_file:
+      - ../../.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - dev-searchweb-network
+
+  # (3) dev nginx 프론트 정적 서빙 및 백엔드 프록시
+  nginx:
+    image: nginx:alpine
+    container_name: dev-nginx
+    ports:
+      - "4000:80"
+    volumes:
+      - ../../frontend/out:/usr/share/nginx/html:ro
+      - ./nginx-dev.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - dev-searchweb-network
+
+networks:
+  dev-searchweb-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    name: dev-postgres-data

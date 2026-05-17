@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # VM2 전용 PostgreSQL 데이터베이스입니다.
+  postgres:
+    image: postgres:16
+    container_name: relink-db
+    environment:
+      POSTGRES_DB: ${PROD_POSTGRES_DB}
+      POSTGRES_USER: ${PROD_DB_USERNAME}
+      POSTGRES_PASSWORD: ${PROD_DB_PASSWORD}
+      TZ: Asia/Seoul
+    env_file:
+      - ./.env
+    ports:
+      - "7000:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_postgres.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: always
+
+volumes:
+  postgres_data:
