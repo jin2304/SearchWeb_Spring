@@ -3,6 +3,8 @@ name: ReLink Production CI/CD
 on:
   push:
     branches: [ "main", "dev" ] # main, dev 브랜치 직접 푸시 및 타 브랜치 PR 머지(Merge) 완료 시 실행
+  pull_request: # PR 단계에서 수정한 워크플로우 파일이 즉각 작동하도록 원복 (동일 저장소 내 PR이므로 Secrets 주입 가능)
+    branches: [ "main", "dev" ]
 
 jobs:
   build-and-push:
@@ -38,14 +40,29 @@ jobs:
     needs: build-and-push # 빌드 작업이 성공해야 배포 시작
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # 설정 파일 복사를 위해 Checkout 추가
+
+      - name: Copy config files via SCP
+        uses: appleboy/scp-action@master # 최신 도커 컴포즈 & Nginx 설정을 서버로 자동 복사
+        with:
+          host: ${{ secrets.PROD_VM1_HOST }}
+          username: ${{ secrets.PROD_VM1_USER }}
+          key: ${{ secrets.PROD_VM1_SSH_KEY }}
+          source: "deploy/prod/web/docker-compose-prod-web.yml,deploy/prod/web/nginx-prod.conf"
+          target: "~/Searchweb/deploy"
+          strip_components: 3
+
       - name: Deploy to Oracle Cloud VM1
-        uses: appleboy/ssh-action@master # 서버에 원격 접속
+        uses: appleboy/ssh-action@master # 서버에 원격 접속하여 배포 명령 실행
         with:
           host: ${{ secrets.PROD_VM1_HOST }}
           username: ${{ secrets.PROD_VM1_USER }}
           key: ${{ secrets.PROD_VM1_SSH_KEY }}
           script: |
             cd ~/Searchweb/deploy
+            # 기존 컨테이너 이름(relink-app) 충돌 방지를 위해 선삭제 조치
+            sudo docker rm -f relink-app || true
             # 서버에서 최신 이미지로 교체 및 재시작
             sudo docker compose -f docker-compose-prod-web.yml pull backend
             sudo docker compose -f docker-compose-prod-web.yml up -d backend
