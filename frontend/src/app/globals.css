@@ -40,7 +40,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   
-  /* SearchWeb specific custom colors */
+  /* ReLink specific custom colors */
   --color-primary-content: var(--primary-content);
   --color-primary-dark: var(--primary-dark);
   --color-primary-light: var(--primary-light);
@@ -134,7 +134,7 @@
   --input: rgba(255, 255, 255, 0.08);
   --ring: rgba(124, 58, 237, 0.5); /* Purple Transparent */
   
-  /* SearchWeb specific custom colors for dark mode */
+  /* ReLink specific custom colors for dark mode */
   --text-main: #f8fafc; /* slate-50 */
   --text-sub: #94a3b8; /* slate-400 */
 }

@@ -35,9 +35,11 @@ export function Header({ title = 'My Links' }: HeaderProps) {
           : ''
       }`}>
         <div className="ml-auto flex items-center space-x-1">
+          {/* 향후 기능 개발 예정이라 주석
           <button type="button" className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-md transition-colors">
             <span className="material-symbols-outlined !text-[14px]">notifications</span>
           </button>
+          */}
           <button
             type="button"
             className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-md transition-colors"

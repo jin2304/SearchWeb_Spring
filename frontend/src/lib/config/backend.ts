@@ -9,7 +9,7 @@ const rawBackendOrigin =
 // 배포 환경(production)에서 환경 변수 설정 누락 시 경고 출력 (디버깅 지원)
 if (process.env.NODE_ENV === 'production' && !rawBackendOrigin) {
   console.warn(
-    '[SearchWeb Config]: NEXT_PUBLIC_BACKEND_ORIGIN 이 설정되지 않았습니다. ' +
+    '[ReLink Config]: NEXT_PUBLIC_BACKEND_ORIGIN 이 설정되지 않았습니다. ' +
     '현재 도메인을 기반으로 하는 상대 경로 모드(/api/...)로 동작합니다.'
   );
 }

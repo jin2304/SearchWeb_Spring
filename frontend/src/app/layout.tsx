@@ -17,8 +17,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SearchWeb - 북마크의 진화, AI 지능형 관리",
-  description: "AI를 통해 북마크를 지능적으로 관리하세요. SearchWeb.",
+  title: "ReLink - 북마크의 진화, AI 지능형 관리",
+  description: "AI를 통해 북마크를 지능적으로 관리하세요. ReLink.",
 };
 
 export default function RootLayout({

@@ -33,8 +33,8 @@ export function Sidebar() {
       
       {/* Logo Area */}
       <div className="p-4 flex items-center space-x-2">
-        <span className="material-symbols-outlined text-3xl text-violet-400">language</span>
-        <h1 className="text-xl font-bold tracking-tight">SearchWeb</h1>
+        <img src="/relink_logo.png" alt="ReLink Logo" className="w-7 h-7 object-contain" />
+        <h1 className="text-xl font-bold tracking-tight">ReLink</h1>
       </div>
 
       {/* User Profile Outline */}

@@ -67,7 +67,7 @@ export default function Home() {
     if (isAuthenticated) {
       router.push("/my-links");
     } else {
-      window.location.href = buildBackendUrl("/oauth2/authorization/google");
+      router.push("/login");
     }
   };
 
@@ -92,7 +92,7 @@ export default function Home() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 dark:bg-violet-500 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]"></span>
                     </span>
-                    <span className="tracking-tight">지금 가장 스마트한 북마크, SearchWeb 베타서비스</span>
+                    <span className="tracking-tight">지금 가장 스마트한 북마크, ReLink 베타서비스</span>
                   </div>
                   <h1 className="text-text-main dark:text-white text-2xl sm:text-3xl font-black leading-[1.2] tracking-tight lg:text-4xl pt-2">
                     흩어진 링크에서,<br/>
@@ -100,14 +100,14 @@ export default function Home() {
                   </h1>
                   <p className="text-text-sub dark:text-white/60 text-sm font-medium leading-relaxed tracking-tight max-w-lg opacity-80">
                     저장하고, 태그하고, 다시 활용하세요.<br/>
-                    SearchWeb이 당신의 지식 관리를 돕습니다.<br/>
+                    ReLink가 당신의 지식 관리를 돕습니다.<br/>
                     단순한 저장을 넘어선 지식 베이스를 구축하세요.
                   </p>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-4 pt-0">
                   <a 
-                    href={isAuthenticated ? "/my-links" : buildBackendUrl("/oauth2/authorization/google")}
+                    href={isAuthenticated ? "/my-links" : "/login"}
                     onClick={handleStartClick}
                     className="flex items-center justify-center gap-2 bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] hover:brightness-110 text-white text-sm font-bold h-11 px-6 rounded-lg transition-all shadow-lg shadow-violet-500/25 border-t border-white/20 whitespace-nowrap"
                   >
@@ -228,9 +228,9 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Tiny floating elements for dynamic feel */}
+                  {/* 마지막 남은 배경 요소들 주석 처리
                   <div className="absolute top-10 right-[10%] h-4 w-4 rounded-full bg-blue-400/20 blur-sm animate-pulse"></div>
-                  {/* Floating AI Magic Icon - Enhanced Background Element (Bottom Left) - Optimized */}
+                  
                   <div className={`absolute bottom-[12%] left-[4%] lg:left-[10%] hidden sm:block z-0 transition-opacity duration-1000 pointer-events-none filter blur-[2px] ${mounted ? 'opacity-70 dark:opacity-50 animate-float-soft' : 'opacity-0'}`} style={{ animationDelay: '1s' }}>
                     <div className="p-2.5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/40 dark:border-white/10 rotate-[15deg] scale-105 shadow-lg">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-400/10 text-violet-500/80">
@@ -238,8 +238,9 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
+                  */}
                   
-                  {/* Floating Folder Icon - Enhanced Background Element (Adjusted for overlap) - Optimized */}
+                  {/* Floating Folder Icon 주석 처리
                   <div className={`absolute top-[18%] left-[1%] lg:left-[5%] hidden sm:block z-0 transition-opacity duration-1000 pointer-events-none filter blur-[2px] ${mounted ? 'opacity-60 dark:opacity-40 animate-float-soft-slow' : 'opacity-0'}`}>
                     <div className="p-2.5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/40 dark:border-white/10 rotate-[-15deg] scale-110 shadow-xl">
                       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-500/80">
@@ -247,8 +248,9 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
+                  */}
                   
-                  {/* Floating Rocket Icon - Enhanced Background Element - Optimized */}
+                  {/* Floating Rocket Icon 주석 처리
                   <div className={`absolute bottom-[14%] right-[0%] lg:right-[4%] hidden sm:block z-0 transition-opacity duration-1000 pointer-events-none filter blur-[1.5px] ${mounted ? 'opacity-70 dark:opacity-50 animate-float-soft' : 'opacity-0'}`} style={{ animationDelay: '2s' }}>
                     <div className="p-2.5 rounded-3xl bg-white/50 dark:bg-slate-700/50 border border-white/50 dark:border-blue-400/20 rotate-[12deg] scale-85 shadow-lg">
                       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500/20 to-purple-600/20 dark:from-blue-500/30 dark:to-purple-600/30 text-blue-600 dark:text-purple-400">
@@ -256,6 +258,7 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
+                  */}
                 </div>
               </div>
             </div>
@@ -265,7 +268,7 @@ export default function Home() {
         <section id="features" className="bg-background-dark dark:bg-white px-6 py-24 lg:px-20 relative z-10 border-y border-slate-800 dark:border-slate-200 min-h-screen flex items-center transition-colors duration-300">
           <div className="mx-auto max-w-6xl">
             <div className="mb-12 flex flex-col gap-4 md:text-center md:items-center">
-              <h2 className="text-3xl font-bold tracking-tight text-white dark:text-slate-900 sm:text-4xl">왜 SearchWeb인가요?</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-white dark:text-slate-900 sm:text-4xl">왜 ReLink인가요?</h2>
               <p className="text-lg text-slate-400 dark:text-slate-600 max-w-2xl">단순한 북마크를 넘어선 지능형 지식 관리 시스템을 경험하세요.</p>
             </div>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -412,7 +415,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 md:flex-row">
           <div className="flex items-center space-x-2 group transition-opacity">
             <span className="material-symbols-outlined text-3xl text-violet-400 group-hover:scale-110 transition-transform">language</span>
-            <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">SearchWeb</span>
+            <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">ReLink</span>
           </div>
           <div className="flex gap-10 text-sm text-slate-400">
             <a className="hover:text-white transition-colors" href="#">이용약관</a>
@@ -420,7 +423,7 @@ export default function Home() {
             <a className="hover:text-white transition-colors" href="#">문의하기</a>
           </div>
           <div className="text-sm text-slate-500 font-medium">
-            © 2026 SearchWeb Inc. All rights reserved.
+            © 2026 ReLink Inc. All rights reserved.
           </div>
         </div>
       </footer>
