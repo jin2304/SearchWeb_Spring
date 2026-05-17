@@ -302,6 +302,7 @@
         DO UPDATE SET deleted_at = NULL, updated_at = now()
     </insert>
 
+    <!-- 폴더 내 활성 북마크 존재 여부 확인 -->
     <select id="existsActiveBookmarkInFolder" parameterType="long" resultType="boolean">
         SELECT EXISTS (
             SELECT 1
@@ -310,6 +311,30 @@
               AND deleted_at IS NULL
         )
     </select>
+
+    <!-- 폴더 내 모든 북마크 논리 삭제 -->
+    <update id="deleteBookmarksInFolder">
+        UPDATE member_saved_link
+        SET deleted_at = CURRENT_TIMESTAMP,
+            deleted_by_member_id = #{memberId}
+        WHERE created_by_member_id = #{memberId}
+          AND member_folder_id = #{folderId}
+          AND deleted_at IS NULL
+    </update>
+
+    <!-- 폴더 내 모든 북마크의 태그 연결 정보 논리 삭제 -->
+    <update id="deleteBookmarkTagsInFolder">
+        UPDATE member_saved_link_tag
+        SET deleted_at = CURRENT_TIMESTAMP,
+            deleted_by_member_id = #{memberId}
+        WHERE member_saved_link_id IN (
+            SELECT member_saved_link_id 
+            FROM member_saved_link 
+            WHERE created_by_member_id = #{memberId}
+              AND member_folder_id = #{folderId}
+        )
+        AND deleted_at IS NULL
+    </update>
 
     <!-- 폴더별 컨텍스트 조회 (LLM 폴더 추천용)
          - LATERAL aggregation: 폴더당 북마크 수, 최근 저장일, 샘플 제목, 자주 쓰인 태그(빈도)를 단일 쿼리로 수집

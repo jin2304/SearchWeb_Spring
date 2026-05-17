@@ -8,6 +8,7 @@ import com.web.SearchWeb.folder.error.FolderErrorCode;
 import com.web.SearchWeb.folder.error.FolderException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -76,6 +77,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
             .parentFolderId(parentFolderId)
             .folderName(normalizedFolderName)
             .description(normalizedDescription)
+            .createdByMemberId(memberId)
             .build();
 
         return memberFolderJpaRepository.save(folder).getMemberFolderId();
@@ -120,7 +122,10 @@ public class MemberFolderServiceImpl implements MemberFolderService {
         if (!memberFolderJpaRepository.existsByOwnerMemberIdAndFolderType(ownerMemberId, FolderType.UNORGANIZED)) {
             self.getOrCreateUnorganizedFolderId(ownerMemberId);
         }
-        return memberFolderJpaRepository.findAllByOwnerMemberIdAndParentFolderIdIsNull(ownerMemberId);
+        return memberFolderJpaRepository.findAllByOwnerMemberIdAndParentFolderIdIsNull(ownerMemberId)
+            .stream()
+            .filter(f -> !f.isDeleted())
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -131,7 +136,10 @@ public class MemberFolderServiceImpl implements MemberFolderService {
         if (!parentFolder.getOwnerMemberId().equals(ownerMemberId)) {
             throw new FolderException(FolderErrorCode.FOLDER_FORBIDDEN);
         }
-        return memberFolderJpaRepository.findAllByOwnerMemberIdAndParentFolderId(ownerMemberId, parentFolderId);
+        return memberFolderJpaRepository.findAllByOwnerMemberIdAndParentFolderId(ownerMemberId, parentFolderId)
+            .stream()
+            .filter(f -> !f.isDeleted())
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -223,12 +231,30 @@ public class MemberFolderServiceImpl implements MemberFolderService {
             throw new FolderException(FolderErrorCode.SYSTEM_FOLDER_IMMUTABLE);
         }
 
-        if (memberFolderJpaRepository.existsByParentFolderId(memberFolderId)
-            || bookmarkDao.existsActiveBookmarkInFolder(memberFolderId)) {
-            throw new FolderException(FolderErrorCode.FOLDER_NOT_EMPTY);
+        // 재귀적으로 폴더 및 북마크 삭제 수행
+        deleteRecursive(memberId, folder);
+    }
+
+    /**
+     * 폴더와 그 하위 모든 폴더 및 북마크를 재귀적으로 논리 삭제(Soft Delete)합니다.
+     */
+    private void deleteRecursive(Long memberId, MemberFolder folder) {
+        Long folderId = folder.getMemberFolderId();
+
+        // 1. 하위 폴더 조회 및 재귀 삭제
+        List<MemberFolder> children = memberFolderJpaRepository
+            .findAllByOwnerMemberIdAndParentFolderId(memberId, folderId);
+        
+        for (MemberFolder child : children) {
+            deleteRecursive(memberId, child);
         }
 
-        memberFolderJpaRepository.deleteById(memberFolderId);
+        // 2. 현재 폴더 내의 모든 북마크 및 태그 연결 논리 삭제
+        bookmarkDao.deleteBookmarkTagsInFolder(memberId, folderId);
+        bookmarkDao.deleteBookmarksInFolder(memberId, folderId);
+
+        // 3. 현재 폴더 논리 삭제
+        folder.softDelete(memberId);
     }
 
     @Override
@@ -280,6 +306,10 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     private MemberFolder getOwnedFolder(Long memberId, Long memberFolderId) {
         MemberFolder folder = memberFolderJpaRepository.findById(memberFolderId)
             .orElseThrow(() -> new FolderException(FolderErrorCode.FOLDER_NOT_FOUND));
+
+        if (folder.isDeleted()) {
+            throw new FolderException(FolderErrorCode.FOLDER_NOT_FOUND);
+        }
 
         validateOwner(memberId, folder.getOwnerMemberId());
         return folder;

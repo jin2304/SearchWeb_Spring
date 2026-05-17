@@ -64,6 +64,12 @@ public interface BookmarkDao {
     // 폴더 내 활성 북마크 존재 여부
     boolean existsActiveBookmarkInFolder(Long memberFolderId);
 
+    // 폴더 내 모든 북마크 논리 삭제
+    int deleteBookmarksInFolder(@Param("memberId") Long memberId, @Param("folderId") Long folderId);
+
+    // 폴더 내 모든 북마크의 태그 연결 논리 삭제
+    int deleteBookmarkTagsInFolder(@Param("memberId") Long memberId, @Param("folderId") Long folderId);
+
     // 폴더별 컨텍스트 조회 (LLM 폴더 추천용 - LATERAL aggregation)
     List<Map<String, Object>> selectFolderContexts(@Param("memberId") Long memberId,
                                                    @Param("sampleLimit") int sampleLimit,

@@ -8,22 +8,24 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import com.web.SearchWeb.common.domain.BaseEntity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Table(name = "member_folder")
-public class MemberFolder {
+@org.hibernate.annotations.SQLRestriction("deleted_at IS NULL")
+public class MemberFolder extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
