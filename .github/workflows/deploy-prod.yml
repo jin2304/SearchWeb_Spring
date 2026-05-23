@@ -12,29 +12,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4 # 소스 코드 가져오기
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin' # 자바 실행 환경 설정
-
-      - name: Build with Gradle
-        run: |
-          chmod +x gradlew
-          ./gradlew clean bootJar # 빌드해서 실행 파일(Jar) 생성
-
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }} # 도커 허브 로그인
 
-      - name: Build and Push Docker Image
+      - name: Build and Push Backend Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/relink-backend:latest # 도커 이미지 만들어서 업로드
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/relink-backend:latest # 백엔드 도커 이미지 만들어서 업로드
 
   build-frontend:
     runs-on: ubuntu-latest
