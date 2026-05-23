@@ -6,6 +6,7 @@ import com.web.SearchWeb.bookmark.dao.BookmarkDao;
 import com.web.SearchWeb.folder.domain.MemberFolder;
 import com.web.SearchWeb.folder.service.MemberFolderService;
 import com.web.SearchWeb.linkanalysis.domain.FolderContext;
+import com.web.SearchWeb.linkanalysis.domain.LinkAnalysisContextLevel;
 import com.web.SearchWeb.linkanalysis.domain.LinkAnalysisResult;
 import com.web.SearchWeb.linkanalysis.domain.PageContent;
 import com.web.SearchWeb.linkanalysis.error.LinkAnalysisErrorCode;
@@ -59,6 +60,9 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
     private static final int MAX_SAMPLE_TITLE_LENGTH = 60;
     /** 컨텍스트 태그(빈도) 최대 길이 */
     private static final int MAX_CONTEXT_TAG_LENGTH = 80;
+    /** HIGH_CONTEXT 판정에 필요한 최소 커스텀 루트 폴더 수 */
+    private static final int HIGH_CONTEXT_MIN_CUSTOM_ROOT_FOLDERS = 7;
+    
     @Qualifier("chatClient")
     private final ChatClient chatClient;                         // LLM 모델 호출 (AiConfig의 기본 provider 사용)
     private final LinkMetadataExtractor linkMetadataExtractor;   // 페이지 크롤링
@@ -72,7 +76,7 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
     @Value("${app.ai.prompt.system}")
     private Resource systemPromptResource;
 
-    // [Main] 폴더 상세 정보(최근 저장 제목 등)가 포함된 최신 프롬프트 리소스
+    // [Main] 폴더 상세 정보(대표 저장 제목 등)가 포함된 최신 프롬프트 리소스
     @Value("${app.ai.prompt.user.enriched}")
     private Resource enrichedUserPromptResource;
 
@@ -110,10 +114,11 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
 
         // 3. 폴더 컨텍스트 enrichment — 실패 시 빈 List 반환 → fallback 경로
         List<FolderContext> folderContexts = enrichFolderContext(memberId);
+        LinkAnalysisContextLevel contextLevel = determineContextLevel(folders);
 
         // 4. AI 분석 (실패 시 크롤링 데이터만으로 폴백)
         try {
-            String userPrompt = buildPrompt(page, folders, tags, folderContexts);
+            String userPrompt = buildPrompt(page, folders, tags, folderContexts, contextLevel);
 
             // 로그용으로 폴더 컨텍스트 블록 미리 생성
             boolean hasFolderContext = folderContexts != null && !folderContexts.isEmpty();
@@ -133,6 +138,7 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
                     │ │ Snippet:  {}자
                     │ └────────────────
                     │ ┌── 사용자 데이터 ──
+                    │ │ 컨텍스트 수준: {}
                     │ │ 폴더 {}개: [{}]
                     │ │ 태그 사전: {}
                     │ └────────────────────
@@ -146,6 +152,7 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
                     page.getKeywords().isEmpty() ? "none" : String.join(", ", page.getKeywords()),
                     page.getHeadings().isEmpty() ? "none" : String.join(" | ", page.getHeadings()),
                     page.getMainTextSnippet() != null ? page.getMainTextSnippet().length() : 0,
+                    contextLevel,
                     folders.size(), folders.stream().map(MemberFolder::getFolderName).collect(Collectors.joining(", ")),
                     tagDictionaryLog,
                     folderContextLog);
@@ -229,6 +236,31 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
         }
     }
 
+    /**
+     * 사용자 폴더 구조를 기준으로 AI의 기존 분류 체계 활용 수준 결정.
+     */
+    private LinkAnalysisContextLevel determineContextLevel(List<MemberFolder> folders) {
+        // 미분류 폴더를 제외한 사용자가 직접 만든 루트 폴더 개수
+        long customRootFolderCount = folders == null ? 0 : folders.stream()
+                .filter(folder -> folder != null && !folder.isUnorganized())
+                .count();
+
+        LinkAnalysisContextLevel level = customRootFolderCount >= HIGH_CONTEXT_MIN_CUSTOM_ROOT_FOLDERS
+                ? LinkAnalysisContextLevel.HIGH_CONTEXT
+                : LinkAnalysisContextLevel.LOW_CONTEXT;
+
+        log.debug("[link-analysis-context] level={}, customRootFolders={}", level, customRootFolderCount);
+
+        return level;
+    }
+
+    /**
+     * 시스템 폴더(미분류 폴더) 여부 확인
+     */
+    private boolean isUnorganizedFolderContext(FolderContext folderContext) {
+        return folderContext != null && "UNORGANIZED".equalsIgnoreCase(folderContext.getFolderType());
+    }
+
 
     /**
      * 샘플 제목 sanitization
@@ -281,14 +313,13 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
      * 폴더 컨텍스트 블록 렌더링
      * - 포맷: "- 폴더명: 설명\n  해시태그(빈도): [tag1(12), tag2(7)]\n  대표 링크: title1, title2"
      * - UNORGANIZED는 "(시스템 폴더 - 분석 불가 시에만)" 마커 부착
-     * - description/태그/샘플이 없으면 폴더명만 표시
      */
     private String buildFolderContextBlock(List<FolderContext> folderContexts) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < folderContexts.size(); i++) {
             FolderContext folderContext = folderContexts.get(i);
             String name = folderContext.getFolderName() != null ? folderContext.getFolderName() : "";
-            boolean unorganized = "UNORGANIZED".equalsIgnoreCase(folderContext.getFolderType());
+            boolean unorganized = isUnorganizedFolderContext(folderContext);
 
             // 모든 폴더: 이름과 설명은 기본적으로 포함 (AI가 존재를 인식하게 함)
             sb.append("- ").append(name);
@@ -355,7 +386,8 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
     private String buildPrompt(PageContent page,
                                List<MemberFolder> folders,
                                List<MemberTag> tags,
-                               List<FolderContext> folderContexts) {
+                               List<FolderContext> folderContexts,
+                               LinkAnalysisContextLevel contextLevel) {
 
         String folderNamesText = folders.stream()
                 .map(MemberFolder::getFolderName)
@@ -382,6 +414,8 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
         variables.put("keywords", keywords);
         variables.put("headings", headings);
         variables.put("mainTextSnippet", snippet);
+        variables.put("contextMode", contextLevel.name());
+        variables.put("modeInstruction", renderModeInstruction(contextLevel));
 
         // ----- Fallback 경로: 폴더 컨텍스트 정보가 없을 때 (기본형 템플릿 렌더링) -----
         if (folderContexts == null || folderContexts.isEmpty()) {
@@ -396,6 +430,18 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
         return enrichedUserPromptTemplate.render(variables);
     }
 
+    private String renderModeInstruction(LinkAnalysisContextLevel contextLevel) {
+        if (contextLevel == LinkAnalysisContextLevel.HIGH_CONTEXT) {
+            return """
+                    context: HIGH_CONTEXT
+                    folder: 기존 폴더 강한 일치 우선, 없으면 신규 제안""";
+        }
+
+        return """
+                context: LOW_CONTEXT
+                folder: 링크 내용 기반 신규 제안 우선, 강한 기존 일치만 재사용""";
+    }
+
 
     /**
      * AI 응답 파싱 + 기존 폴더/태그 매칭
@@ -403,7 +449,10 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
      * - 추천 태그/폴더를 기존 데이터와 대조하여 isExisting 설정
      * - 파싱 실패 시 폴백 결과 반환
      */
-    private LinkAnalysisResult parseAndEnrich(String aiResponse, List<MemberFolder> folders, List<MemberTag> tags, PageContent page) {
+    private LinkAnalysisResult parseAndEnrich(String aiResponse,
+                                              List<MemberFolder> folders,
+                                              List<MemberTag> tags,
+                                              PageContent page) {
         try {
             // 마크다운 코드블록 제거 (```json ... ``` 대비)
             String json = aiResponse.trim();
