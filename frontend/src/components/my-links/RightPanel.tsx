@@ -10,6 +10,7 @@ import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
 import { FOLDER_TYPE } from '@/lib/types/folder';
 import { compareFolders } from '@/lib/utils/folderUtils';
+import { buildGoogleFaviconUrl, getUrlHostname, getUrlBaseDomain, buildDirectFaviconUrl } from '@/lib/utils/favicon';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -67,6 +68,12 @@ function LinkItem({
   const [tagInput, setTagInput] = useState(data.tags?.join(', ') ?? '');     // 태그 입력값
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);               // 더보기 메뉴 오픈 여부 
   const [isFolderDropdownOpen, setIsFolderDropdownOpen] = useState(false);   // 폴더 이동 드롭다운 여부
+  const [faviconFallbackStep, setFaviconFallbackStep] = useState<'basedomain' | 'direct' | 'failed'>('basedomain');
+
+  // 북마크 데이터가 바뀌면 파비콘 재시도 플래그를 리셋합니다.
+  useEffect(() => {
+    setFaviconFallbackStep('basedomain');
+  }, [data.bookmarkId]);
   
   const noteInputRef = useRef<HTMLInputElement>(null);     // 메모 입력창 참조
   const titleInputRef = useRef<HTMLInputElement>(null);    // 제목 입력창 참조
@@ -88,6 +95,27 @@ function LinkItem({
   const ringDarkClass = isActive ? 'dark:ring-violet-400/35 dark:ring-2' : 'dark:ring-violet-400/25 dark:group-hover:ring-transparent';
   const iconDarkClass = 'dark:bg-gray-800 dark:border-gray-700 dark:group-hover:border-violet-400/30 dark:group-hover:bg-[linear-gradient(135deg,rgba(109,40,217,0.3)_0%,rgba(139,92,246,0.18)_100%)] dark:group-hover:text-violet-200 dark:group-hover:shadow-[0_12px_24px_-16px_rgba(124,58,237,0.8)]';
   const tagDarkClass = 'dark:border-white/8 dark:bg-slate-800/85 dark:text-slate-300 dark:group-hover:border-violet-400/30 dark:group-hover:bg-[linear-gradient(135deg,rgba(76,29,149,0.32)_0%,rgba(109,40,217,0.22)_100%)] dark:group-hover:text-violet-100';
+
+  // 대안 A 파비콘 폴백 주소 계산
+  const fallbackFaviconUrl = (() => {
+    const originalUrl = data.link?.originalUrl ?? data.link?.canonicalUrl ?? data.link?.domain;
+    if (!originalUrl) return null;
+    if (faviconFallbackStep === 'basedomain') {
+      return buildGoogleFaviconUrl(getUrlBaseDomain(originalUrl));
+    }
+    if (faviconFallbackStep === 'direct') {
+      return buildDirectFaviconUrl(originalUrl);
+    }
+    return null;
+  })();
+
+  const fallbackDomain =
+    getUrlHostname(data.link?.originalUrl) ??
+    getUrlHostname(data.link?.canonicalUrl) ??
+    getUrlHostname(data.link?.domain) ??
+    data.link?.domain ??
+    data.displayTitle;
+  const fallbackInitial = fallbackDomain?.[0]?.toUpperCase() ?? 'L';
 
 
   // Handle outside clicks for dropdowns and editing modes | 드롭다운 및 편집 모드 외부 클릭 시 닫기/저장 처리
@@ -223,7 +251,7 @@ function LinkItem({
   return (
     <div
       ref={itemRef}
-      className={`group relative isolate z-0 hover:z-20 flex items-center p-3 rounded-xl transition-all duration-300 cursor-pointer border shadow-sm backdrop-blur-[6px] dark:backdrop-blur-none ${
+      className={`group relative isolate z-0 hover:z-20 flex items-center p-3 rounded-xl transition-all duration-300 cursor-pointer border shadow-sm backdrop-blur-[6px] dark:backdrop-blur-none select-none ${
         isActive
           ? 'border-violet-400/25 bg-white/94 shadow-[0_22px_45px_-20px_rgba(124,58,237,0.22),0_15px_25px_-10px_rgba(124,58,237,0.14),0_0_0_1px_rgba(167,139,250,0.18)]'
           : 'border-gray-200/75 bg-white/88 hover:border-violet-500/50 hover:bg-white/90 hover:shadow-[0_12px_36px_-12px_rgba(0,0,0,0.08),inset_0_0_0_1px_rgba(124,58,237,0.4)] hover:backdrop-blur-md'
@@ -278,19 +306,75 @@ function LinkItem({
       {/* Favicon & Domain Icon | 파비콘 및 도메인 아이콘 */}
       <div className={`relative z-10 h-8 w-8 rounded-lg bg-gray-100 text-gray-400 dark:text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold shrink-0 overflow-hidden border border-gray-100 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-violet-200/90 group-hover:bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(243,232,255,0.96)_100%)] group-hover:text-violet-600 group-hover:shadow-[0_12px_20px_-12px_rgba(124,58,237,0.28)] ${iconDarkClass}`}>
         {data.link?.faviconUrl ? (
-          <img src={data.link.faviconUrl} alt="" className="w-5 h-5 object-contain" />
-        ) : data.link?.domain ? (
           <img 
-            src={`https://www.google.com/s2/favicons?domain=${data.link.domain}&sz=64`} 
+            src={data.link.faviconUrl} 
+            alt="" 
+            className="w-5 h-5 object-contain" 
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              if (img.naturalWidth === 16 && img.naturalHeight === 16) {
+                if (!img.dataset.fallbackStep) {
+                  img.dataset.fallbackStep = 'basedomain';
+                  img.src = buildGoogleFaviconUrl(getUrlBaseDomain(data.link?.originalUrl)) || '';
+                } else if (img.dataset.fallbackStep === 'basedomain') {
+                  img.dataset.fallbackStep = 'direct';
+                  img.src = buildDirectFaviconUrl(data.link?.originalUrl) || '';
+                } else {
+                  img.style.display = 'none';
+                  if (img.parentElement) {
+                    img.parentElement.textContent = fallbackInitial;
+                  }
+                }
+              }
+            }}
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (!img.dataset.fallbackStep) {
+                img.dataset.fallbackStep = 'basedomain';
+                img.src = buildGoogleFaviconUrl(getUrlBaseDomain(data.link?.originalUrl)) || '';
+              } else if (img.dataset.fallbackStep === 'basedomain') {
+                img.dataset.fallbackStep = 'direct';
+                img.src = buildDirectFaviconUrl(data.link?.originalUrl) || '';
+              } else {
+                img.style.display = 'none';
+                if (img.parentElement) {
+                  img.parentElement.textContent = fallbackInitial;
+                }
+              }
+            }}
+          />
+        ) : fallbackFaviconUrl ? (
+          <img 
+            src={fallbackFaviconUrl} 
             alt="" 
             className="w-5 h-5 object-contain"
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              if (img.naturalWidth === 16 && img.naturalHeight === 16) {
+                if (faviconFallbackStep === 'basedomain') {
+                  setFaviconFallbackStep('direct');
+                } else {
+                  img.style.display = 'none';
+                  if (img.parentElement) {
+                    img.parentElement.textContent = fallbackInitial;
+                  }
+                }
+              }
+            }}
             onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-              (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="uppercase">${data.link?.domain?.[0] ?? 'L'}</span>`;
+              const img = e.currentTarget;
+              if (faviconFallbackStep === 'basedomain') {
+                setFaviconFallbackStep('direct');
+              } else {
+                img.style.display = 'none';
+                if (img.parentElement) {
+                  img.parentElement.textContent = fallbackInitial;
+                }
+              }
             }}
           />
         ) : (
-          <span className="uppercase">{(data.link?.domain ?? data.displayTitle)?.[0] ?? 'L'}</span>
+          <span className="uppercase">{fallbackInitial}</span>
         )}
       </div>
       <div className="relative z-10 ml-3 flex-1 flex flex-col min-w-0">
@@ -873,26 +957,36 @@ export function RightPanel() {
 
               {/* Dropdown Menu */}
               {isTagDropdownOpen && (
-                <div className="absolute left-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-gray-100/50 dark:border-white/10 py-1.5 z-30 flex flex-col max-h-[300px] overflow-y-auto origin-top-left animate-in fade-in slide-in-from-top-1 duration-200">
-                  {AVAILABLE_TAGS.map(tag => {
-                    const isSelected = selectedTags.includes(tag);
-                    return (
-                      <button
-                        key={tag}
-                        className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-medium hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left w-full"
-                        onClick={() => toggleTag(tag)}
-                      >
-                        <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-purple-500 border-purple-500 text-white' : 'border-gray-300 dark:border-gray-600'}`}>
-                          {isSelected && <span className="material-symbols-outlined !text-[10px] font-bold">check</span>}
-                        </div>
-                        <span className={isSelected ? 'text-purple-600 dark:text-purple-400' : 'text-gray-700 dark:text-gray-300'}>{tag}</span>
-                      </button>
-                    );
-                  })}
+                <div className="absolute left-0 top-full mt-2 w-36 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-gray-100/50 dark:border-white/8 py-1.5 z-30 flex flex-col max-h-[300px] overflow-y-auto origin-top-left animate-in fade-in slide-in-from-top-1 duration-200">
+                  {AVAILABLE_TAGS.length > 0 ? (
+                    AVAILABLE_TAGS.map(tag => {
+                      const isSelected = selectedTags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          className="group/item flex items-center gap-2.5 px-3 py-1.5 mx-1 rounded-lg text-[10px] font-medium hover:bg-purple-100/60 dark:hover:bg-purple-900/30 transition-all text-left relative"
+                          onClick={() => toggleTag(tag)}
+                        >
+                          <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-purple-500 border-purple-500 text-white' : 'border-gray-300 dark:border-gray-600'}`}>
+                            {isSelected && <span className="material-symbols-outlined !text-[10px] font-bold">check</span>}
+                          </div>
+                          <span className={`transition-colors duration-200 truncate ${isSelected ? 'text-purple-600 dark:text-purple-400 font-semibold' : 'text-gray-600 dark:text-white group-hover/item:text-gray-900 dark:group-hover/item:text-white'}`}>
+                            {tag}
+                          </span>
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div className="flex items-center gap-2.5 px-3 py-1.5 mx-1 cursor-default">
+                      <span className="material-symbols-outlined !text-[14px] text-purple-500 dark:text-purple-400">sell</span>
+                      <span className="text-[10px] font-medium text-purple-600 dark:text-purple-400">No tags found</span>
+                    </div>
+                  )}
                   {selectedTags.length > 0 && (
                     <div className="mt-1 pt-1 border-t border-gray-100/50 dark:border-gray-700/50">
                       <button 
-                        className="w-full flex items-center justify-center gap-1 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 py-2 font-medium transition-all"
+                        className="w-[calc(100%-8px)] flex items-center justify-center gap-1 text-[10px] text-gray-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-100/60 dark:hover:bg-purple-900/30 py-1.5 mx-1 rounded-lg font-medium transition-all"
                         onClick={() => setSelectedTags([])}
                       >
                         <span className="material-symbols-outlined !text-[12px]">playlist_remove</span>

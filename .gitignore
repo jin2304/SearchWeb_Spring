@@ -55,4 +55,10 @@ CLAUDE.md
 .gradle-user/
 status.txt
 status_utf8.txt
-docs/Backend/memo/
+docs_tmp/
+
+
+
+
+prd.json
+progress.txt

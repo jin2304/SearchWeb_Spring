@@ -13,6 +13,8 @@ import { useAnalyzeLink } from '@/lib/api/linkAnalysisApi';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { LinkAnalysisResponse } from '@/lib/types/linkAnalysis';
 import { FOLDER_TYPE } from '@/lib/types/folder';
+import { Spinner } from '@/components/ui/spinner';
+import { buildGoogleFaviconUrl, getUrlBaseDomain, buildDirectFaviconUrl } from '@/lib/utils/favicon';
 
 // 디자인 시안에서 추출한 커스텀 테마 매핑
 const theme = {
@@ -104,13 +106,27 @@ export function SaveLinkDialog() {
   }, [url]);
 
   useEffect(() => {
-    setFaviconLoadFailed(false);
+    setFaviconFallbackStep('basedomain');
+    setFaviconVisible(false);
   }, [url]);
 
   
-  // --- UI 전용 상태 추가 (클립보드 추천) ---
+  // --- UI 전용 상태 추가 (클립보드 추천 및 파비콘 폴백) ---
   const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
-  const [faviconLoadFailed, setFaviconLoadFailed] = useState(false);
+  const [faviconFallbackStep, setFaviconFallbackStep] = useState<'basedomain' | 'direct' | 'failed'>('basedomain');
+  const [faviconVisible, setFaviconVisible] = useState(false);
+  
+  const previewFaviconUrl = (() => {
+    if (!url) return null;
+    if (faviconFallbackStep === 'basedomain') {
+      const baseDomain = getUrlBaseDomain(url);
+      return buildGoogleFaviconUrl(baseDomain);
+    }
+    if (faviconFallbackStep === 'direct') {
+      return buildDirectFaviconUrl(url);
+    }
+    return null;
+  })();
 
   // --- 팝업이 열고 닫힐 때마다 모든 입력 상태 초기화 및 클립보드 감지 ---
   useEffect(() => {
@@ -383,19 +399,42 @@ export function SaveLinkDialog() {
                 <label className="block text-[10px] font-bold text-gray-900 dark:text-white/90 uppercase tracking-[0.15em]">URL</label>
               </div>
               <div className="relative group flex items-center gap-2">
-                <div className="flex-none w-8 h-8 rounded-lg bg-white dark:bg-gray-800 border border-[#e2e8f0] dark:border-gray-700 flex items-center justify-center shadow-sm overflow-hidden">
-                  {url && !faviconLoadFailed ? (
+                <div className="flex-none w-8 h-8 rounded-lg bg-white dark:bg-gray-800 border border-[#e2e8f0] dark:border-gray-700 flex items-center justify-center shadow-sm overflow-hidden relative">
+                  {/* 기본 체인 링크 아이콘 (파비콘 로딩 전/실패 시의 디폴트 플레이스홀더. 파비콘 로드 성공 시 크로스페이드 아웃) */}
+                  <span className={`material-symbols-outlined text-slate-400 !text-[18px] absolute transition-opacity duration-200 ${faviconVisible ? 'opacity-0' : 'opacity-100'}`}>link</span>
+                  
+                  {previewFaviconUrl && faviconFallbackStep !== 'failed' && (
                     <Image
-                      src={`https://www.google.com/s2/favicons?domain=${url.replace(/^https?:\/\//, '').split('/')[0]}&sz=64`}
+                      src={previewFaviconUrl}
                       alt=""
                       width={20}
                       height={20}
                       unoptimized
-                      className="w-5 h-5 object-contain"
-                      onError={() => setFaviconLoadFailed(true)}
+                      className={`w-5 h-5 object-contain transition-opacity duration-200 relative z-10 ${faviconVisible ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={(e) => {
+                        const img = e.currentTarget;
+                        // 구글 파비콘 API는 파비콘이 없을 경우 16x16 크기의 기본 지구본 이미지를 200 OK로 반환.
+                        // 이를 감지하여 실패로 간주하고 폴백(직접 호출)을 실행.
+                        if (img.naturalWidth === 16 && img.naturalHeight === 16) {
+                          setFaviconVisible(false);
+                          if (faviconFallbackStep === 'basedomain') {
+                            setFaviconFallbackStep('direct');
+                          } else {
+                            setFaviconFallbackStep('failed');
+                          }
+                        } else {
+                          setFaviconVisible(true); // 정상 파비콘일 때만 서서히 표시
+                        }
+                      }}
+                      onError={() => {
+                        setFaviconVisible(false);
+                        if (faviconFallbackStep === 'basedomain') {
+                          setFaviconFallbackStep('direct');
+                        } else {
+                          setFaviconFallbackStep('failed');
+                        }
+                      }}
                     />
-                  ) : (
-                    <span className="material-symbols-outlined text-slate-400 !text-[18px]">link</span>
                   )}
                 </div>
                 <div className="relative flex-1">
@@ -460,7 +499,7 @@ export function SaveLinkDialog() {
                 </div>
                 {analyzeUrlMutation.isPending && (
                   <span className="text-[9px] text-violet-500 animate-pulse flex items-center gap-1 font-medium">
-                    <span className="material-symbols-outlined !text-[10px] animate-spin">progress_activity</span>
+                    <Spinner className="h-2.5 w-2.5 border-[1.5px]" />
                     Fetching title...
                   </span>
                 )}
@@ -485,7 +524,7 @@ export function SaveLinkDialog() {
               >
                 {analyzeLinkMutation.isPending ? (
                   <>
-                    <span className="material-symbols-outlined !text-[16px] animate-spin">progress_activity</span>
+                    <Spinner />
                     Analyzing...
                   </>
                 ) : (

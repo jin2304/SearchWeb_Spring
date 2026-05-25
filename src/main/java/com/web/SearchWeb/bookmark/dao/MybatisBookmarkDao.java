@@ -166,9 +166,28 @@ public class MybatisBookmarkDao implements BookmarkDao {
         return mapper.insertBookmarkTags(bookmarkId, tagIds);
     }
 
+    /**
+     *  폴더 내 활성 북마크 존재 여부 확인
+     */
     @Override
     public boolean existsActiveBookmarkInFolder(Long memberFolderId) {
         return mapper.existsActiveBookmarkInFolder(memberFolderId);
+    }
+
+    /**
+     *  폴더 내 모든 북마크 논리 삭제
+     */
+    @Override
+    public int deleteBookmarksInFolder(Long memberId, Long folderId) {
+        return mapper.deleteBookmarksInFolder(memberId, folderId);
+    }
+
+    /**
+     *  폴더 내 모든 북마크의 태그 연결 논리 삭제
+     */
+    @Override
+    public int deleteBookmarkTagsInFolder(Long memberId, Long folderId) {
+        return mapper.deleteBookmarkTagsInFolder(memberId, folderId);
     }
 
     /**

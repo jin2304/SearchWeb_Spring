@@ -1,0 +1,79 @@
+name: ReLink Production CI/CD
+
+on:
+  push:
+    branches: [ "main", "dev" ] # main, dev 브랜치로 머지(push) 완료 시에만 실행
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # 소스 코드 가져오기
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }} # 도커 허브 로그인
+
+      - name: Build and Push Backend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/relink-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/relink-backend:${{ github.sha }}
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # 소스 코드 가져오기
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }} # 도커 허브 로그인
+
+      - name: Build and Push Frontend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/relink-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/relink-frontend:${{ github.sha }}
+
+  deploy:
+    needs: [build-backend, build-frontend] # 백엔드와 프론트엔드 빌드가 모두 성공해야 배포 시작
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # 설정 파일 복사를 위해 Checkout 추가
+
+      - name: Copy config files via SCP
+        uses: appleboy/scp-action@917f8b81dfc1ccd331fef9e2d61bdc6c8be94634 # v0.1.7
+        with:
+          host: ${{ secrets.PROD_VM1_HOST }}
+          username: ${{ secrets.PROD_VM1_USER }}
+          key: ${{ secrets.PROD_VM1_SSH_KEY }}
+          source: "deploy/prod/web/docker-compose-prod-web.yml,deploy/prod/web/nginx-prod.conf"
+          target: "~/Searchweb/deploy"
+          strip_components: 3
+
+      - name: Deploy to Oracle Cloud VM1
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.PROD_VM1_HOST }}
+          username: ${{ secrets.PROD_VM1_USER }}
+          key: ${{ secrets.PROD_VM1_SSH_KEY }}
+          script: |
+            cd ~/Searchweb/deploy
+            # 서버에서 최신 프론트 및 백엔드 이미지로 교체 및 재시작
+            sudo IMAGE_TAG=${{ github.sha }} docker compose -f docker-compose-prod-web.yml pull
+            sudo IMAGE_TAG=${{ github.sha }} docker compose -f docker-compose-prod-web.yml up -d
+            # 오래된 이미지 파일 정리(용량 확보)
+            sudo docker image prune -f

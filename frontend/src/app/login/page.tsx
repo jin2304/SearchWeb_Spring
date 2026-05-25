@@ -253,9 +253,9 @@ export default function LoginPage() {
                   <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-50 opacity-50"></div>
                   
                   <div className="relative h-[52px] w-[52px] transition-transform duration-500 hover:scale-105">
-                    <Image 
-                      src="/logo.png" 
-                      alt="SearchWeb Logo" 
+                    <Image
+                      src="/relink_logo.png"
+                      alt="ReLink Logo"
                       width={512} 
                       height={512}
                       unoptimized={true}
@@ -264,7 +264,7 @@ export default function LoginPage() {
                     />
                   </div>
                 </div>
-                <h3 className="mb-2 text-2xl font-bold text-text-main tracking-tight">Hello SearchWeb!</h3>
+                <h3 className="mb-2 text-2xl font-bold text-text-main tracking-tight">Hello ReLink!</h3>
                 <p className="text-text-sub text-[13px] font-medium leading-relaxed">당신의 링크, 이제 AI와 함께<br/>스마트하게 관리하세요</p>
               </div>
 
@@ -291,7 +291,7 @@ export default function LoginPage() {
 
               {/* Benefits Section - Sophisticated Icon Cards */}
               <div className="space-y-4 pt-8 mt-2 border-t border-slate-200/50 dark:border-white/5">
-                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-[0.2em] text-center mb-6">Why SearchWeb?</p>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-[0.2em] text-center mb-6">Why ReLink?</p>
                 <div className="grid grid-cols-3 gap-2 max-w-[220px] mx-auto">
                   {/* AI Feature */}
                   <div className="flex flex-col items-center gap-2">
@@ -320,7 +320,7 @@ export default function LoginPage() {
               </div>
 
               <p className="mt-10 text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
-                로그인함으로써 SearchWeb의 <br />
+                로그인함으로써 ReLink의 <br />
                 <a href="#" className="underline hover:text-primary transition-colors font-medium">이용약관</a> 및 <a href="#" className="underline hover:text-primary transition-colors font-medium">개인정보처리방침</a>에 동의하게 됩니다.
               </p>
             </div>

@@ -180,6 +180,7 @@ export function useCreateBookmark() {
     mutationFn: createBookmark,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
     },
   });
 }
@@ -193,6 +194,7 @@ export function useUpdateBookmark() {
     mutationFn: updateBookmark,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
     },
   });
 }
@@ -206,6 +208,7 @@ export function useDeleteBookmark() {
     mutationFn: deleteBookmark,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
     },
   });
 }

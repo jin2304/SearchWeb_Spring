@@ -2,11 +2,26 @@ package com.web.SearchWeb.folder.dao;
 
 import com.web.SearchWeb.folder.domain.FolderType;
 import com.web.SearchWeb.folder.domain.MemberFolder;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface MemberFolderJpaDao extends JpaRepository<MemberFolder, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select f from MemberFolder f where f.memberFolderId = :id")
+    Optional<MemberFolder> findByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select f from MemberFolder f where f.ownerMemberId = :ownerMemberId and f.parentFolderId = :parentFolderId")
+    List<MemberFolder> findAllByOwnerMemberIdAndParentFolderIdForUpdate(
+        @Param("ownerMemberId") Long ownerMemberId,
+        @Param("parentFolderId") Long parentFolderId
+    );
 
     // 루트 폴더
     List<MemberFolder> findAllByOwnerMemberIdAndParentFolderIdIsNull(Long ownerMemberId);

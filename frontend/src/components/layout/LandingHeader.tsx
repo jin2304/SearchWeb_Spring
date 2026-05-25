@@ -1,6 +1,7 @@
 "use client";
 
 import NextLink from "next/link";
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/lib/store/authStore";
@@ -46,9 +47,9 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
 
   if (!mounted) return (
     <header className="fixed w-full top-0 z-50 flex h-11 items-center justify-between whitespace-nowrap border-b border-white/10 bg-black/95 backdrop-blur-md px-6 lg:px-20 shadow-sm transition-all duration-300">
-      <NextLink href="/" className="flex items-center space-x-2 group transition-opacity">
-        <span className="material-symbols-outlined text-3xl text-violet-400">language</span>
-        <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">SearchWeb</span>
+      <NextLink href="/" className="flex items-center space-x-2 group transition-opacity select-none">
+        <Image src="/relink_logo.png" alt="ReLink" width={24} height={24} className="object-contain group-hover:scale-110 transition-transform" />
+        <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">ReLink</span>
       </NextLink>
     </header>
   );
@@ -57,9 +58,9 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
     <>
       <header className="fixed w-full top-0 z-50 flex h-11 items-center justify-between whitespace-nowrap border-b border-white/10 bg-black/95 backdrop-blur-md px-6 lg:px-20 shadow-sm transition-all duration-300">
         {/* Logo */}
-        <NextLink href="/" className="flex items-center space-x-2 group transition-opacity" onClick={closeMenu}>
-          <span className="material-symbols-outlined text-3xl text-violet-400 group-hover:scale-110 transition-transform">language</span>
-          <span className="text-xl font-bold tracking-tight text-white">SearchWeb</span>
+        <NextLink href="/" className="flex items-center space-x-2 group transition-opacity select-none" onClick={closeMenu}>
+          <Image src="/relink_logo.png" alt="ReLink" width={24} height={24} className="object-contain group-hover:scale-110 transition-transform" />
+          <span className="text-xl font-bold tracking-tight text-white">ReLink</span>
         </NextLink>
 
         <div className="flex items-center gap-6">
@@ -132,8 +133,8 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
               <div className="flex flex-col h-full p-5">
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center space-x-2">
-                    <span className="material-symbols-outlined text-xl text-violet-400">language</span>
-                    <span className="text-base font-bold tracking-tight text-white">SearchWeb</span>
+                    <Image src="/relink_logo.png" alt="ReLink" width={20} height={20} className="object-contain" />
+                    <span className="text-base font-bold tracking-tight text-white">ReLink</span>
                   </div>
                   <button 
                     onClick={closeMenu}
@@ -186,7 +187,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
                   </div>
                   
                   <div className="mt-6 text-center">
-                    <p className="text-[10px] text-slate-600 font-medium tracking-widest">© 2026 SearchWeb Inc.</p>
+                    <p className="text-[10px] text-slate-600 font-medium tracking-widest">© 2026 ReLink Inc.</p>
                   </div>
                 </div>
               </div>

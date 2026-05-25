@@ -21,7 +21,7 @@ export function Header({ title = 'My Links' }: HeaderProps) {
     <header className="h-8 flex bg-background-light dark:bg-background-dark flex-shrink-0 z-30 transition-colors duration-300">
       {/* Left: Content Area Header */}
       <div className="flex-1 flex items-center px-4 dark:bg-white/[0.04]">
-        <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 flex items-center gap-1.5 tracking-tight">
+        <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 flex items-center gap-1.5 tracking-tight select-none cursor-default">
           <span className="material-symbols-outlined !text-[14px] opacity-70">home</span>
           <span className="text-[9px] opacity-40">/</span>
           <span className="uppercase tracking-wider">{title}</span>
@@ -35,9 +35,11 @@ export function Header({ title = 'My Links' }: HeaderProps) {
           : ''
       }`}>
         <div className="ml-auto flex items-center space-x-1">
+          {/* 향후 기능 개발 예정이라 주석
           <button type="button" className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-md transition-colors">
             <span className="material-symbols-outlined !text-[14px]">notifications</span>
           </button>
+          */}
           <button
             type="button"
             className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-md transition-colors"
