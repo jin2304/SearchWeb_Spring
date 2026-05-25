@@ -218,6 +218,10 @@ export default function MyLinksPage() {
     'bg-gradient-to-br from-amber-500 to-orange-600'
   ];
 
+
+
+
+
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* Main Content Area */}
@@ -367,10 +371,10 @@ export default function MyLinksPage() {
                       role="button"
                       tabIndex={0}
                       onClick={() => handleFolderBadgeClick(folder.memberFolderId)}
-                      className={`${PINNED_COLORS[idx % PINNED_COLORS.length]} text-white rounded-lg p-2.5 flex flex-col justify-between h-20 shadow-sm relative overflow-hidden group hover:scale-[1.01] transition-all duration-300 cursor-pointer outline-none hover:shadow-md ${
+                      className={`${PINNED_COLORS[idx % PINNED_COLORS.length]} text-white rounded-lg p-2.5 flex flex-col justify-between h-20 relative overflow-hidden group hover:scale-[1.01] transition-all duration-300 cursor-pointer outline-none ${
                         selectedFolderId === folder.memberFolderId 
-                          ? 'ring-2 ring-purple-400 ring-offset-2' 
-                          : ''
+                          ? 'ring-2 ring-inset ring-white/60 dark:ring-white/30 shadow-md scale-[1.02]' 
+                          : 'shadow-sm hover:shadow-md'
                       }`}
                     >
                       <div className="flex justify-between items-start z-10 w-full gap-1">

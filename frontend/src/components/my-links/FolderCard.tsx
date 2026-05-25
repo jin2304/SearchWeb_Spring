@@ -126,10 +126,10 @@ export function FolderCard({ folder, color }: FolderCardProps) {
             handleCardClick();
           }
         }}
-        className={`bg-white dark:bg-card-dark rounded-lg p-2.5 border transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between outline-none hover:bg-purple-50/30 dark:hover:bg-white/[0.03] relative overflow-visible ${
+        className={`bg-white dark:bg-card-dark rounded-lg p-2.5 border transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between outline-none relative overflow-visible ${
           isSelected 
-            ? 'border-purple-500 ring-1 ring-purple-500/20 shadow-md' 
-            : 'border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10'
+            ? 'border-purple-500 bg-purple-50/40 dark:border-purple-400 dark:bg-purple-500/10 shadow-sm hover:bg-purple-50/40 dark:hover:bg-purple-500/10' 
+            : 'border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10 hover:bg-purple-50/30 dark:hover:bg-white/[0.03]'
         } ${color || ''}`}
       >
         <div className="flex justify-between items-start">

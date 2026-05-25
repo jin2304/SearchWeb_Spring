@@ -166,10 +166,13 @@
     @apply border-border outline-ring/50;
   }
   button, [role="button"] {
-    @apply cursor-pointer;
+    @apply cursor-pointer select-none;
   }
   body {
-    /* bg, text is handled via layout.tsx classes directly */
+    @apply select-none;
+  }
+  input, textarea, [contenteditable="true"] {
+    @apply select-text cursor-text;
   }
 }
 

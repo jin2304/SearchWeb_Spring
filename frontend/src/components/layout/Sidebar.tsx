@@ -3,22 +3,22 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useUIStore } from '@/lib/store/uiStore';
-import { useFolders } from '@/lib/api/folderApi';
-import { useFolderStore } from '@/lib/store/folderStore';
+// import { useUIStore } from '@/lib/store/uiStore';
+// import { useFolders } from '@/lib/api/folderApi';
+// import { useFolderStore } from '@/lib/store/folderStore';
 import { useAuthStore } from '@/lib/store/authStore';
 import { useRouter } from 'next/navigation';
 
-const PINNED_DOT_COLORS = ['bg-blue-500', 'bg-purple-500', 'bg-teal-500', 'bg-amber-500', 'bg-emerald-500'];
+// const PINNED_DOT_COLORS = ['bg-blue-500', 'bg-purple-500', 'bg-teal-500', 'bg-amber-500', 'bg-emerald-500'];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
   const member = useAuthStore((s) => s.member);
-  const { data: folders } = useFolders(member?.memberId);
-  const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
-  const pinnedFolders = folders?.slice(0, 5) ?? [];
+  // const { data: folders } = useFolders(member?.memberId);
+  // const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
+  // const pinnedFolders = folders?.slice(0, 5) ?? [];
 
   const navItems = [
     { name: 'Overview', href: '/', icon: 'visibility', activeClass: 'bg-primary/20 text-violet-300' },
@@ -32,17 +32,17 @@ export function Sidebar() {
     <aside className="w-[180px] bg-slate-950 text-white flex flex-col flex-shrink-0 h-full border-r border-white/5 z-40">
       
       {/* Logo Area */}
-      <div className="p-4 flex items-center space-x-2">
+      <div className="p-4 flex items-center space-x-2 select-none cursor-default">
         <img src="/relink_logo.png" alt="ReLink Logo" className="w-7 h-7 object-contain" />
         <h1 className="text-xl font-bold tracking-tight">ReLink</h1>
       </div>
 
       {/* User Profile Outline */}
-      <div className="px-3 mb-4">
+      <div className="px-3 mb-4 select-none">
         <div className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/10">
           <div className="flex items-center space-x-2 min-w-0">
             <div className="h-7 w-7 rounded-full bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-300">
-              <span className="material-symbols-outlined text-[16px]!">person</span>
+              <span className="material-symbols-outlined !text-[16px]">person</span>
             </div>
             <div className="min-w-0">
               <p className="font-medium text-xs truncate">{member?.name || 'My Profile'}</p>
@@ -60,7 +60,7 @@ export function Sidebar() {
             className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
             title="로그아웃"
           >
-            <span className="material-symbols-outlined text-[16px]!">logout</span>
+            <span className="material-symbols-outlined !text-[16px]">logout</span>
           </button>
         </div>
       </div>
@@ -74,13 +74,13 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition-colors',
+                'flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition-colors select-none',
                 isActive 
                   ? (item.activeClass || 'bg-white/10 text-white font-medium') 
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               )}
             >
-              <span className={cn('material-symbols-outlined text-[16px]!', isActive && item.name === 'My Links' ? 'icon-outlined' : '')}>
+              <span className={cn('material-symbols-outlined !text-[16px]', isActive && item.name === 'My Links' ? 'icon-outlined' : '')}>
                 {item.icon}
               </span>
               <span>{item.name}</span>
@@ -88,14 +88,14 @@ export function Sidebar() {
           );
         })}
 
-        {/* Pinned Folder list */}
+        {/* Pinned Folder list
         <div className="pt-4 pb-1 px-3 flex items-center justify-between">
           <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Pinned</p>
           <button 
             onClick={() => useUIStore.getState().toggleCreateFolderDialog(true)}
             className="text-gray-500 hover:text-white transition-colors"
           >
-            <span className="material-symbols-outlined text-[14px]!">add</span>
+            <span className="material-symbols-outlined !text-[14px]">add</span>
           </button>
         </div>
         
@@ -109,6 +109,7 @@ export function Sidebar() {
             <span className="truncate">{folder.folderName}</span>
           </button>
         ))}
+        */}
       </nav>
       
     </aside>
