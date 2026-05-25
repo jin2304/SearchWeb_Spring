@@ -2,9 +2,7 @@ name: ReLink Production CI/CD
 
 on:
   push:
-    branches: [ "main", "dev" ] # main, dev 브랜치 직접 푸시 및 타 브랜치 PR 머지(Merge) 완료 시 실행
-  pull_request: # PR 단계에서 수정한 워크플로우 파일이 즉각 작동하도록 원복 (동일 저장소 내 PR이므로 Secrets 주입 가능)
-    branches: [ "main", "dev" ]
+    branches: [ "main", "dev" ] # main, dev 브랜치로 머지(push) 완료 시에만 실행
 
 jobs:
   build-backend:
@@ -74,10 +72,8 @@ jobs:
           key: ${{ secrets.PROD_VM1_SSH_KEY }}
           script: |
             cd ~/Searchweb/deploy
-            # 기존 컨테이너 이름(relink-app, relink-nginx) 충돌 방지를 위해 선삭제 조치
-            sudo docker rm -f relink-app relink-nginx || true
             # 서버에서 최신 프론트 및 백엔드 이미지로 교체 및 재시작
             sudo IMAGE_TAG=${{ github.sha }} docker compose -f docker-compose-prod-web.yml pull
             sudo IMAGE_TAG=${{ github.sha }} docker compose -f docker-compose-prod-web.yml up -d
             # 오래된 이미지 파일 정리(용량 확보)
-            sudo docker image prune -f            
+            sudo docker image prune -f
