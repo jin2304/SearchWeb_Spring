@@ -43,7 +43,7 @@ public class MemberFolderServiceImpl implements MemberFolderService {
         // 1. 부모 폴더가 있는 경우 검증
         if (parentFolderId != null) {
             MemberFolder parentFolder = memberFolderJpaRepository
-                .findById(parentFolderId)
+                .findByIdForUpdate(parentFolderId)
                 .orElseThrow(() -> new FolderException(FolderErrorCode.FOLDER_NOT_FOUND));
 
             // 2. 부모 폴더 소유자 검증
@@ -225,7 +225,15 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     @Override
     @Transactional
     public void delete(Long memberId, Long memberFolderId) {
-        MemberFolder folder = getOwnedFolder(memberId, memberFolderId);
+        // 비관적 락(PESSIMISTIC_WRITE)을 걸어 동시 생성과의 레이스를 차단
+        MemberFolder folder = memberFolderJpaRepository.findByIdForUpdate(memberFolderId)
+            .orElseThrow(() -> new FolderException(FolderErrorCode.FOLDER_NOT_FOUND));
+
+        if (folder.isDeleted()) {
+            throw new FolderException(FolderErrorCode.FOLDER_NOT_FOUND);
+        }
+
+        validateOwner(memberId, folder.getOwnerMemberId());
 
         if (folder.isUnorganized()) {
             throw new FolderException(FolderErrorCode.SYSTEM_FOLDER_IMMUTABLE);
@@ -241,9 +249,9 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     private void deleteRecursive(Long memberId, MemberFolder folder) {
         Long folderId = folder.getMemberFolderId();
 
-        // 1. 하위 폴더 조회 및 재귀 삭제
+        // 1. 하위 폴더 조회 및 재귀 삭제 (비관적 락 적용하여 삭제 도중 하위 폴더 추가 차단)
         List<MemberFolder> children = memberFolderJpaRepository
-            .findAllByOwnerMemberIdAndParentFolderId(memberId, folderId);
+            .findAllByOwnerMemberIdAndParentFolderIdForUpdate(memberId, folderId);
         
         for (MemberFolder child : children) {
             deleteRecursive(memberId, child);
