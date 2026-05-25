@@ -13,7 +13,7 @@ services:
     env_file:
       - ./.env
     ports:
-      - "7000:5432"
+      - "${PROD_VM1_INTERNAL_IP}:7000:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init_postgres.sql:/docker-entrypoint-initdb.d/01-init.sql:ro

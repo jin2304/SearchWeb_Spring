@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # (1) 백엔드 스프링 부트 앱
   backend:
-    image: ${DOCKERHUB_USERNAME}/relink-backend:latest
+    image: ${DOCKERHUB_USERNAME}/relink-backend:${IMAGE_TAG:-latest}
     container_name: relink-app
     environment:
       - SPRING_PROFILES_ACTIVE=prod
@@ -17,10 +17,10 @@ services:
 
   # (2) Nginx 웹 서버
   nginx:
-    image: ${DOCKERHUB_USERNAME}/relink-frontend:latest
+    image: ${DOCKERHUB_USERNAME}/relink-frontend:${IMAGE_TAG:-latest}
     container_name: relink-nginx
     ports:
-      - "80:80"
+      - "80:8080"
       - "443:443"
     volumes:
       - ./nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro

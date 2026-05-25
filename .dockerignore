@@ -17,3 +17,7 @@ status_utf8.txt
 prd.json
 progress.txt
 version.txt
+
+# Environment variables (Secrets)
+.env
+.env.*
