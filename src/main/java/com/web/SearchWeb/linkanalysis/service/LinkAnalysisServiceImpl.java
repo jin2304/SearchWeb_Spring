@@ -61,7 +61,7 @@ public class LinkAnalysisServiceImpl implements LinkAnalysisService {
     /** 컨텍스트 태그(빈도) 최대 길이 */
     private static final int MAX_CONTEXT_TAG_LENGTH = 80;
     /** HIGH_CONTEXT 판정에 필요한 최소 커스텀 루트 폴더 수 */
-    private static final int HIGH_CONTEXT_MIN_CUSTOM_ROOT_FOLDERS = 7;
+    private static final int HIGH_CONTEXT_MIN_CUSTOM_ROOT_FOLDERS = 10;
     
     @Qualifier("chatClient")
     private final ChatClient chatClient;                         // LLM 모델 호출 (AiConfig의 기본 provider 사용)
