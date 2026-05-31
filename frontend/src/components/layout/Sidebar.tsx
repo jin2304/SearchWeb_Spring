@@ -23,6 +23,7 @@ export function Sidebar() {
   const navItems = [
     { name: 'Overview', href: '/', icon: 'visibility', activeClass: 'bg-primary/20 text-violet-300' },
     { name: 'My Links', href: '/my-links', icon: 'bookmark_border', activeClass: 'bg-primary/20 text-violet-300' },
+    { name: 'Feedback', href: 'https://relink.featurebase.app/en', icon: 'edit_document', isExternal: true },
     // { name: 'History', href: '/history', icon: 'history' },
     // { name: 'Tags', href: '/tags', icon: 'tag' },
     // { name: 'Settings', href: '/settings', icon: 'settings' },
@@ -68,6 +69,25 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2 space-y-0.5 hide-scrollbar">
         {navItems.map((item) => {
+          if (item.isExternal) {
+            return (
+              <a
+                key={item.name}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition-colors select-none text-gray-400 hover:text-white hover:bg-white/5"
+              >
+                <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined !text-[16px]">
+                    {item.icon}
+                  </span>
+                </div>
+                <span>{item.name}</span>
+              </a>
+            );
+          }
+
           const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
           return (
             <Link
@@ -80,9 +100,15 @@ export function Sidebar() {
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               )}
             >
-              <span className={cn('material-symbols-outlined !text-[16px]', isActive && item.name === 'My Links' ? 'icon-outlined' : '')}>
-                {item.icon}
-              </span>
+              <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                <span className={cn(
+                  'material-symbols-outlined',
+                  item.name === 'My Links' ? '!text-[18px]' : '!text-[16px]',
+                  isActive && item.name === 'My Links' ? 'icon-outlined' : ''
+                )}>
+                  {item.icon}
+                </span>
+              </div>
               <span>{item.name}</span>
             </Link>
           );

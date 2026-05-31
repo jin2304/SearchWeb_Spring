@@ -42,7 +42,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
     { name: "기능", href: isLoginPage ? "/#features" : "#features" },
     // Pricing is currently commented out in landing page, so we keep it hidden or consistent
     // { name: "가격", href: isLoginPage ? "/#pricing" : "#pricing" },
-    { name: "문의하기", href: "#" },
+    { name: "문의하기", href: "https://relink.featurebase.app/en", isExternal: true },
   ];
 
   if (!mounted) return (
@@ -71,6 +71,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
                 key={link.name}
                 className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors" 
                 href={link.href}
+                {...(link.isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
                 {link.name}
               </a>
@@ -151,6 +152,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
                       href={link.href}
                       onClick={closeMenu}
                       className="flex items-center px-3 py-2.5 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all text-[14px] font-medium group"
+                      {...(link.isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     >
                       <span>{link.name}</span>
                       <span className="material-symbols-outlined !text-[18px] ml-auto text-violet-500 opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0">chevron_right</span>

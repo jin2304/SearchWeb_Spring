@@ -420,7 +420,7 @@ export default function Home() {
           <div className="flex gap-10 text-sm text-slate-400">
             <a className="hover:text-white transition-colors" href="#">이용약관</a>
             <a className="hover:text-white transition-colors" href="#">개인정보처리방침</a>
-            <a className="hover:text-white transition-colors" href="#">문의하기</a>
+            <a className="hover:text-white transition-colors" href="https://relink.featurebase.app/en" target="_blank" rel="noopener noreferrer">문의하기</a>
           </div>
           <div className="text-sm text-slate-500 font-medium">
             © 2026 ReLink Inc. All rights reserved.
