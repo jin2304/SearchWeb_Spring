@@ -1,44 +1,43 @@
-// URL에서 안전하게 호스트네임(도메인 전체)만 추출합니다.
-export function getUrlHostname(urlStr?: string | null): string | null {
+const HTTP_URL_PATTERN = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//;
+const WRAPPING_QUOTES_PATTERN = /^[\s"'`]+|[\s"'`]+$/g;
+
+// 사용자 입력값을 파싱 가능한 http/https URL로 정규화합니다.
+function parseHttpUrl(urlStr?: string | null): URL | null {
   if (!urlStr) return null;
-  // 앞뒤 공백 및 따옴표 제거
-  const clean = urlStr.trim().replace(/^[\s"'`]+|[\s"'`]+$/g, '');
+
+  const clean = urlStr.trim().replace(WRAPPING_QUOTES_PATTERN, '');
+  if (!clean) return null;
+
   try {
-    const formatted = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(clean) ? clean : `https://${clean}`;
-    return new URL(formatted).hostname;
+    const formatted = HTTP_URL_PATTERN.test(clean) ? clean : `https://${clean}`;
+    const parsed = new URL(formatted);
+
+    if (!parsed.hostname || (parsed.protocol !== 'http:' && parsed.protocol !== 'https:')) {
+      return null;
+    }
+
+    return parsed;
   } catch {
     return null;
   }
 }
 
-
-// 호스트네임에서 국가 코드 도메인을 고려하여 루트 도메인(Base Domain)을 반환합니다.
-export function getUrlBaseDomain(urlStr?: string | null): string | null {
-  const hostname = getUrlHostname(urlStr);
-  if (!hostname) return null;
-  
-  const parts = hostname.split('.');
-  if (parts.length <= 2) return hostname;
-
-  const secondLevelTlds = ['co', 'com', 'go', 'or', 'ac', 'ne', 'edu', 'gov', 'net', 'org'];
-  const secondLevel = parts[parts.length - 2];
-  
-  // co.kr, com.ne와 같은 2차 도메인은 3마디 유지, 그 외 일반 도메인은 2마디 추출
-  return secondLevelTlds.includes(secondLevel) ? parts.slice(-3).join('.') : parts.slice(-2).join('.');
+export function getUrlHostname(urlStr?: string | null): string | null {
+  return parseHttpUrl(urlStr)?.hostname ?? null;
 }
 
-
-// 구글 파비콘 API 주소를 구성하여 반환합니다.
+// 앱별 파비콘 힌트가 유지되도록 Google S2에는 hostname이 아닌 전체 URL을 전달합니다.
 export function buildGoogleFaviconUrl(urlStr?: string | null, size = 64): string | null {
-  const hostname = getUrlHostname(urlStr);
-  if (!hostname) return null;
-  return `https://www.google.com/s2/favicons?sz=${size}&domain_url=${encodeURIComponent('https://' + hostname)}`;
+  const parsed = parseHttpUrl(urlStr);
+  if (!parsed) return null;
+
+  return `https://www.google.com/s2/favicons?sz=${size}&domain_url=${encodeURIComponent(parsed.href)}`;
 }
 
-// 실제 호스트의 /favicon.ico 경로로 다이렉트 파비콘 요청 주소를 반환합니다.
+// Google S2가 실패하거나 기본 아이콘을 반환하면 원 도메인의 /favicon.ico를 직접 시도합니다.
 export function buildDirectFaviconUrl(urlStr?: string | null): string | null {
-  const hostname = getUrlHostname(urlStr);
-  if (!hostname) return null;
-  return `https://${hostname}/favicon.ico`;
-}
+  const parsed = parseHttpUrl(urlStr);
+  if (!parsed) return null;
 
+  return `${parsed.origin}/favicon.ico`;
+}
