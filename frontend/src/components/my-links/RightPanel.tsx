@@ -10,7 +10,7 @@ import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
 import { FOLDER_TYPE } from '@/lib/types/folder';
 import { compareFolders } from '@/lib/utils/folderUtils';
-import { buildGoogleFaviconUrl, getUrlHostname, getUrlBaseDomain, buildDirectFaviconUrl } from '@/lib/utils/favicon';
+import { buildGoogleFaviconUrl, getUrlHostname, buildDirectFaviconUrl } from '@/lib/utils/favicon';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -68,11 +68,11 @@ function LinkItem({
   const [tagInput, setTagInput] = useState(data.tags?.join(', ') ?? '');     // 태그 입력값
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);               // 더보기 메뉴 오픈 여부 
   const [isFolderDropdownOpen, setIsFolderDropdownOpen] = useState(false);   // 폴더 이동 드롭다운 여부
-  const [faviconFallbackStep, setFaviconFallbackStep] = useState<'basedomain' | 'direct' | 'failed'>('basedomain');
+  const [faviconFallbackStep, setFaviconFallbackStep] = useState<'google' | 'direct' | 'failed'>('google');
 
   // 북마크 데이터가 바뀌면 파비콘 재시도 플래그를 리셋합니다.
   useEffect(() => {
-    setFaviconFallbackStep('basedomain');
+    setFaviconFallbackStep('google');
   }, [data.bookmarkId]);
   
   const noteInputRef = useRef<HTMLInputElement>(null);     // 메모 입력창 참조
@@ -96,18 +96,19 @@ function LinkItem({
   const iconDarkClass = 'dark:bg-gray-800 dark:border-gray-700 dark:group-hover:border-violet-400/30 dark:group-hover:bg-[linear-gradient(135deg,rgba(109,40,217,0.3)_0%,rgba(139,92,246,0.18)_100%)] dark:group-hover:text-violet-200 dark:group-hover:shadow-[0_12px_24px_-16px_rgba(124,58,237,0.8)]';
   const tagDarkClass = 'dark:border-white/8 dark:bg-slate-800/85 dark:text-slate-300 dark:group-hover:border-violet-400/30 dark:group-hover:bg-[linear-gradient(135deg,rgba(76,29,149,0.32)_0%,rgba(109,40,217,0.22)_100%)] dark:group-hover:text-violet-100';
 
-  // 대안 A 파비콘 폴백 주소 계산
+  // 저장된 파비콘이 없거나 실패하면 Google S2(전체 URL) -> /favicon.ico 순서로 시도합니다.
   const fallbackFaviconUrl = (() => {
     const originalUrl = data.link?.originalUrl ?? data.link?.canonicalUrl ?? data.link?.domain;
     if (!originalUrl) return null;
-    if (faviconFallbackStep === 'basedomain') {
-      return buildGoogleFaviconUrl(getUrlBaseDomain(originalUrl));
+    if (faviconFallbackStep === 'google') {
+      return buildGoogleFaviconUrl(originalUrl);
     }
     if (faviconFallbackStep === 'direct') {
       return buildDirectFaviconUrl(originalUrl);
     }
     return null;
   })();
+  const faviconSourceUrl = data.link?.originalUrl ?? data.link?.canonicalUrl ?? data.link?.domain;
 
   const fallbackDomain =
     getUrlHostname(data.link?.originalUrl) ??
@@ -314,11 +315,11 @@ function LinkItem({
               const img = e.currentTarget;
               if (img.naturalWidth === 16 && img.naturalHeight === 16) {
                 if (!img.dataset.fallbackStep) {
-                  img.dataset.fallbackStep = 'basedomain';
-                  img.src = buildGoogleFaviconUrl(getUrlBaseDomain(data.link?.originalUrl)) || '';
-                } else if (img.dataset.fallbackStep === 'basedomain') {
+                  img.dataset.fallbackStep = 'google';
+                  img.src = buildGoogleFaviconUrl(faviconSourceUrl) || '';
+                } else if (img.dataset.fallbackStep === 'google') {
                   img.dataset.fallbackStep = 'direct';
-                  img.src = buildDirectFaviconUrl(data.link?.originalUrl) || '';
+                  img.src = buildDirectFaviconUrl(faviconSourceUrl) || '';
                 } else {
                   img.style.display = 'none';
                   if (img.parentElement) {
@@ -330,11 +331,11 @@ function LinkItem({
             onError={(e) => {
               const img = e.currentTarget;
               if (!img.dataset.fallbackStep) {
-                img.dataset.fallbackStep = 'basedomain';
-                img.src = buildGoogleFaviconUrl(getUrlBaseDomain(data.link?.originalUrl)) || '';
-              } else if (img.dataset.fallbackStep === 'basedomain') {
+                img.dataset.fallbackStep = 'google';
+                img.src = buildGoogleFaviconUrl(faviconSourceUrl) || '';
+              } else if (img.dataset.fallbackStep === 'google') {
                 img.dataset.fallbackStep = 'direct';
-                img.src = buildDirectFaviconUrl(data.link?.originalUrl) || '';
+                img.src = buildDirectFaviconUrl(faviconSourceUrl) || '';
               } else {
                 img.style.display = 'none';
                 if (img.parentElement) {
@@ -351,7 +352,7 @@ function LinkItem({
             onLoad={(e) => {
               const img = e.currentTarget;
               if (img.naturalWidth === 16 && img.naturalHeight === 16) {
-                if (faviconFallbackStep === 'basedomain') {
+                if (faviconFallbackStep === 'google') {
                   setFaviconFallbackStep('direct');
                 } else {
                   img.style.display = 'none';
@@ -363,7 +364,7 @@ function LinkItem({
             }}
             onError={(e) => {
               const img = e.currentTarget;
-              if (faviconFallbackStep === 'basedomain') {
+              if (faviconFallbackStep === 'google') {
                 setFaviconFallbackStep('direct');
               } else {
                 img.style.display = 'none';

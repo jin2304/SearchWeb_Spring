@@ -22,7 +22,8 @@ export function Sidebar() {
 
   const navItems = [
     { name: 'Overview', href: '/', icon: 'visibility', activeClass: 'bg-primary/20 text-violet-300' },
-    { name: 'My Links', href: '/my-links', icon: 'bookmark_border', activeClass: 'bg-primary/20 text-violet-300' },
+    { name: 'My Links', href: '/my-links', icon: 'bookmark_border', activeClass: 'bg-primary/20 text-violet-300', iconClass: 'text-[18px]!', activeIconClass: 'icon-outlined' },
+    { name: 'Feedback', href: 'https://relink.featurebase.app/en', icon: 'edit_document', isExternal: true },
     // { name: 'History', href: '/history', icon: 'history' },
     // { name: 'Tags', href: '/tags', icon: 'tag' },
     // { name: 'Settings', href: '/settings', icon: 'settings' },
@@ -42,7 +43,7 @@ export function Sidebar() {
         <div className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/10">
           <div className="flex items-center space-x-2 min-w-0">
             <div className="h-7 w-7 rounded-full bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-300">
-              <span className="material-symbols-outlined !text-[16px]">person</span>
+              <span className="material-symbols-outlined text-[16px]!">person</span>
             </div>
             <div className="min-w-0">
               <p className="font-medium text-xs truncate">{member?.name || 'My Profile'}</p>
@@ -60,7 +61,7 @@ export function Sidebar() {
             className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
             title="로그아웃"
           >
-            <span className="material-symbols-outlined !text-[16px]">logout</span>
+            <span className="material-symbols-outlined text-[16px]!">logout</span>
           </button>
         </div>
       </div>
@@ -68,6 +69,25 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2 space-y-0.5 hide-scrollbar">
         {navItems.map((item) => {
+          if (item.isExternal) {
+            return (
+              <a
+                key={item.name}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition-colors select-none text-gray-400 hover:text-white hover:bg-white/5"
+              >
+                <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[16px]!">
+                    {item.icon}
+                  </span>
+                </div>
+                <span>{item.name}</span>
+              </a>
+            );
+          }
+
           const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
           return (
             <Link
@@ -80,9 +100,15 @@ export function Sidebar() {
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               )}
             >
-              <span className={cn('material-symbols-outlined !text-[16px]', isActive && item.name === 'My Links' ? 'icon-outlined' : '')}>
-                {item.icon}
-              </span>
+              <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                <span className={cn(
+                  'material-symbols-outlined',
+                  item.iconClass || 'text-[16px]!',
+                  isActive && item.activeIconClass
+                )}>
+                  {item.icon}
+                </span>
+              </div>
               <span>{item.name}</span>
             </Link>
           );

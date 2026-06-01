@@ -14,7 +14,7 @@ import { useAuthStore } from '@/lib/store/authStore';
 import type { LinkAnalysisResponse } from '@/lib/types/linkAnalysis';
 import { FOLDER_TYPE } from '@/lib/types/folder';
 import { Spinner } from '@/components/ui/spinner';
-import { buildGoogleFaviconUrl, getUrlBaseDomain, buildDirectFaviconUrl } from '@/lib/utils/favicon';
+import { buildGoogleFaviconUrl, buildDirectFaviconUrl } from '@/lib/utils/favicon';
 
 // 디자인 시안에서 추출한 커스텀 테마 매핑
 const theme = {
@@ -106,21 +106,20 @@ export function SaveLinkDialog() {
   }, [url]);
 
   useEffect(() => {
-    setFaviconFallbackStep('basedomain');
+    setFaviconFallbackStep('google');
     setFaviconVisible(false);
   }, [url]);
 
   
   // --- UI 전용 상태 추가 (클립보드 추천 및 파비콘 폴백) ---
   const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
-  const [faviconFallbackStep, setFaviconFallbackStep] = useState<'basedomain' | 'direct' | 'failed'>('basedomain');
+  const [faviconFallbackStep, setFaviconFallbackStep] = useState<'google' | 'direct' | 'failed'>('google');
   const [faviconVisible, setFaviconVisible] = useState(false);
   
   const previewFaviconUrl = (() => {
     if (!url) return null;
-    if (faviconFallbackStep === 'basedomain') {
-      const baseDomain = getUrlBaseDomain(url);
-      return buildGoogleFaviconUrl(baseDomain);
+    if (faviconFallbackStep === 'google') {
+      return buildGoogleFaviconUrl(url);
     }
     if (faviconFallbackStep === 'direct') {
       return buildDirectFaviconUrl(url);
@@ -417,7 +416,7 @@ export function SaveLinkDialog() {
                         // 이를 감지하여 실패로 간주하고 폴백(직접 호출)을 실행.
                         if (img.naturalWidth === 16 && img.naturalHeight === 16) {
                           setFaviconVisible(false);
-                          if (faviconFallbackStep === 'basedomain') {
+                          if (faviconFallbackStep === 'google') {
                             setFaviconFallbackStep('direct');
                           } else {
                             setFaviconFallbackStep('failed');
@@ -428,7 +427,7 @@ export function SaveLinkDialog() {
                       }}
                       onError={() => {
                         setFaviconVisible(false);
-                        if (faviconFallbackStep === 'basedomain') {
+                        if (faviconFallbackStep === 'google') {
                           setFaviconFallbackStep('direct');
                         } else {
                           setFaviconFallbackStep('failed');

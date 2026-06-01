@@ -48,6 +48,9 @@ CLAUDE.md
 ### OMC ###
 .omc/
 
+### OMX ###
+.omx/
+
 ### HTTP Tests ###
 *.http
 
