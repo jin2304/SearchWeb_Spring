@@ -32,7 +32,7 @@ export function buildGoogleFaviconUrl(urlStr?: string | null, size = 64): string
   if (!parsed) return null;
 
   // ?token=... 또는 #hash 등 민감 정보가 포함된 쿼리와 해시를 제거하여 보안을 강화.
-  const safeUrl = `${parsed.origin}${parsed.pathname}`;
+  const safeUrl = parsed.origin;
 
   return `https://www.google.com/s2/favicons?sz=${size}&domain_url=${encodeURIComponent(safeUrl)}`;
 }
