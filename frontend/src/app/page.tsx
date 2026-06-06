@@ -67,7 +67,12 @@ export default function Home() {
     if (isAuthenticated) {
       router.push("/my-links");
     } else {
-      router.push("/login");
+      // 모바일/태블릿 크기(lg 중단점인 1024px 미만)일 때는 바로 구글 로그인 페이지로 이동
+      if (typeof window !== "undefined" && window.innerWidth < 1024) {
+        window.location.href = buildBackendUrl('/oauth2/authorization/google');
+      } else {
+        router.push("/login");
+      }
     }
   };
 
@@ -79,11 +84,11 @@ export default function Home() {
       <LandingHeader />
 
       <main className="flex-grow">
-        <section className="relative flex min-h-[100dvh] items-center overflow-hidden pt-12 pb-16 lg:pt-20 lg:pb-24 px-6 lg:px-20 bg-background-light dark:bg-background-dark transition-colors duration-300">
+        <section className="relative flex min-h-[100dvh] items-center max-sm:items-start overflow-hidden max-sm:pt-36 max-sm:pb-8 pt-12 pb-16 lg:pt-20 lg:pb-24 px-6 lg:px-20 bg-background-light dark:bg-background-dark transition-colors duration-300">
           <div className="absolute top-0 right-0 -z-10 h-[600px] w-[600px] bg-primary/5 dark:bg-violet-600/15 rounded-full blur-[100px] translate-x-1/3 -translate-y-1/4"></div>
           <div className="absolute bottom-0 left-0 -z-10 h-[400px] w-[400px] bg-primary-light/40 dark:bg-violet-900/40 rounded-full blur-[80px] -translate-x-1/4 translate-y-1/4"></div>
           <div className="w-full mx-auto max-w-6xl">
-            <div className="flex flex-col lg:flex-row justify-between gap-8 lg:items-center">
+            <div className="flex flex-col lg:flex-row justify-between max-sm:gap-2 gap-8 lg:items-center">
               {/* Left Column: Text & Features */}
               <div className="flex flex-col gap-6 lg:w-[50%] lg:pr-10">
                 <div className="space-y-4 text-left">
@@ -123,7 +128,7 @@ export default function Home() {
                   </a>
                 </div>
 
-                <div className="flex flex-col gap-5 border-t border-slate-100 dark:border-white/10 pt-8 mt-4 relative z-10">
+                <div className="flex flex-col gap-5 border-t border-slate-100 dark:border-white/10 pt-8 mt-4 relative z-10 max-lg:hidden">
                   <div className="flex items-center gap-4 group">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-2 group-hover:ring-violet-400">
                       <span className="material-symbols-outlined text-[24px] transition-all duration-500 group-hover:text-primary dark:group-hover:text-violet-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_12px_rgba(167,139,250,0.6)]">auto_awesome</span>
@@ -156,13 +161,13 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Right Column: Animated Card Illustration */}
-              <div className="lg:w-[50%] flex justify-center lg:justify-end mt-12 lg:mt-0">
-                <div className="relative w-full max-w-2xl py-12 sm:py-20 flex justify-center items-center">
+              {/* Right Column: Animated Card Illustration & Mobile Feature List */}
+              <div className="lg:w-[50%] flex flex-col items-center justify-center lg:justify-end max-sm:mt-0 mt-12 lg:mt-0 w-full">
+                <div className="relative w-full max-w-2xl max-sm:py-4 py-12 sm:py-20 flex justify-center items-center">
                   {/* Background decoration */}
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full aspect-square bg-linear-to-br from-primary/10 to-transparent dark:from-violet-600/10 rounded-full blur-3xl -z-10"></div>
                   
-                  <div className="flex items-center -space-x-12 sm:-space-x-16 relative z-10 scale-90 sm:scale-100">
+                  <div className="flex items-center max-sm:-space-x-8 -space-x-12 sm:-space-x-16 relative z-10 max-sm:scale-75 scale-75 xs:scale-85 sm:scale-100">
                     {/* Left Card */}
                     <div className="h-32 w-44 sm:h-40 sm:w-56 rounded-xl border border-slate-100 dark:border-violet-500/20 bg-white/95 dark:bg-slate-900/90 shadow-[0_0_40px_rgba(139,92,246,0.2)] dark:shadow-violet-900/10 backdrop-blur-md p-4 flex flex-col gap-3 rotate-[-8deg] transition-all hover:rotate-0 hover:scale-110 duration-500 group z-10 hover:border-violet-300 dark:hover:border-violet-500/40 group-hover:shadow-[0_0_80px_rgba(139,92,246,0.4)]">
                       <div className="flex items-center gap-3">
@@ -227,39 +232,43 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-
-                  {/* 마지막 남은 배경 요소들 주석 처리
-                  <div className="absolute top-10 right-[10%] h-4 w-4 rounded-full bg-blue-400/20 blur-sm animate-pulse"></div>
-                  
-                  <div className={`absolute bottom-[12%] left-[4%] lg:left-[10%] hidden sm:block z-0 transition-opacity duration-1000 pointer-events-none filter blur-[2px] ${mounted ? 'opacity-70 dark:opacity-50 animate-float-soft' : 'opacity-0'}`} style={{ animationDelay: '1s' }}>
-                    <div className="p-2.5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/40 dark:border-white/10 rotate-[15deg] scale-105 shadow-lg">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-400/10 text-violet-500/80">
-                        <span className="material-symbols-outlined text-[28px]">auto_fix_high</span>
-                      </div>
-                    </div>
-                  </div>
-                  */}
-                  
-                  {/* Floating Folder Icon 주석 처리
-                  <div className={`absolute top-[18%] left-[1%] lg:left-[5%] hidden sm:block z-0 transition-opacity duration-1000 pointer-events-none filter blur-[2px] ${mounted ? 'opacity-60 dark:opacity-40 animate-float-soft-slow' : 'opacity-0'}`}>
-                    <div className="p-2.5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/40 dark:border-white/10 rotate-[-15deg] scale-110 shadow-xl">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-500/80">
-                        <span className="material-symbols-outlined text-[32px]">folder_special</span>
-                      </div>
-                    </div>
-                  </div>
-                  */}
-                  
-                  {/* Floating Rocket Icon 주석 처리
-                  <div className={`absolute bottom-[14%] right-[0%] lg:right-[4%] hidden sm:block z-0 transition-opacity duration-1000 pointer-events-none filter blur-[1.5px] ${mounted ? 'opacity-70 dark:opacity-50 animate-float-soft' : 'opacity-0'}`} style={{ animationDelay: '2s' }}>
-                    <div className="p-2.5 rounded-3xl bg-white/50 dark:bg-slate-700/50 border border-white/50 dark:border-blue-400/20 rotate-[12deg] scale-85 shadow-lg">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500/20 to-purple-600/20 dark:from-blue-500/30 dark:to-purple-600/30 text-blue-600 dark:text-purple-400">
-                        <span className="material-symbols-outlined text-[32px]">rocket</span>
-                      </div>
-                    </div>
-                  </div>
-                  */}
                 </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Mobile/Tablet Feature List Section (Scroll down to see) */}
+        <section className="lg:hidden bg-background-light dark:bg-background-dark px-6 pb-16 pt-4 relative z-10 border-b border-slate-100/10 dark:border-white/5 transition-colors duration-300">
+          <div className="mx-auto max-w-md w-full flex flex-col gap-5 border-t border-slate-100 dark:border-white/10 pt-8 max-sm:px-2">
+            <div className="flex items-center gap-4 group">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-2 group-hover:ring-violet-400">
+                <span className="material-symbols-outlined text-[24px]">auto_awesome</span>
+              </div>
+              <div className="flex flex-col justify-center">
+                <h4 className="font-bold text-text-main dark:text-white text-[15px] tracking-tight mb-0.5">AI 자동 태깅</h4>
+                <p className="text-sm font-medium tracking-tight text-text-sub dark:text-white/60 opacity-80">문서 내용 분석을 통한 지능형 자동 카테고리 분류</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4 group">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-2 group-hover:ring-violet-400">
+                <span className="material-symbols-outlined text-[24px]">folder_open</span>
+              </div>
+              <div className="flex flex-col justify-center">
+                <h4 className="font-bold text-text-main dark:text-white text-[15px] tracking-tight mb-0.5">스마트 폴더 추천</h4>
+                <p className="text-sm font-medium tracking-tight text-text-sub dark:text-white/60 opacity-80">프로젝트 및 팀별 문서를 최적의 구조로 스마트하게 정리</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4 group">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-violet-500/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-violet-500/20 text-primary dark:text-violet-300 transition-all duration-500 group-hover:bg-slate-50 dark:group-hover:bg-violet-500/30 group-hover:shadow-[0_8px_25px_rgba(139,92,246,0.15)] group-hover:-translate-y-1 group-hover:ring-2 group-hover:ring-violet-400">
+                <span className="material-symbols-outlined text-[24px]">bolt</span>
+              </div>
+              <div className="flex flex-col justify-center">
+                <h4 className="font-bold text-text-main dark:text-white text-[15px] tracking-tight mb-0.5">초고속 검색</h4>
+                <p className="text-sm font-medium tracking-tight text-text-sub dark:text-white/60 opacity-80">수만 개의 자료 속에서 원하는 정보를 찾아내는 0.1초 검색</p>
               </div>
             </div>
           </div>
@@ -411,13 +420,13 @@ export default function Home() {
         */}
       </main>
 
-      <footer className="border-t border-white/5 bg-[#030712] px-6 py-12 lg:px-20 relative z-20 transition-all duration-300">
+      <footer className="border-t border-white/5 bg-[#030712] px-5 py-12 lg:px-20 relative z-20 transition-all duration-300">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 md:flex-row">
           <div className="flex items-center space-x-2 group transition-opacity">
             <span className="material-symbols-outlined text-3xl text-violet-400 group-hover:scale-110 transition-transform">language</span>
             <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">ReLink</span>
           </div>
-          <div className="flex gap-10 text-sm text-slate-400">
+          <div className="flex flex-wrap justify-center md:justify-start gap-6 md:gap-10 text-sm text-slate-400">
             <a className="hover:text-white transition-colors" href="#">이용약관</a>
             <a className="hover:text-white transition-colors" href="#">개인정보처리방침</a>
             <a className="hover:text-white transition-colors" href="https://relink.featurebase.app/en" target="_blank" rel="noopener noreferrer">문의하기</a>

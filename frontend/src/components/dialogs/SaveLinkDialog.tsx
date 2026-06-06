@@ -32,11 +32,11 @@ const styles = {
   tagChipSelected: "bg-violet-50 dark:bg-purple-900/40 text-violet-700 dark:text-purple-300 border-violet-200 dark:border-purple-700 shadow-sm font-semibold",
   tagChipExisting: "text-[#1e293b] dark:text-gray-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-white/20",
   tagAddTrigger: "text-[11px] px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-dashed border-slate-300 dark:border-white/15 text-slate-500 dark:text-gray-400 hover:border-violet-500 dark:hover:border-purple-400 hover:text-violet-600 dark:hover:text-purple-400 transition-all cursor-pointer flex items-center gap-1 min-h-[26px] w-fit relative z-30 shadow-sm",
-  folderTile: "relative flex flex-col items-center justify-center p-3 rounded-xl border border-[#e2e8f0] dark:border-white/10 bg-white dark:bg-slate-800/60 backdrop-blur-sm cursor-pointer transition-all hover:border-violet-300 dark:hover:border-purple-500/50 hover:bg-slate-50/50 dark:hover:bg-slate-700 text-center gap-1.5 shadow-sm",
+  folderTile: "relative flex flex-col items-center justify-center p-3 max-sm:p-2.5 rounded-xl border border-[#e2e8f0] dark:border-white/10 bg-white dark:bg-slate-800/60 backdrop-blur-sm cursor-pointer transition-all hover:border-violet-300 dark:hover:border-purple-500/50 hover:bg-slate-50/50 dark:hover:bg-slate-700 text-center gap-1.5 max-sm:gap-1 shadow-sm",
   folderTileActive: "border-violet-500 dark:border-purple-500 ring-1 ring-violet-500 dark:ring-purple-500 bg-white dark:bg-slate-800 text-violet-900 dark:text-purple-300 shadow-[0_0_15px_rgba(124,58,237,0.15)]",
   matchBadge: `absolute -top-2 -right-1.5 ${theme.premiumGradient} text-white text-[9px] font-bold px-1.5 py-[1px] rounded-full shadow-md z-10`,
-  btnGradient: "bg-[linear-gradient(135deg,#7c3aed_0%,#a855f7_100%)] hover:opacity-95 text-white shadow-md shadow-violet-500/20 dark:shadow-purple-900/30",
-  sectionContainer: "bg-gray-50/80 dark:bg-slate-800/50 dark:backdrop-blur-md rounded-2xl p-3 border border-gray-100/50 dark:border-white/[0.05]"
+  btnGradient: "bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50",
+  sectionContainer: "bg-gray-50/80 dark:bg-slate-800/50 dark:backdrop-blur-md rounded-2xl p-3 max-sm:p-2.5 border border-gray-100/50 dark:border-white/[0.05]"
 };
 
 /**
@@ -44,7 +44,7 @@ const styles = {
  */
 export function SaveLinkDialog() {
   // 전역 UI 상태 (다이얼로그 열림/닫힘)
-  const { saveLinkDialogOpen, toggleSaveLinkDialog } = useUIStore();
+  const { saveLinkDialogOpen, saveLinkDefaultUrl, toggleSaveLinkDialog } = useUIStore();
 
   // --- UI 전용 상태 (태그 팝오버, 입력값 등) ---
   const [tagInput, setTagInput] = useState('');                    // 태그 검색어
@@ -111,8 +111,7 @@ export function SaveLinkDialog() {
   }, [url]);
 
   
-  // --- UI 전용 상태 추가 (클립보드 추천 및 파비콘 폴백) ---
-  const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
+  // --- UI 전용 상태 추가 (파비콘 폴백) ---
   const [faviconFallbackStep, setFaviconFallbackStep] = useState<'google' | 'direct' | 'failed'>('google');
   const [faviconVisible, setFaviconVisible] = useState(false);
   
@@ -127,24 +126,12 @@ export function SaveLinkDialog() {
     return null;
   })();
 
-  // --- 팝업이 열고 닫힐 때마다 모든 입력 상태 초기화 및 클립보드 감지 ---
+  // --- 팝업이 열고 닫힐 때마다 모든 입력 상태 초기화 ---
   useEffect(() => {
     if (saveLinkDialogOpen) {
-      // 팝업이 열릴 때: 클립보드에 URL이 있는지 한 번만 확인
-      const timerId = setTimeout(async () => {
-        if (typeof navigator === 'undefined' || !navigator.clipboard) return;
-        try {
-          // 브라우저 정책상 사용자 권한 프롬프트가 발생할 수 있습니다.
-          const text = await navigator.clipboard.readText();
-          if (text && (text.startsWith('http://') || text.startsWith('https://'))) {
-            setClipboardUrl(text);
-          }
-        } catch (err) {
-          // 권한 거부 등의 에러는 무시
-          console.warn('Clipboard read error (auto-paste):', err);
-        }
-      }, 150);
-      return () => clearTimeout(timerId);
+      if (saveLinkDefaultUrl) {
+        setUrl(saveLinkDefaultUrl);
+      }
     } else {
       // 팝업이 닫힐 때: 모든 입력 상태 초기화
       setOpenFolderBrowser(false);
@@ -158,9 +145,8 @@ export function SaveLinkDialog() {
       setIsCreatingNewTag(false);
       setAiSuggestedTags(new Set());
       setPendingNewFolderName(null);
-      setClipboardUrl(null);
     }
-  }, [saveLinkDialogOpen]); // 내부 상태(url 등) 의존성 제어
+  }, [saveLinkDialogOpen, saveLinkDefaultUrl]); // 내부 상태(url 등) 의존성 제어
 
   // (커스텀 위치 계산 및 외부 클릭 로직 제거됨 - Popover로 대체)
 
@@ -368,17 +354,22 @@ export function SaveLinkDialog() {
         기존 shadcn 다이얼로그의 배경/패딩, 자체 닫기버튼(&>button:hidden) 무력화 
         투명 배경 위에서 우리의 커스텀 UI 박스(z-10 bg-white rounded-2xl...)가 완전히 덮도록 구성
       */}
-      <DialogContent className="sm:max-w-[540px] sm:left-[calc(50%+90px)] p-0 bg-transparent border-0 shadow-none [&>button]:hidden overflow-visible">
+      <DialogContent className="max-sm:!top-auto max-sm:!bottom-0 max-sm:!translate-y-0 max-sm:!max-w-full max-sm:px-0 max-sm:!rounded-none sm:max-w-[540px] sm:left-1/2 tablet-lg:left-[calc(50%+90px)] p-0 bg-transparent border-0 shadow-none [&>button]:hidden overflow-visible max-sm:data-[state=open]:!slide-in-from-bottom-full max-sm:data-[state=closed]:!slide-out-to-bottom-full max-sm:data-[state=open]:!zoom-in-100 max-sm:data-[state=closed]:!zoom-out-100 duration-300">
         
-        <div className={`relative z-[60] w-full max-w-[540px] bg-white dark:bg-[#0a0a0b] rounded-2xl ${theme.softModalShadow} border border-slate-100 dark:border-white/[0.08] overflow-visible mx-auto`}>
+        <div className={`relative z-[60] w-full max-sm:flex max-sm:flex-col max-sm:h-[72vh] max-sm:max-h-[72vh] max-sm:max-w-full max-sm:rounded-t-[32px] max-sm:rounded-b-none max-sm:border-x-0 max-sm:border-b-0 max-sm:overflow-hidden sm:max-w-[540px] bg-white dark:bg-[#0a0a0b] sm:rounded-2xl ${theme.softModalShadow} border border-slate-100 dark:border-white/[0.08] overflow-visible mx-auto`}>
           
+          {/* Mobile Drag Handle Indicator */}
+          <div className="w-full flex-none flex justify-center pt-3 pb-2 sm:hidden bg-white dark:bg-[#0a0a0b] z-20">
+            <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700/50 rounded-full" />
+          </div>
+
           {/* Header & Close */}
-          <div className="relative flex items-center justify-between px-5 pt-5 pb-2 z-10">
+          <div className="relative flex items-center justify-between px-5 max-sm:px-6 pt-5 max-sm:pt-2 pb-2 max-sm:pb-4 z-10 max-sm:z-20 max-sm:flex-none max-sm:bg-white max-sm:dark:bg-[#0a0a0b] max-sm:border-b max-sm:border-slate-100 max-sm:dark:border-white/[0.05]">
             <DialogTitle className={`text-lg font-extrabold ${theme.charcoal} tracking-tight flex items-center gap-2.5`}>
               <div className={`${theme.premiumGradient} p-1.5 rounded-lg flex items-center justify-center`}>
                 <span className="material-symbols-outlined text-white !text-[18px] fill-1">bookmark</span>
               </div>
-              Save to Workspace
+              Save Link
             </DialogTitle>
             <DialogDescription className="sr-only">Save a new link to your workspace with AI assistance</DialogDescription>
             <button 
@@ -389,7 +380,8 @@ export function SaveLinkDialog() {
             </button>
           </div>
 
-          <div className="relative px-5 pb-5 space-y-3 mt-3 z-10">
+          {/* Main Scrollable Area */}
+          <div className="relative px-5 max-sm:px-5 pb-5 max-sm:pb-0 space-y-3 max-sm:space-y-4 mt-3 max-sm:mt-0 z-10 max-sm:flex-1 max-sm:overflow-y-auto max-sm:custom-scrollbar">
             
             {/* URL Input */}
             <div className={`${styles.sectionContainer} space-y-1.5`}>
@@ -437,40 +429,6 @@ export function SaveLinkDialog() {
                   )}
                 </div>
                 <div className="relative flex-1">
-                  {/* 클립보드 자동 인식 - 초미니멀 액션 칩 UI */}
-                  {clipboardUrl && !url && (
-                    <button
-                      type="button"
-                      onClick={() => { setUrl(clipboardUrl); setClipboardUrl(null); }}
-                      className="absolute -top-8 right-0 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-300 z-20 group outline-none"
-                    >
-                      <div className="bg-white/95 dark:bg-[#0a0a0b]/95 backdrop-blur-xl border border-violet-100 dark:border-white/[0.08] rounded-full shadow-[0_12px_24px_-8px_rgba(124,58,237,0.3)] flex items-center gap-2.5 px-3.5 py-2 whitespace-nowrap transition-all hover:bg-violet-50 dark:hover:bg-purple-900/20 active:scale-95">
-                        <div className={`${styles.btnGradient} w-5 h-5 rounded-full flex items-center justify-center flex-none overflow-hidden shadow-sm shadow-violet-500/20`}>
-                          <span className="inline-flex h-full w-full items-center justify-center rotate-[-45deg] translate-x-[0.25px]">
-                            <span className="material-symbols-outlined !text-[13px] !leading-none block text-white font-bold">link</span>
-                          </span>
-                        </div>
-                        <span className="text-[11px] font-bold text-slate-700 dark:text-gray-100 tracking-tight pr-1">Paste copied link</span>
-                      </div>
-                      {/* 부드럽고 존재감 있는 곡선형 SVG 꼬리표 - 크기 확대 및 실루엣 최적화 */}
-                      <svg 
-                        className="absolute -bottom-[6px] right-4 w-[18px] h-[7px]" 
-                        viewBox="0 0 18 7" 
-                        fill="none" 
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path 
-                          d="M0 0C4.5 0 7 1.5 9 7C11 1.5 13.5 0 18 0Z" 
-                          className="fill-white/95 dark:fill-[#0a0a0b]/95 group-hover:fill-violet-50 dark:group-hover:fill-purple-900/20 transition-colors"
-                        />
-                        <path 
-                          d="M0 0C4.5 0 7 1.5 9 7C11 1.5 13.5 0 18 0" 
-                          className="stroke-violet-100 dark:stroke-white/[0.08] transition-colors" 
-                          strokeWidth="1"
-                        />
-                      </svg>
-                    </button>
-                  )}
                   <input
                     className={`${styles.minimalInput} w-full`}
                     type="text"
@@ -489,7 +447,7 @@ export function SaveLinkDialog() {
               )}
             </div>
 
-            {/* Title Input (새로 추가) */}
+            {/* Title Input */}
             <div className={`${styles.sectionContainer} space-y-1.5`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
@@ -515,7 +473,7 @@ export function SaveLinkDialog() {
             </div>
 
             {/* AI Analysis Button */}
-            <div className="flex justify-center w-full">
+            <div className="flex justify-center w-full max-sm:py-1">
               <button
                 onClick={handleAiAnalysis}
                 disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || analyzeLinkMutation.isPending}
@@ -536,7 +494,7 @@ export function SaveLinkDialog() {
             </div>
 
             {/* Folder Selection */}
-            <div className={`${styles.sectionContainer} space-y-3`}>
+            <div className={`${styles.sectionContainer} space-y-3 max-sm:space-y-2`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className={`material-symbols-outlined !text-[12px] opacity-100 ${theme.accentPurple}`}>folder</span>
@@ -861,19 +819,19 @@ export function SaveLinkDialog() {
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex items-center justify-end gap-3 px-6 py-5 mt-2">
+            <div className="flex items-center justify-end gap-3 px-6 max-sm:px-6 py-5 max-sm:py-4 mt-2 max-sm:mt-0 max-sm:-mx-5 max-sm:sticky max-sm:bottom-0 max-sm:bg-white max-sm:dark:bg-[#0a0a0b] max-sm:border-t max-sm:border-slate-100 max-sm:dark:border-white/[0.05] max-sm:z-20 max-sm:pb-safe">
               <button 
                 onClick={() => toggleSaveLinkDialog(false)} 
-                className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors font-medium px-2 py-1"
+                className="text-xs max-sm:hidden text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors font-medium px-2 py-1"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending || createFolderMutation.isPending || isFoldersLoading}
-                className={`${styles.btnGradient} text-xs font-bold px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg`}
+                className={`${styles.btnGradient} text-xs max-sm:text-[15px] font-bold px-6 max-sm:w-full py-2.5 max-sm:py-3.5 rounded-xl transition-all flex justify-center items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg max-sm:shadow-[0_4px_12px_rgba(124,58,237,0.2)]`}
               >
-                {(createBookmarkMutation.isPending || createFolderMutation.isPending) ? 'Saving...' : 'Save to Workspace'}
+                {(createBookmarkMutation.isPending || createFolderMutation.isPending) ? 'Saving...' : 'Save Link'}
               </button>
             </div>
 

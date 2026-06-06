@@ -11,7 +11,12 @@ import { useRouter } from 'next/navigation';
 
 // const PINNED_DOT_COLORS = ['bg-blue-500', 'bg-purple-500', 'bg-teal-500', 'bg-amber-500', 'bg-emerald-500'];
 
-export function Sidebar() {
+export interface SidebarProps {
+  onClose?: () => void;
+  className?: string;
+}
+
+export function Sidebar({ onClose, className }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
@@ -30,12 +35,24 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-[180px] bg-slate-950 text-white flex flex-col flex-shrink-0 h-full border-r border-white/5 z-40">
+    <aside className={cn("w-[180px] bg-slate-950 text-white flex flex-col flex-shrink-0 h-full border-r border-white/5 z-40", className)}>
       
       {/* Logo Area */}
-      <div className="p-4 flex items-center space-x-2 select-none cursor-default">
-        <img src="/relink_logo.png" alt="ReLink Logo" className="w-7 h-7 object-contain" />
-        <h1 className="text-xl font-bold tracking-tight">ReLink</h1>
+      <div className="p-4 flex items-center justify-between select-none cursor-default">
+        <div className="flex items-center space-x-2">
+          <img src="/relink_logo.png" alt="ReLink Logo" className="w-7 h-7 object-contain" />
+          <h1 className="text-xl font-bold tracking-tight">ReLink</h1>
+        </div>
+        {onClose && (
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="tablet-lg:hidden p-1 text-gray-400 hover:text-white rounded-md hover:bg-white/10 transition-colors"
+            title="메뉴 닫기"
+          >
+            <span className="material-symbols-outlined text-[18px]!">menu_open</span>
+          </button>
+        )}
       </div>
 
       {/* User Profile Outline */}
@@ -55,6 +72,7 @@ export function Sidebar() {
               try {
                 await logout();
               } finally {
+                onClose?.();
                 router.push('/login');
               }
             }}
@@ -76,6 +94,7 @@ export function Sidebar() {
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={onClose}
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition-colors select-none text-gray-400 hover:text-white hover:bg-white/5"
               >
                 <div className="w-5 h-5 flex items-center justify-center shrink-0">
@@ -93,6 +112,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 'flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition-colors select-none',
                 isActive 
