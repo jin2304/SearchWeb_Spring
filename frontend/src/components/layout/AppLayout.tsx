@@ -35,7 +35,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       
       {/* Mobile Sidebar (Drawer Overlay) */}
       {mobileSidebarOpen && (
-        <div className="fixed inset-0 z-[100] flex tablet-lg:hidden">
+        <div className="fixed inset-0 z-drawer-backdrop flex tablet-lg:hidden">
           {/* Backdrop */}
           <div 
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
@@ -43,7 +43,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           />
           {/* Drawer Sidebar */}
           <Sidebar 
-            className="relative z-[101] w-[210px] flex-shrink-0 h-full shadow-2xl animate-in slide-in-from-left duration-300" 
+            className="relative z-drawer w-[210px] flex-shrink-0 h-full shadow-2xl animate-in slide-in-from-left duration-300" 
             onClose={() => toggleMobileSidebar(false)}
           />
         </div>

@@ -46,7 +46,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
   ];
 
   if (!mounted) return (
-    <header className={`fixed w-full top-0 z-50 flex h-9 md:h-11 items-center justify-between whitespace-nowrap px-5 sm:px-8 lg:px-20 transition-all duration-300 ${
+    <header className={`fixed w-full top-0 z-sticky flex h-9 md:h-11 items-center justify-between whitespace-nowrap px-5 sm:px-8 lg:px-20 transition-all duration-300 ${
       isLoginPage 
         ? "bg-[#F5F3FF]/85 dark:bg-[#020617]/85 backdrop-blur-md lg:bg-transparent text-slate-800 dark:text-white" 
         : "border-b border-white/10 bg-black/95 backdrop-blur-md shadow-sm text-white"
@@ -60,7 +60,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
 
   return (
     <>
-      <header className={`fixed w-full top-0 z-50 flex h-9 md:h-11 items-center justify-between whitespace-nowrap px-5 sm:px-8 lg:px-20 transition-all duration-300 ${
+      <header className={`fixed w-full top-0 z-sticky flex h-9 md:h-11 items-center justify-between whitespace-nowrap px-5 sm:px-8 lg:px-20 transition-all duration-300 ${
         isLoginPage 
           ? "bg-[#F5F3FF]/85 dark:bg-[#020617]/85 backdrop-blur-md lg:bg-transparent text-slate-800 dark:text-white" 
           : "border-b border-white/10 bg-black/95 backdrop-blur-md shadow-sm text-white"
@@ -140,7 +140,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeMenu}
-              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-drawer-backdrop bg-black/60 backdrop-blur-sm md:hidden"
             />
 
             {/* Menu Panel */}
@@ -149,7 +149,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 z-[70] w-[250px] bg-[#0a0a0b] border-l border-white/10 shadow-2xl md:hidden flex flex-col"
+              className="fixed right-0 top-0 bottom-0 z-drawer w-[250px] bg-[#0a0a0b] border-l border-white/10 shadow-2xl md:hidden flex flex-col"
             >
               <div className="flex flex-col h-full p-5">
                 <div className="flex items-center justify-between mb-8">

@@ -67,8 +67,8 @@ export default function Home() {
     if (isAuthenticated) {
       router.push("/my-links");
     } else {
-      // 모바일/태블릿 크기(lg 중단점인 1024px 미만)일 때는 바로 구글 로그인 페이지로 이동
-      if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      // 모바일/태블릿 크기(tablet-lg 중단점인 1400px 미만)일 때는 바로 구글 로그인 페이지로 이동
+      if (typeof window !== "undefined" && window.innerWidth < 1400) {
         window.location.href = buildBackendUrl('/oauth2/authorization/google');
       } else {
         router.push("/login");
@@ -440,7 +440,7 @@ export default function Home() {
       {/* Scroll to Top Button */}
       <button
         onClick={scrollToTop}
-        className={`fixed bottom-7 right-7 z-[60] flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-[#050505]/92 text-white shadow-[0_14px_34px_rgba(0,0,0,0.42)] backdrop-blur-xl transition-all duration-500 hover:scale-105 hover:bg-[#000000]/96 hover:shadow-[0_18px_40px_rgba(0,0,0,0.52)] active:scale-95 ${
+        className={`fixed bottom-7 right-7 z-floating flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-[#050505]/92 text-white shadow-[0_14px_34px_rgba(0,0,0,0.42)] backdrop-blur-xl transition-all duration-500 hover:scale-105 hover:bg-[#000000]/96 hover:shadow-[0_18px_40px_rgba(0,0,0,0.52)] active:scale-95 ${
           showScrollTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-16 opacity-0"
         }`}
         aria-label="맨 위로 가기"

@@ -10,7 +10,7 @@ export function MobileBottomNavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const { toggleSaveLinkDialog, saveLinkDialogOpen } = useUIStore();
+  const { toggleSaveLinkDialog, saveLinkDialogOpen, toggleCreateFolderDialog } = useUIStore();
   const [mounted, setMounted] = useState(false);
   const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
@@ -21,6 +21,8 @@ export function MobileBottomNavBar() {
   }, []);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
+
     const checkClipboard = async () => {
       if (saveLinkDialogOpen) {
         setClipboardUrl(null);
@@ -39,12 +41,18 @@ export function MobileBottomNavBar() {
       }
     };
 
+    const handleFocus = () => {
+      clearTimeout(timer);
+      timer = setTimeout(checkClipboard, 250);
+    };
+
     if (mounted) {
       checkClipboard();
-      window.addEventListener('focus', checkClipboard);
+      window.addEventListener('focus', handleFocus);
     }
     return () => {
-      window.removeEventListener('focus', checkClipboard);
+      clearTimeout(timer);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [saveLinkDialogOpen, mounted]);
 
@@ -89,7 +97,7 @@ export function MobileBottomNavBar() {
       router.push('/login');
       return;
     }
-    useUIStore.getState().toggleCreateFolderDialog(true);
+    toggleCreateFolderDialog(true);
   };
 
   const handleSaveLink = () => {
@@ -127,10 +135,7 @@ export function MobileBottomNavBar() {
         {shouldRenderTooltip && clipboardUrl && (
           <button
             type="button"
-            onClick={() => {
-              toggleSaveLinkDialog(true, clipboardUrl);
-              setClipboardUrl(null);
-            }}
+            onClick={handleSaveLink}
             className={`absolute -top-14 left-1/2 -translate-x-1/2 z-50 group outline-none transition-all duration-1000 ease-in-out ${
               isTooltipVisible 
                 ? 'opacity-100 translate-y-0 scale-100' 

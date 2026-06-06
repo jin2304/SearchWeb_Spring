@@ -505,7 +505,7 @@ function LinkItem({
 
       {/* Tooltip for full note content (위치 우측 복구 & 꼬리만 왼쪽 유지) */}
       {!isNoteEditing && noteContent && !isDropdownOpen && (
-        <div className="absolute right-12 top-1/2 -translate-y-1/2 mr-2 w-max max-w-[280px] z-[60] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 bg-white/95 dark:bg-gray-800/90 backdrop-blur-md text-gray-700 dark:text-gray-200 text-[11px] font-medium p-3 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700/50 whitespace-normal break-words leading-relaxed pointer-events-none translate-x-1 group-hover:translate-x-0 text-left">
+        <div className="absolute right-12 top-1/2 -translate-y-1/2 mr-2 w-max max-w-[280px] z-popover opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 bg-white/95 dark:bg-gray-800/90 backdrop-blur-md text-gray-700 dark:text-gray-200 text-[11px] font-medium p-3 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700/50 whitespace-normal break-words leading-relaxed pointer-events-none translate-x-1 group-hover:translate-x-0 text-left">
           <div className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 bg-white/95 dark:bg-gray-800/90 transform rotate-45 border-b border-l border-gray-100 dark:border-gray-700/50"></div>
           <div className="relative z-10 break-all tablet-lg:break-words">{noteContent}</div>
         </div>
@@ -931,14 +931,14 @@ export function RightPanel() {
   if (!rightPanelOpen) return null;
 
   return (
-    <aside className={`fixed inset-y-0 right-0 z-50 bg-white dark:bg-[#0a0a0b] flex flex-col w-full h-full shadow-2xl transition-colors duration-300 tablet-lg:relative tablet-lg:inset-auto tablet-lg:w-[700px] tablet-lg:shrink-0 tablet-lg:border-l tablet-lg:border-gray-200 tablet-lg:dark:border-white/[0.08] tablet-lg:shadow-none tablet-lg:z-10 tablet-lg:flex ${
+    <aside className={`fixed inset-y-0 right-0 z-drawer bg-white dark:bg-[#0a0a0b] flex flex-col w-full h-full shadow-2xl transition-colors duration-300 tablet-lg:relative tablet-lg:inset-auto tablet-lg:w-[700px] tablet-lg:shrink-0 tablet-lg:border-l tablet-lg:border-gray-200 tablet-lg:dark:border-white/[0.08] tablet-lg:shadow-none tablet-lg:z-10 tablet-lg:flex ${
       mounted
         ? "flex animate-in slide-in-from-right duration-300 tablet-lg:animate-none"
         : "hidden tablet-lg:flex"
     }`}>
       
       {/* Top Header & Tags | 상단 헤더 및 태그 필터 영역 */}
-      <div className="px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex flex-col gap-2 bg-white dark:bg-[#0a0a0b] sticky top-0 z-[15]">
+      <div className="px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex flex-col gap-2 bg-white dark:bg-[#0a0a0b] sticky top-0 z-sticky">
         
         {/* Row 1: Title & Actions */}
         <div className="flex flex-col tablet-lg:flex-row tablet-lg:justify-between tablet-lg:items-start gap-3 tablet-lg:gap-0">

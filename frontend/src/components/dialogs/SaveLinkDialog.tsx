@@ -32,11 +32,11 @@ const styles = {
   tagChipSelected: "bg-violet-50 dark:bg-purple-900/40 text-violet-700 dark:text-purple-300 border-violet-200 dark:border-purple-700 shadow-sm font-semibold",
   tagChipExisting: "text-[#1e293b] dark:text-gray-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-white/20",
   tagAddTrigger: "text-[11px] px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-dashed border-slate-300 dark:border-white/15 text-slate-500 dark:text-gray-400 hover:border-violet-500 dark:hover:border-purple-400 hover:text-violet-600 dark:hover:text-purple-400 transition-all cursor-pointer flex items-center gap-1 min-h-[26px] w-fit relative z-30 shadow-sm",
-  folderTile: "relative flex flex-col items-center justify-center p-3 max-sm:p-2.5 rounded-xl border border-[#e2e8f0] dark:border-white/10 bg-white dark:bg-slate-800/60 backdrop-blur-sm cursor-pointer transition-all hover:border-violet-300 dark:hover:border-purple-500/50 hover:bg-slate-50/50 dark:hover:bg-slate-700 text-center gap-1.5 max-sm:gap-1 shadow-sm",
+  folderTile: "relative flex flex-col items-center justify-center p-3 max-tablet-lg:p-2.5 rounded-xl border border-[#e2e8f0] dark:border-white/10 bg-white dark:bg-slate-800/60 backdrop-blur-sm cursor-pointer transition-all hover:border-violet-300 dark:hover:border-purple-500/50 hover:bg-slate-50/50 dark:hover:bg-slate-700 text-center gap-1.5 max-tablet-lg:gap-1 shadow-sm",
   folderTileActive: "border-violet-500 dark:border-purple-500 ring-1 ring-violet-500 dark:ring-purple-500 bg-white dark:bg-slate-800 text-violet-900 dark:text-purple-300 shadow-[0_0_15px_rgba(124,58,237,0.15)]",
   matchBadge: `absolute -top-2 -right-1.5 ${theme.premiumGradient} text-white text-[9px] font-bold px-1.5 py-[1px] rounded-full shadow-md z-10`,
   btnGradient: "bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50",
-  sectionContainer: "bg-gray-50/80 dark:bg-slate-800/50 dark:backdrop-blur-md rounded-2xl p-3 max-sm:p-2.5 border border-gray-100/50 dark:border-white/[0.05]"
+  sectionContainer: "bg-gray-50/80 dark:bg-slate-800/50 dark:backdrop-blur-md rounded-2xl p-3 max-tablet-lg:p-2.5 border border-gray-100/50 dark:border-white/[0.05]"
 };
 
 /**
@@ -354,17 +354,17 @@ export function SaveLinkDialog() {
         기존 shadcn 다이얼로그의 배경/패딩, 자체 닫기버튼(&>button:hidden) 무력화 
         투명 배경 위에서 우리의 커스텀 UI 박스(z-10 bg-white rounded-2xl...)가 완전히 덮도록 구성
       */}
-      <DialogContent className="max-sm:!top-auto max-sm:!bottom-0 max-sm:!translate-y-0 max-sm:!max-w-full max-sm:px-0 max-sm:!rounded-none sm:max-w-[540px] sm:left-1/2 tablet-lg:left-[calc(50%+90px)] p-0 bg-transparent border-0 shadow-none [&>button]:hidden overflow-visible max-sm:data-[state=open]:!slide-in-from-bottom-full max-sm:data-[state=closed]:!slide-out-to-bottom-full max-sm:data-[state=open]:!zoom-in-100 max-sm:data-[state=closed]:!zoom-out-100 duration-300">
+      <DialogContent className="max-tablet-lg:!top-auto max-tablet-lg:!bottom-0 max-tablet-lg:!translate-y-0 max-sm:!max-w-full sm:max-w-[540px] max-tablet-lg:max-w-[540px] max-sm:px-0 sm:px-4 max-tablet-lg:px-4 max-sm:!rounded-none sm:!rounded-t-[32px] max-tablet-lg:!rounded-t-[32px] tablet-lg:max-w-[540px] tablet-lg:left-[calc(50%+90px)] p-0 bg-transparent border-0 shadow-none [&>button]:hidden overflow-visible max-tablet-lg:data-[state=open]:!slide-in-from-bottom-full max-tablet-lg:data-[state=closed]:!slide-out-to-bottom-full max-tablet-lg:data-[state=open]:!zoom-in-100 max-tablet-lg:data-[state=closed]:!zoom-out-100 duration-300">
         
-        <div className={`relative z-[60] w-full max-sm:flex max-sm:flex-col max-sm:h-[72vh] max-sm:max-h-[72vh] max-sm:max-w-full max-sm:rounded-t-[32px] max-sm:rounded-b-none max-sm:border-x-0 max-sm:border-b-0 max-sm:overflow-hidden sm:max-w-[540px] bg-white dark:bg-[#0a0a0b] sm:rounded-2xl ${theme.softModalShadow} border border-slate-100 dark:border-white/[0.08] overflow-visible mx-auto`}>
+        <div className={`relative z-dialog w-full max-tablet-lg:flex max-tablet-lg:flex-col max-tablet-lg:h-[72vh] max-tablet-lg:max-h-[72vh] max-sm:max-w-full sm:max-w-[540px] max-tablet-lg:max-w-[540px] max-sm:rounded-t-[32px] sm:rounded-2xl max-tablet-lg:rounded-2xl max-sm:rounded-b-none max-tablet-lg:border-x-0 max-tablet-lg:border-b-0 max-tablet-lg:overflow-hidden tablet-lg:max-w-[540px] bg-white dark:bg-[#0a0a0b] tablet-lg:rounded-2xl ${theme.softModalShadow} border border-slate-100 dark:border-white/[0.08] overflow-visible mx-auto`}>
           
           {/* Mobile Drag Handle Indicator */}
-          <div className="w-full flex-none flex justify-center pt-3 pb-2 sm:hidden bg-white dark:bg-[#0a0a0b] z-20">
+          <div className="w-full flex-none flex justify-center pt-3 pb-2 tablet-lg:hidden bg-white dark:bg-[#0a0a0b] z-20">
             <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700/50 rounded-full" />
           </div>
 
           {/* Header & Close */}
-          <div className="relative flex items-center justify-between px-5 max-sm:px-6 pt-5 max-sm:pt-2 pb-2 max-sm:pb-4 z-10 max-sm:z-20 max-sm:flex-none max-sm:bg-white max-sm:dark:bg-[#0a0a0b] max-sm:border-b max-sm:border-slate-100 max-sm:dark:border-white/[0.05]">
+          <div className="relative flex items-center justify-between px-5 max-tablet-lg:px-6 pt-5 max-tablet-lg:pt-2 pb-2 max-tablet-lg:pb-4 z-10 max-tablet-lg:z-20 max-tablet-lg:flex-none max-tablet-lg:bg-white max-tablet-lg:dark:bg-[#0a0a0b] max-tablet-lg:border-b max-tablet-lg:border-slate-100 max-tablet-lg:dark:border-white/[0.05]">
             <DialogTitle className={`text-lg font-extrabold ${theme.charcoal} tracking-tight flex items-center gap-2.5`}>
               <div className={`${theme.premiumGradient} p-1.5 rounded-lg flex items-center justify-center`}>
                 <span className="material-symbols-outlined text-white !text-[18px] fill-1">bookmark</span>
@@ -381,7 +381,7 @@ export function SaveLinkDialog() {
           </div>
 
           {/* Main Scrollable Area */}
-          <div className="relative px-5 max-sm:px-5 pb-5 max-sm:pb-0 space-y-3 max-sm:space-y-4 mt-3 max-sm:mt-0 z-10 max-sm:flex-1 max-sm:overflow-y-auto max-sm:custom-scrollbar">
+          <div className="relative px-5 max-tablet-lg:px-5 pb-5 max-tablet-lg:pb-0 space-y-3 max-tablet-lg:space-y-4 mt-3 max-tablet-lg:mt-0 z-10 max-tablet-lg:flex-1 max-tablet-lg:overflow-y-auto max-tablet-lg:custom-scrollbar">
             
             {/* URL Input */}
             <div className={`${styles.sectionContainer} space-y-1.5`}>
@@ -473,7 +473,7 @@ export function SaveLinkDialog() {
             </div>
 
             {/* AI Analysis Button */}
-            <div className="flex justify-center w-full max-sm:py-1">
+            <div className="flex justify-center w-full max-tablet-lg:py-1">
               <button
                 onClick={handleAiAnalysis}
                 disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || analyzeLinkMutation.isPending}
@@ -494,7 +494,7 @@ export function SaveLinkDialog() {
             </div>
 
             {/* Folder Selection */}
-            <div className={`${styles.sectionContainer} space-y-3 max-sm:space-y-2`}>
+            <div className={`${styles.sectionContainer} space-y-3 max-tablet-lg:space-y-2`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className={`material-symbols-outlined !text-[12px] opacity-100 ${theme.accentPurple}`}>folder</span>
@@ -563,7 +563,7 @@ export function SaveLinkDialog() {
                     </PopoverTrigger>
                     
                     <PopoverContent 
-                      className="w-[--radix-popover-trigger-width] p-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] dark:shadow-2xl border border-slate-200 dark:border-gray-800 z-[110] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200"
+                      className="w-[--radix-popover-trigger-width] p-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] dark:shadow-2xl border border-slate-200 dark:border-gray-800 z-popover overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200"
                       align="start"
                       sideOffset={6}
                     >
@@ -673,7 +673,7 @@ export function SaveLinkDialog() {
                       value={newTagInputValue}
                       onChange={(e) => setNewTagInputValue(e.target.value)}
                       placeholder="Type tag..."
-                      className="text-[11px] outline-none text-[#1e293b] dark:text-gray-200 w-16 sm:w-20 bg-transparent placeholder-slate-400 font-medium"
+                      className="text-[11px] outline-none text-[#1e293b] dark:text-gray-200 w-16 tablet-lg:w-20 bg-transparent placeholder-slate-400 font-medium"
                       autoFocus
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && newTagInputValue.trim()) {
@@ -718,7 +718,7 @@ export function SaveLinkDialog() {
                       </button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-[200px] p-2 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] dark:shadow-2xl border border-slate-200 dark:border-gray-800 z-[100]" 
+                      className="w-[200px] p-2 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] dark:shadow-2xl border border-slate-200 dark:border-gray-800 z-popover" 
                       align="start" 
                       side="bottom" // [수정] 아래로 여는 것을 선호하지만
                       sideOffset={8}
@@ -819,17 +819,17 @@ export function SaveLinkDialog() {
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex items-center justify-end gap-3 px-6 max-sm:px-6 py-5 max-sm:py-4 mt-2 max-sm:mt-0 max-sm:-mx-5 max-sm:sticky max-sm:bottom-0 max-sm:bg-white max-sm:dark:bg-[#0a0a0b] max-sm:border-t max-sm:border-slate-100 max-sm:dark:border-white/[0.05] max-sm:z-20 max-sm:pb-safe">
+            <div className="flex items-center justify-end gap-3 px-6 max-tablet-lg:px-6 py-5 max-tablet-lg:py-4 mt-2 max-tablet-lg:mt-0 max-tablet-lg:-mx-5 max-tablet-lg:sticky max-tablet-lg:bottom-0 max-tablet-lg:bg-white max-tablet-lg:dark:bg-[#0a0a0b] max-tablet-lg:border-t max-tablet-lg:border-slate-100 max-tablet-lg:dark:border-white/[0.05] max-tablet-lg:z-20 max-tablet-lg:pb-safe">
               <button 
                 onClick={() => toggleSaveLinkDialog(false)} 
-                className="text-xs max-sm:hidden text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors font-medium px-2 py-1"
+                className="text-xs max-tablet-lg:hidden text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors font-medium px-2 py-1"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending || createFolderMutation.isPending || isFoldersLoading}
-                className={`${styles.btnGradient} text-xs max-sm:text-[15px] font-bold px-6 max-sm:w-full py-2.5 max-sm:py-3.5 rounded-xl transition-all flex justify-center items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg max-sm:shadow-[0_4px_12px_rgba(124,58,237,0.2)]`}
+                className={`${styles.btnGradient} text-xs max-tablet-lg:text-[15px] font-bold px-6 max-tablet-lg:w-full py-2.5 max-tablet-lg:py-3.5 rounded-xl transition-all flex justify-center items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg max-tablet-lg:shadow-[0_4px_12px_rgba(124,58,237,0.2)]`}
               >
                 {(createBookmarkMutation.isPending || createFolderMutation.isPending) ? 'Saving...' : 'Save Link'}
               </button>
