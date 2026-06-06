@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import NextLink from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { buildBackendUrl } from "@/lib/config/backend";
 import { LandingHeader } from "@/components/layout/LandingHeader";
+import { StarField } from "@/components/ui/StarField";
 
 export default function LoginPage() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden w-screen text-text-main font-sans selection:bg-primary/20 bg-background-light dark:bg-background-dark">
@@ -42,27 +39,7 @@ export default function LoginPage() {
             ></div>
 
             {/* Dense Star/Light Field (Twinkling Crystal Shards) - Hidden in Light Mode */}
-            {mounted && (
-              <div className="absolute inset-0 hidden dark:block">
-                {Array.from({ length: 45 }).map((_, i) => (
-                  <div 
-                    key={`star-${i}`}
-                    className="absolute rounded-full transition-all duration-1000"
-                    style={{ 
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                      width: `${Math.random() * 2.5 + 0.5}px`,
-                      height: `${Math.random() * 2.5 + 0.5}px`,
-                      // Light mode: Prism effect (shades of indigo/cyan/white)
-                      backgroundColor: i % 4 === 0 ? "#7c3aed" : i % 5 === 0 ? "#0ea5e9" : "#ffffff",
-                      opacity: 0.4,
-                      animation: i % 3 === 0 ? `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite ${Math.random() * 5}s` : 'none',
-                      boxShadow: i % 8 === 0 ? '0 0 10px 1px rgba(124,58,237,0.3)' : i % 12 === 0 ? '0 0 12px 2px rgba(14,165,233,0.3)' : 'none'
-                    }}
-                  ></div>
-                ))}
-              </div>
-            )}
+            <StarField opacity={0.4} keyPrefix="desktop-star" />
           </div>
 
           <div className="relative z-10 flex w-full flex-col items-center justify-center text-center -mt-10">
@@ -359,26 +336,7 @@ export default function LoginPage() {
               style={{ animation: "rotate-slow 30s linear infinite" }}
             ></div>
 
-            {mounted && (
-              <div className="absolute inset-0 hidden dark:block">
-                {Array.from({ length: 45 }).map((_, i) => (
-                  <div 
-                    key={`star-mobile-${i}`}
-                    className="absolute rounded-full transition-all duration-1000"
-                    style={{ 
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                      width: `${Math.random() * 2.5 + 0.5}px`,
-                      height: `${Math.random() * 2.5 + 0.5}px`,
-                      backgroundColor: i % 4 === 0 ? "#7c3aed" : i % 5 === 0 ? "#0ea5e9" : "#ffffff",
-                      opacity: 0.5,
-                      animation: i % 3 === 0 ? `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite ${Math.random() * 5}s` : 'none',
-                      boxShadow: i % 8 === 0 ? '0 0 10px 1px rgba(124,58,237,0.3)' : i % 12 === 0 ? '0 0 12px 2px rgba(14,165,233,0.3)' : 'none'
-                    }}
-                  ></div>
-                ))}
-              </div>
-            )}
+            <StarField opacity={0.5} keyPrefix="mobile-star" />
           </div>
         </div>
 
