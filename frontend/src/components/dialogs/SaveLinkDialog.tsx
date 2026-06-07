@@ -1,8 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useEffect } from 'react';
 import { useUIStore } from '@/lib/store/uiStore';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -406,13 +405,9 @@ export function SaveLinkDialog() {
                         const img = e.currentTarget;
                         // 구글 파비콘 API는 파비콘이 없을 경우 16x16 크기의 기본 지구본 이미지를 200 OK로 반환.
                         // 이를 감지하여 실패로 간주하고 폴백(직접 호출)을 실행.
-                        if (img.naturalWidth === 16 && img.naturalHeight === 16) {
+                        if (faviconFallbackStep === 'google' && img.naturalWidth === 16 && img.naturalHeight === 16) {
                           setFaviconVisible(false);
-                          if (faviconFallbackStep === 'google') {
-                            setFaviconFallbackStep('direct');
-                          } else {
-                            setFaviconFallbackStep('failed');
-                          }
+                          setFaviconFallbackStep('direct');
                         } else {
                           setFaviconVisible(true); // 정상 파비콘일 때만 서서히 표시
                         }

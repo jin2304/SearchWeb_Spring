@@ -84,7 +84,9 @@ export function SortDropdown({
               : "opacity-50 cursor-not-allowed grayscale-[0.5]"
           )}
         >
-          <span className="material-symbols-outlined !text-[12px] text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors">filter_list</span>
+          <span className="material-symbols-outlined !text-[12px] text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors">
+            {selectedOption?.icon || 'filter_list'}
+          </span>
           <span>{selectedOption?.label || (hasOptions ? '' : '선택 불가')}</span>
           <span className={cn(
             "material-symbols-outlined !text-[12px] text-gray-400 dark:text-gray-500 transition-all duration-200 group-hover:text-purple-500 dark:group-hover:text-purple-400",

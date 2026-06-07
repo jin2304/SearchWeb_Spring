@@ -155,7 +155,7 @@ export function FolderCard({ folder, color }: FolderCardProps) {
         </div>
 
         <div>
-          <h4 className="font-semibold text-[10px] xl:text-[11px] text-gray-800 dark:text-white truncate mt-1.5">
+          <h4 className="font-semibold text-[10.5px] xl:text-[11.5px] text-gray-800 dark:text-white truncate mt-1.5">
             {folder.folderName}
           </h4>
         </div>
@@ -176,6 +176,7 @@ export function FolderCard({ folder, color }: FolderCardProps) {
             <span className="material-symbols-outlined !text-[16px] !leading-none">edit</span>
             <span className="font-medium">Rename</span>
           </button>
+          {/*
           <button
             onClick={(e) => handleMenuItemClick('move', e)}
             disabled={isSystemFolder}
@@ -184,6 +185,7 @@ export function FolderCard({ folder, color }: FolderCardProps) {
             <span className="material-symbols-outlined !text-[16px] !leading-none">drive_file_move</span>
             <span className="font-medium">Move</span>
           </button>
+          */}
           <div className="h-px bg-gray-50 dark:bg-white/8 my-0.5" />
           <button
             onClick={(e) => handleMenuItemClick('delete', e)}

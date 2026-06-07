@@ -13,6 +13,7 @@ import { FOLDER_TYPE } from '@/lib/types/folder';
 import { useState, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { compareFolders } from '@/lib/utils/folderUtils';
+import { motion } from 'framer-motion';
 
 export default function MyLinksPage() {
   const { toggleRightPanel, toggleSaveLinkDialog, saveLinkDialogOpen } = useUIStore();
@@ -445,7 +446,13 @@ export default function MyLinksPage() {
                 </div>
               ) : (
                 processedSearchResultFolders.map((folder) => (
-                  <FolderCard key={folder.memberFolderId} folder={folder} />
+                  <motion.div
+                    key={folder.memberFolderId}
+                    layout="position"
+                    transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+                  >
+                    <FolderCard folder={folder} />
+                  </motion.div>
                 ))
               )}
             </div>
@@ -484,7 +491,7 @@ export default function MyLinksPage() {
                         </button>
                       </div>
                       <div className="z-10 mt-1 min-w-0 w-full">
-                        <h3 className="font-semibold text-[10px] tablet-lg:text-[11px] truncate w-full">{folder.folderName}</h3>
+                        <h3 className="font-semibold text-[10.5px] tablet-lg:text-[11.5px] truncate w-full">{folder.folderName}</h3>
                       </div>
                       <div className="absolute -right-4 -bottom-4 w-10 h-10 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
                     </div>
@@ -609,7 +616,10 @@ export default function MyLinksPage() {
               )}
 
               {/* ── 가상 'All Links' 폴더 카드 ── */}
-              <div
+              <motion.div
+                key="all-links"
+                layout="position"
+                transition={{ type: 'spring', stiffness: 300, damping: 32 }}
                 role="button"
                 tabIndex={0}
                 onClick={() => {
@@ -629,15 +639,21 @@ export default function MyLinksPage() {
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-[10.5px] text-gray-800 dark:text-white truncate mt-1.5 flex items-center gap-1">
+                  <h4 className="font-semibold text-[11.5px] text-gray-800 dark:text-white truncate mt-1.5 flex items-center gap-1">
                     <span>All Links</span>
                   </h4>
                 </div>
-              </div>
+              </motion.div>
 
               {/* ── 폴더 카드 목록 (백엔드 데이터 반복 렌더링) ── */}
               {processedAllFolders.map((folder) => (
-                <FolderCard key={folder.memberFolderId} folder={folder} />
+                <motion.div
+                  key={folder.memberFolderId}
+                  layout="position"
+                  transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+                >
+                  <FolderCard folder={folder} />
+                </motion.div>
               ))}
             </div>
           </>

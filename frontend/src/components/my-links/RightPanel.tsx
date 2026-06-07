@@ -10,7 +10,7 @@ import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import type { BookmarkResponse } from '@/lib/types/bookmark';
 import { FOLDER_TYPE } from '@/lib/types/folder';
 import { compareFolders } from '@/lib/utils/folderUtils';
-import { buildGoogleFaviconUrl, getUrlHostname, buildDirectFaviconUrl } from '@/lib/utils/favicon';
+import { buildGoogleFaviconUrl, getUrlHostname, buildDirectFaviconUrl, isGoogleFaviconUrl } from '@/lib/utils/favicon';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -69,11 +69,15 @@ function LinkItem({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);               // 더보기 메뉴 오픈 여부 
   const [isFolderDropdownOpen, setIsFolderDropdownOpen] = useState(false);   // 폴더 이동 드롭다운 여부
   const [faviconFallbackStep, setFaviconFallbackStep] = useState<'google' | 'direct' | 'failed'>('google');
+  const [faviconVisible, setFaviconVisible] = useState(false);
+  const storedFaviconUrl = data.link?.faviconUrl ?? null;
+  const faviconSourceUrl = data.link?.originalUrl ?? data.link?.canonicalUrl ?? data.link?.domain;
 
   // 북마크 데이터가 바뀌면 파비콘 재시도 플래그를 리셋합니다.
   useEffect(() => {
     setFaviconFallbackStep('google');
-  }, [data.bookmarkId]);
+    setFaviconVisible(false);
+  }, [data.bookmarkId, storedFaviconUrl, faviconSourceUrl]);
   
   const noteInputRef = useRef<HTMLInputElement>(null);     // 메모 입력창 참조
   const titleInputRef = useRef<HTMLInputElement>(null);    // 제목 입력창 참조
@@ -108,8 +112,6 @@ function LinkItem({
     }
     return null;
   })();
-  const faviconSourceUrl = data.link?.originalUrl ?? data.link?.canonicalUrl ?? data.link?.domain;
-
   const fallbackDomain =
     getUrlHostname(data.link?.originalUrl) ??
     getUrlHostname(data.link?.canonicalUrl) ??
@@ -306,14 +308,34 @@ function LinkItem({
 
       {/* Favicon & Domain Icon | 파비콘 및 도메인 아이콘 */}
       <div className={`relative z-10 h-8 w-8 rounded-lg bg-gray-100 text-gray-400 dark:text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold shrink-0 overflow-hidden border border-gray-100 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-violet-200/90 group-hover:bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(243,232,255,0.96)_100%)] group-hover:text-violet-600 group-hover:shadow-[0_12px_20px_-12px_rgba(124,58,237,0.28)] ${iconDarkClass}`}>
-        {data.link?.faviconUrl ? (
-          <img 
-            src={data.link.faviconUrl} 
-            alt="" 
-            className="w-5 h-5 object-contain" 
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              if (img.naturalWidth === 16 && img.naturalHeight === 16) {
+        {/* 로딩 지연 시 답답함을 주지 않기 위해 알파벳을 우선 띄우고, 성공 시에만 opacity-0으로 숨김 */}
+        <span className={`uppercase absolute transition-opacity duration-200 ${faviconVisible ? 'opacity-0' : 'opacity-100'}`}>{fallbackInitial}</span>
+        
+        {faviconFallbackStep !== 'failed' && (
+          storedFaviconUrl ? (
+            <img 
+              src={storedFaviconUrl} 
+              alt="" 
+              className={`w-5 h-5 object-contain transition-opacity duration-200 relative z-10 ${faviconVisible ? 'opacity-100' : 'opacity-0'}`} 
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                const fallbackStep = img.dataset.fallbackStep;
+                const isGoogleRequest = fallbackStep === 'google' || (!fallbackStep && isGoogleFaviconUrl(storedFaviconUrl));
+                if (isGoogleRequest && img.naturalWidth === 16 && img.naturalHeight === 16) {
+                  setFaviconVisible(false);
+                  if (!fallbackStep || fallbackStep === 'google') {
+                    img.dataset.fallbackStep = 'direct';
+                    img.src = buildDirectFaviconUrl(faviconSourceUrl) || '';
+                  } else {
+                    setFaviconFallbackStep('failed');
+                  }
+                } else {
+                  setFaviconVisible(true);
+                }
+              }}
+              onError={(e) => {
+                setFaviconVisible(false);
+                const img = e.currentTarget;
                 if (!img.dataset.fallbackStep) {
                   img.dataset.fallbackStep = 'google';
                   img.src = buildGoogleFaviconUrl(faviconSourceUrl) || '';
@@ -321,61 +343,34 @@ function LinkItem({
                   img.dataset.fallbackStep = 'direct';
                   img.src = buildDirectFaviconUrl(faviconSourceUrl) || '';
                 } else {
-                  img.style.display = 'none';
-                  if (img.parentElement) {
-                    img.parentElement.textContent = fallbackInitial;
-                  }
+                  setFaviconFallbackStep('failed');
                 }
-              }
-            }}
-            onError={(e) => {
-              const img = e.currentTarget;
-              if (!img.dataset.fallbackStep) {
-                img.dataset.fallbackStep = 'google';
-                img.src = buildGoogleFaviconUrl(faviconSourceUrl) || '';
-              } else if (img.dataset.fallbackStep === 'google') {
-                img.dataset.fallbackStep = 'direct';
-                img.src = buildDirectFaviconUrl(faviconSourceUrl) || '';
-              } else {
-                img.style.display = 'none';
-                if (img.parentElement) {
-                  img.parentElement.textContent = fallbackInitial;
+              }}
+            />
+          ) : fallbackFaviconUrl ? (
+            <img 
+              src={fallbackFaviconUrl} 
+              alt="" 
+              className={`w-5 h-5 object-contain transition-opacity duration-200 relative z-10 ${faviconVisible ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                if (faviconFallbackStep === 'google' && img.naturalWidth === 16 && img.naturalHeight === 16) {
+                  setFaviconVisible(false);
+                  setFaviconFallbackStep('direct');
+                } else {
+                  setFaviconVisible(true);
                 }
-              }
-            }}
-          />
-        ) : fallbackFaviconUrl ? (
-          <img 
-            src={fallbackFaviconUrl} 
-            alt="" 
-            className="w-5 h-5 object-contain"
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              if (img.naturalWidth === 16 && img.naturalHeight === 16) {
+              }}
+              onError={() => {
+                setFaviconVisible(false);
                 if (faviconFallbackStep === 'google') {
                   setFaviconFallbackStep('direct');
                 } else {
-                  img.style.display = 'none';
-                  if (img.parentElement) {
-                    img.parentElement.textContent = fallbackInitial;
-                  }
+                  setFaviconFallbackStep('failed');
                 }
-              }
-            }}
-            onError={(e) => {
-              const img = e.currentTarget;
-              if (faviconFallbackStep === 'google') {
-                setFaviconFallbackStep('direct');
-              } else {
-                img.style.display = 'none';
-                if (img.parentElement) {
-                  img.parentElement.textContent = fallbackInitial;
-                }
-              }
-            }}
-          />
-        ) : (
-          <span className="uppercase">{fallbackInitial}</span>
+              }}
+            />
+          ) : null
         )}
       </div>
       <div className="relative z-10 ml-3 flex-1 flex flex-col min-w-0">
@@ -737,7 +732,7 @@ export function RightPanel() {
 
   // Client-side filtering logic (Tags only; date/unread/folder filters are handled by the API)
   const allLinks = bookmarks ?? [];
-  let filteredLinks = selectedTags.length > 0
+  const filteredLinks = selectedTags.length > 0
     ? allLinks.filter(link => link.tags?.some(tag => selectedTags.includes(tag)))
     : allLinks;
   const emptyLinksMessage = (() => {
@@ -1117,7 +1112,13 @@ export function RightPanel() {
               </div>
             )}
           </div>
-          <button className="flex items-center justify-center p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors ml-2 shrink-0">
+          <button 
+            onClick={() => {
+              setSortOption(prev => prev === 'newest' ? 'oldest' : 'newest');
+            }}
+            className="flex items-center justify-center p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors ml-2 shrink-0"
+            title="Toggle sort order"
+          >
             <span className="material-symbols-outlined !text-[12px] !leading-none">swap_vert</span>
           </button>
         </div>

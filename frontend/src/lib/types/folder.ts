@@ -16,6 +16,7 @@ export interface FolderResponse {
   folderName: string;
   description: string | null;
   folderType: FolderType;
+  bookmarkCount: number;
 }
 
 // POST /api/folders 요청 바디

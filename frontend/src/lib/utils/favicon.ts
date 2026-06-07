@@ -1,5 +1,7 @@
 const HTTP_URL_PATTERN = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//;
 const WRAPPING_QUOTES_PATTERN = /^[\s"'`]+|[\s"'`]+$/g;
+const GOOGLE_FAVICON_HOSTNAME = 'www.google.com';
+const GOOGLE_FAVICON_PATHNAME = '/s2/favicons';
 
 // 사용자 입력값을 파싱 가능한 http/https URL로 정규화합니다.
 function parseHttpUrl(urlStr?: string | null): URL | null {
@@ -34,7 +36,18 @@ export function buildGoogleFaviconUrl(urlStr?: string | null, size = 64): string
   // ?token=... 또는 #hash 등 민감 정보가 포함된 쿼리와 해시를 제거하여 보안을 강화.
   const safeUrl = parsed.origin;
 
-  return `https://www.google.com/s2/favicons?sz=${size}&domain_url=${encodeURIComponent(safeUrl)}`;
+  return `https://${GOOGLE_FAVICON_HOSTNAME}${GOOGLE_FAVICON_PATHNAME}?sz=${size}&domain_url=${encodeURIComponent(safeUrl)}`;
+}
+
+export function isGoogleFaviconUrl(urlStr?: string | null): boolean {
+  if (!urlStr) return false;
+
+  try {
+    const parsed = new URL(urlStr);
+    return parsed.hostname === GOOGLE_FAVICON_HOSTNAME && parsed.pathname === GOOGLE_FAVICON_PATHNAME;
+  } catch {
+    return false;
+  }
 }
 
 // Google S2가 실패하거나 기본 아이콘을 반환하면 원 도메인의 /favicon.ico를 직접 시도합니다.
