@@ -46,21 +46,29 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
   ];
 
   if (!mounted) return (
-    <header className="fixed w-full top-0 z-50 flex h-11 items-center justify-between whitespace-nowrap border-b border-white/10 bg-black/95 backdrop-blur-md px-6 lg:px-20 shadow-sm transition-all duration-300">
+    <header className={`fixed w-full top-0 z-sticky flex h-9 md:h-11 items-center justify-between whitespace-nowrap px-5 sm:px-8 lg:px-20 transition-all duration-300 ${
+      isLoginPage 
+        ? "bg-[#F5F3FF]/85 dark:bg-[#020617]/85 backdrop-blur-md lg:bg-transparent text-slate-800 dark:text-white" 
+        : "border-b border-white/10 bg-black/95 backdrop-blur-md shadow-sm text-white"
+    }`}>
       <NextLink href="/" className="flex items-center space-x-2 group transition-opacity select-none">
         <Image src="/relink_logo.png" alt="ReLink" width={24} height={24} className="object-contain group-hover:scale-110 transition-transform" />
-        <span className="text-xl font-bold tracking-tight text-white uppercase sm:normal-case">ReLink</span>
+        <span className={`text-xl font-bold tracking-tight uppercase sm:normal-case ${isLoginPage ? 'text-slate-900 dark:text-white' : 'text-white'}`}>ReLink</span>
       </NextLink>
     </header>
   );
 
   return (
     <>
-      <header className="fixed w-full top-0 z-50 flex h-11 items-center justify-between whitespace-nowrap border-b border-white/10 bg-black/95 backdrop-blur-md px-6 lg:px-20 shadow-sm transition-all duration-300">
+      <header className={`fixed w-full top-0 z-sticky flex h-9 md:h-11 items-center justify-between whitespace-nowrap px-5 sm:px-8 lg:px-20 transition-all duration-300 ${
+        isLoginPage 
+          ? "bg-[#F5F3FF]/85 dark:bg-[#020617]/85 backdrop-blur-md lg:bg-transparent text-slate-800 dark:text-white" 
+          : "border-b border-white/10 bg-black/95 backdrop-blur-md shadow-sm text-white"
+      }`}>
         {/* Logo */}
         <NextLink href="/" className="flex items-center space-x-2 group transition-opacity select-none" onClick={closeMenu}>
           <Image src="/relink_logo.png" alt="ReLink" width={24} height={24} className="object-contain group-hover:scale-110 transition-transform" />
-          <span className="text-xl font-bold tracking-tight text-white">ReLink</span>
+          <span className={`text-xl font-bold tracking-tight ${isLoginPage ? 'text-slate-900 dark:text-white' : 'text-white'}`}>ReLink</span>
         </NextLink>
 
         <div className="flex items-center gap-6">
@@ -69,7 +77,11 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
             {navLinks.map((link) => (
               <a 
                 key={link.name}
-                className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors" 
+                className={`text-[13px] font-medium transition-colors ${
+                  isLoginPage 
+                    ? 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' 
+                    : 'text-slate-300 hover:text-white'
+                }`}
                 href={link.href}
                 {...(link.isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
@@ -87,7 +99,11 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
             {/* Theme Toggle */}
             <button
               type="button"
-              className="flex items-center justify-center p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+              className={`flex items-center justify-center p-1.5 md:p-2 rounded-full transition-colors ${
+                isLoginPage 
+                  ? 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-white/10' 
+                  : 'text-white hover:bg-white/10'
+              }`}
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
               aria-label="테마 전환"
             >
@@ -98,7 +114,11 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
 
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden text-white flex items-center p-2 hover:bg-white/10 rounded-full transition-all active:scale-90"
+              className={`md:hidden flex items-center p-1.5 md:p-2 rounded-full transition-all active:scale-90 ${
+                isLoginPage 
+                  ? 'text-slate-800 dark:text-white hover:bg-slate-200/50 dark:hover:bg-white/10' 
+                  : 'text-white hover:bg-white/10'
+              }`}
               onClick={toggleMenu}
               aria-label="메뉴 열기"
             >
@@ -120,7 +140,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeMenu}
-              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-drawer-backdrop bg-black/60 backdrop-blur-sm md:hidden"
             />
 
             {/* Menu Panel */}
@@ -129,7 +149,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 z-[70] w-[250px] bg-[#0a0a0b] border-l border-white/10 shadow-2xl md:hidden flex flex-col"
+              className="fixed right-0 top-0 bottom-0 z-drawer w-[250px] bg-[#0a0a0b] border-l border-white/10 shadow-2xl md:hidden flex flex-col"
             >
               <div className="flex flex-col h-full p-5">
                 <div className="flex items-center justify-between mb-8">

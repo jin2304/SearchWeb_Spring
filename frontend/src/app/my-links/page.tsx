@@ -13,9 +13,72 @@ import { FOLDER_TYPE } from '@/lib/types/folder';
 import { useState, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { compareFolders } from '@/lib/utils/folderUtils';
+import { motion } from 'framer-motion';
 
 export default function MyLinksPage() {
-  const { toggleRightPanel } = useUIStore();
+  const { toggleRightPanel, toggleSaveLinkDialog, saveLinkDialogOpen } = useUIStore();
+  const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+  const [shouldRenderTooltip, setShouldRenderTooltip] = useState(false);
+
+  useEffect(() => {
+    const checkClipboard = async () => {
+      if (saveLinkDialogOpen) {
+        setClipboardUrl(null);
+        return;
+      }
+      if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        return;
+      }
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && (text.startsWith('http://') || text.startsWith('https://'))) {
+          setClipboardUrl(text);
+        }
+      } catch (err) {
+        console.warn('Clipboard read error:', err);
+      }
+    };
+
+    checkClipboard();
+
+    window.addEventListener('focus', checkClipboard);
+    return () => {
+      window.removeEventListener('focus', checkClipboard);
+    };
+  }, [saveLinkDialogOpen]);
+
+  useEffect(() => {
+    let fadeInTimer: NodeJS.Timeout;
+    let fadeOutTimer: NodeJS.Timeout;
+    let clearTimer: NodeJS.Timeout;
+
+    if (clipboardUrl) {
+      setShouldRenderTooltip(true);
+
+      fadeInTimer = setTimeout(() => {
+        setIsTooltipVisible(true);
+      }, 50);
+
+      fadeOutTimer = setTimeout(() => {
+        setIsTooltipVisible(false);
+      }, 30000);
+
+      clearTimer = setTimeout(() => {
+        setShouldRenderTooltip(false);
+        setClipboardUrl(null);
+      }, 31000);
+    } else {
+      setIsTooltipVisible(false);
+      setShouldRenderTooltip(false);
+    }
+
+    return () => {
+      clearTimeout(fadeInTimer);
+      clearTimeout(fadeOutTimer);
+      clearTimeout(clearTimer);
+    };
+  }, [clipboardUrl]);
   const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
   const selectedFolderId = useFolderStore((s) => s.selectedFolderId);           // 현재 선택된 폴더 ID
   const searchQuery = useFolderStore((s) => s.searchQuery);           // 폴더 검색어 상태
@@ -48,6 +111,38 @@ export default function MyLinksPage() {
     }, 250);
     return () => clearTimeout(handler);
   }, [localSearchQuery, searchQuery, setSearchQuery]);
+
+  // CSS 변수에서 tablet-lg 브레이크포인트를 읽어 px 값으로 변환합니다.
+  // globals.css의 --breakpoint-tablet-lg 값과 항상 동기화됩니다.
+  useEffect(() => {
+    const getTabletLgBreakpoint = (): number => {
+      const raw = getComputedStyle(document.documentElement)
+        .getPropertyValue('--breakpoint-tablet-lg')
+        .trim(); // e.g. "87.5rem"
+      const remValue = parseFloat(raw); // 87.5
+      const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize); // 보통 16px
+      return remValue * rootFontSize; // 1400px
+    };
+
+    const handleResize = () => {
+      const breakpoint = getTabletLgBreakpoint();
+      const isDesktop = window.innerWidth >= breakpoint;
+      const currentPanelState = useUIStore.getState().rightPanelOpen;
+      
+      // 상태가 실제로 변경될 때만 업데이트를 호출하여 무한 렌더링/렉을 예방합니다.
+      if (isDesktop && !currentPanelState) {
+        toggleRightPanel(true);
+      } else if (!isDesktop && currentPanelState) {
+        toggleRightPanel(false);
+      }
+    };
+
+    // 초기 실행
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [toggleRightPanel]);
 
   const { data: folders, isLoading: isFoldersLoading, error } = useFolders(memberId); // 전체 폴더 목록 조회
 
@@ -225,7 +320,7 @@ export default function MyLinksPage() {
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 overflow-y-auto px-4 py-2 xl:px-5 xl:py-3 transition-all duration-300 bg-[#fafafa] dark:bg-white/[0.04]">
+      <div className="flex-1 min-w-0 overflow-y-auto px-4 py-2 pb-28 tablet-lg:px-5 tablet-lg:py-3 tablet-lg:pb-4 transition-colors duration-300 bg-[#fafafa] dark:bg-white/[0.04]">
         
         {/* Top Search & Filter Section */}
         <div className="mb-5 flex flex-col items-start bg-transparent">
@@ -249,7 +344,8 @@ export default function MyLinksPage() {
                 onChange={(val) => setSearchScope(val as SearchScope)}
                 options={scopeOptions}
                 className="shrink-0 mr-1 ml-1"
-                panelClassName="w-28"
+                panelClassName="w-28 right-[-12px]"
+                align="right"
                 renderTrigger={({ selectedOption, isOpen, toggle }) => (
                   <button
                     type="button"
@@ -350,7 +446,13 @@ export default function MyLinksPage() {
                 </div>
               ) : (
                 processedSearchResultFolders.map((folder) => (
-                  <FolderCard key={folder.memberFolderId} folder={folder} />
+                  <motion.div
+                    key={folder.memberFolderId}
+                    layout="position"
+                    transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+                  >
+                    <FolderCard folder={folder} />
+                  </motion.div>
                 ))
               )}
             </div>
@@ -362,7 +464,7 @@ export default function MyLinksPage() {
           <>
             {/* Pinned Folders Top Section - Strictly 5 Columns Desktop */}
             {pinnedFolders.length > 0 && (
-              <div className="mb-5">
+              <div className="mb-10 sm:mb-5">
                 <h2 className="text-xs font-bold text-gray-800 dark:text-gray-100 mb-3 ml-1">Pinned</h2>
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
                   {pinnedFolders.map((folder, idx) => (
@@ -371,11 +473,14 @@ export default function MyLinksPage() {
                       role="button"
                       tabIndex={0}
                       onClick={() => handleFolderBadgeClick(folder.memberFolderId)}
-                      className={`${PINNED_COLORS[idx % PINNED_COLORS.length]} text-white rounded-lg p-2.5 flex flex-col justify-between h-20 relative overflow-hidden group hover:scale-[1.01] transition-all duration-300 cursor-pointer outline-none ${
+                      className={cn(
+                        PINNED_COLORS[idx % PINNED_COLORS.length],
+                        "text-white rounded-lg p-2.5 flex flex-col justify-between h-20 relative overflow-hidden group hover:scale-[1.01] transition-all duration-300 cursor-pointer outline-none",
                         selectedFolderId === folder.memberFolderId 
                           ? 'ring-2 ring-inset ring-white/60 dark:ring-white/30 shadow-md scale-[1.02]' 
-                          : 'shadow-sm hover:shadow-md'
-                      }`}
+                          : 'shadow-sm hover:shadow-md',
+                        folder.folderType === FOLDER_TYPE.UNORGANIZED && "max-sm:hidden"
+                      )}
                     >
                       <div className="flex justify-between items-start z-10 w-full gap-1">
                         <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-md shrink-0">
@@ -386,7 +491,7 @@ export default function MyLinksPage() {
                         </button>
                       </div>
                       <div className="z-10 mt-1 min-w-0 w-full">
-                        <h3 className="font-semibold text-[10px] xl:text-[11px] truncate w-full">{folder.folderName}</h3>
+                        <h3 className="font-semibold text-[10.5px] tablet-lg:text-[11.5px] truncate w-full">{folder.folderName}</h3>
                       </div>
                       <div className="absolute -right-4 -bottom-4 w-10 h-10 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
                     </div>
@@ -395,34 +500,87 @@ export default function MyLinksPage() {
               </div>
             )}
 
-            <div className="flex justify-between items-center mb-3 ml-1">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 mb-3 ml-1 relative z-30">
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-bold text-gray-800 dark:text-gray-100">My Folder</h2>
               </div>
               
-              <div className="flex items-center gap-1.5 focus-within:z-20 relative">
+              <div className="flex items-center flex-wrap gap-1.5 focus-within:z-20 relative w-full sm:w-auto justify-start sm:justify-end">
                 <SortDropdown 
                   value={folderSort}
                   onChange={setFolderSort}
                   options={folderSortOptions}
-                  panelClassName="bg-white/78 border-white/70 ring-1 ring-slate-200/60 backdrop-blur-xl shadow-[0_20px_45px_-18px_rgba(15,23,42,0.22),0_12px_24px_-16px_rgba(148,163,184,0.45)] dark:ring-0 dark:backdrop-blur-md"
+                  align="right"
+                  panelClassName="right-[-8px] bg-white/78 border-white/70 ring-1 ring-slate-200/60 backdrop-blur-xl shadow-[0_20px_45px_-18px_rgba(15,23,42,0.22),0_12px_24px_-16px_rgba(148,163,184,0.45)] dark:ring-0 dark:backdrop-blur-md"
                 />
                 <button 
                   type="button"
                   onClick={() => useUIStore.getState().toggleCreateFolderDialog(true)}
-                  className="group flex items-center gap-1 px-2 py-1 border border-gray-200/80 dark:border-white/8 rounded-md text-[10px] font-medium transition-all duration-200 bg-white/50 dark:bg-slate-900/50 text-gray-600 dark:text-white hover:bg-purple-50/50 dark:hover:bg-purple-900/20 hover:border-purple-200/50 dark:hover:border-purple-500/30"
+                  className="hidden tablet-lg:flex group items-center gap-1 px-2 py-1 border border-gray-200/80 dark:border-white/8 rounded-md text-[10px] font-medium transition-all duration-200 bg-white/50 dark:bg-slate-900/50 text-gray-600 dark:text-white hover:bg-purple-50/50 dark:hover:bg-purple-900/20 hover:border-purple-200/50 dark:hover:border-purple-300/50"
                 >
                   <span className="material-symbols-outlined !text-[12px] text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors leading-none">folder</span>
                   <span>Create Folder</span>
                 </button>
-                <button 
-                  type="button"
-                  onClick={() => useUIStore.getState().toggleSaveLinkDialog(true)}
-                  className="flex items-center space-x-1 text-[10px] font-bold text-white bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] hover:opacity-90 border-none rounded-md px-2.5 py-1 transition-all shadow-md shadow-purple-500/20 hover:scale-[1.02]"
-                >
-                  <span className="material-symbols-outlined !text-[12px] !leading-none">add</span>
-                  <span>Save Link</span>
-                </button>
+                <div className="relative hidden tablet-lg:block z-50">
+                  {shouldRenderTooltip && clipboardUrl && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toggleSaveLinkDialog(true, clipboardUrl);
+                        setClipboardUrl(null);
+                      }}
+                      className={`absolute -top-14 right-[-8px] z-50 group outline-none transition-all duration-1000 ease-in-out ${
+                        isTooltipVisible 
+                          ? 'opacity-100 translate-y-0 scale-100' 
+                          : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
+                      }`}
+                    >
+                      <div className="relative w-[164px] h-[38px] flex items-center justify-center active:scale-95 transition-transform duration-150">
+                        {/* Background Unified SVG Speech Bubble */}
+                        <svg 
+                          className="absolute -top-[2px] -left-[2px] w-[168px] h-[49px] drop-shadow-[0_12px_36px_rgba(124,58,237,0.3)] dark:drop-shadow-[0_12px_36px_rgba(0,0,0,0.6)] pointer-events-none" 
+                          viewBox="-2 -2 168 49" 
+                          fill="none" 
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          {/* Solid Fill */}
+                          <path 
+                            d="M 19 0 L 145 0 A 19 19 0 0 1 164 19 A 19 19 0 0 1 145 38 L 125 38 C 120.5 38 118 39.5 116 45 C 114 39.5 111.5 38 107 38 L 19 38 A 19 19 0 0 1 0 19 A 19 19 0 0 1 19 0 Z" 
+                            className="fill-white dark:fill-[#0a0a0b] group-hover:fill-violet-50 dark:group-hover:fill-[#1c142c] transition-colors duration-300"
+                          />
+                          {/* Consistent Outer Border */}
+                          <path 
+                            d="M 19 0 L 145 0 A 19 19 0 0 1 164 19 A 19 19 0 0 1 145 38 L 125 38 C 120.5 38 118 39.5 116 45 C 114 39.5 111.5 38 107 38 L 19 38 A 19 19 0 0 1 0 19 A 19 19 0 0 1 19 0 Z" 
+                            className="stroke-violet-200 dark:stroke-[#252528] transition-colors duration-300" 
+                            strokeWidth="2"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+
+                        {/* Speech Bubble Content */}
+                        <div className="relative z-10 flex items-center gap-2 pl-3.5 pr-4.5">
+                          <div className="relative bg-[linear-gradient(135deg,#7c3aed_0%,#a855f7_100%)] w-5 h-5 rounded-full flex items-center justify-center flex-none overflow-hidden">
+                            <span className="inline-flex h-full w-full items-center justify-center rotate-[-45deg]">
+                              <span className="material-symbols-outlined !text-[12px] !leading-none block text-white font-bold">link</span>
+                            </span>
+                          </div>
+                          <span className="text-xs font-extrabold text-slate-800 dark:text-gray-50 tracking-tight pr-0.5 animate-pulse">Paste copied link</span>
+                        </div>
+                      </div>
+                    </button>
+                  )}
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      toggleSaveLinkDialog(true, clipboardUrl || undefined);
+                      if (clipboardUrl) setClipboardUrl(null);
+                    }}
+                    className="flex items-center space-x-1 text-[10px] font-bold text-white bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_50%,#a78bfa_100%)] hover:opacity-90 border-none rounded-md px-2.5 py-1 transition-all shadow-md shadow-purple-500/20 hover:scale-[1.02]"
+                  >
+                    <span className="material-symbols-outlined !text-[12px] !leading-none">add</span>
+                    <span>Save Link</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -457,14 +615,52 @@ export default function MyLinksPage() {
                 </div>
               )}
 
+              {/* ── 가상 'All Links' 폴더 카드 ── */}
+              <motion.div
+                key="all-links"
+                layout="position"
+                transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  setSelectedFolderId(null);
+                  toggleRightPanel(true);
+                }}
+                className={cn(
+                  "bg-white dark:bg-card-dark rounded-lg p-2.5 border transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between outline-none relative overflow-visible",
+                  selectedFolderId === null && useUIStore.getState().rightPanelOpen
+                    ? "border-purple-500 bg-purple-50/40 dark:border-purple-400 dark:bg-purple-500/10 shadow-sm hover:bg-purple-50/40 dark:hover:bg-purple-500/10"
+                    : "border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10 hover:bg-purple-50/30 dark:hover:bg-white/[0.03]"
+                )}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="p-1.5 bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-gray-400 group-hover:dark:text-white transition-colors rounded-md flex items-center justify-center w-8 h-8">
+                    <span className="material-symbols-outlined text-[16px] font-bold">bookmarks</span>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-[11.5px] text-gray-800 dark:text-white truncate mt-1.5 flex items-center gap-1">
+                    <span>All Links</span>
+                  </h4>
+                </div>
+              </motion.div>
+
               {/* ── 폴더 카드 목록 (백엔드 데이터 반복 렌더링) ── */}
               {processedAllFolders.map((folder) => (
-                <FolderCard key={folder.memberFolderId} folder={folder} />
+                <motion.div
+                  key={folder.memberFolderId}
+                  layout="position"
+                  transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+                >
+                  <FolderCard folder={folder} />
+                </motion.div>
               ))}
             </div>
           </>
         )}
       </div>
+
+
 
       {/* Right Sidebar Panel */}
       <RightPanel />

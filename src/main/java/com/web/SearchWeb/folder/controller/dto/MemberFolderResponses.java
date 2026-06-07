@@ -13,6 +13,7 @@ public class MemberFolderResponses {
     private final String folderName;
     private final String description;
     private final String folderType;
+    private final Integer bookmarkCount;
 
     // Entity -> DTO 변환을 위한 정적 팩토리 메서드
     public static MemberFolderResponses from(MemberFolder folder) {
@@ -23,6 +24,7 @@ public class MemberFolderResponses {
             .folderName(folder.getFolderName())
             .description(folder.getDescription())
             .folderType(folder.getFolderType().name())
+            .bookmarkCount(folder.getBookmarkCount())
             .build();
     }
 }

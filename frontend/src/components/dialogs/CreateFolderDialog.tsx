@@ -59,12 +59,17 @@ export function CreateFolderDialog() {
 
   return (
     <Dialog open={createFolderDialogOpen} onOpenChange={toggleCreateFolderDialog}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-[#0a0a0b] rounded-[16px] shadow-2xl p-0 overflow-hidden border border-gray-100 dark:border-white/[0.08] !gap-0 [&>button]:hidden">
+      <DialogContent className="max-tablet-lg:!top-auto max-tablet-lg:!bottom-0 max-tablet-lg:!translate-y-0 max-sm:!max-w-full sm:max-w-md max-tablet-lg:max-w-md max-sm:px-0 sm:px-4 max-tablet-lg:px-4 max-tablet-lg:!rounded-t-3xl max-sm:!rounded-b-none sm:rounded-[16px] max-tablet-lg:rounded-[16px] max-tablet-lg:border-x-0 max-tablet-lg:border-b-0 max-tablet-lg:pb-8 tablet-lg:max-w-md bg-white dark:bg-[#0a0a0b] tablet-lg:rounded-[16px] shadow-2xl p-0 overflow-hidden border border-gray-100 dark:border-white/[0.08] !gap-0 [&>button]:hidden max-tablet-lg:data-[state=open]:!slide-in-from-bottom-full max-tablet-lg:data-[state=closed]:!slide-out-to-bottom-full max-tablet-lg:data-[state=open]:!zoom-in-100 max-tablet-lg:data-[state=closed]:!zoom-out-100 duration-300">
         
+        {/* Mobile Drag Handle Indicator */}
+        <div className="w-full flex justify-center pt-3 pb-1 tablet-lg:hidden bg-white dark:bg-[#0a0a0b]">
+          <div className="w-10 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full" />
+        </div>
+
         {/* 접근성을 위한 제목 (가독성을 위해 숨김 처리) */}
         <DialogTitle className="sr-only">Create New Folder</DialogTitle>
 
-        <div className="p-6">
+        <div className="p-6 pt-3 tablet-lg:pt-6">
           {/* 헤더 영역: 제목 및 닫기 버튼 */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
@@ -184,7 +189,7 @@ export function CreateFolderDialog() {
           <button 
             type="button"
             onClick={() => toggleCreateFolderDialog(false)}
-            className="text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors"
+            className="text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors max-tablet-lg:hidden"
           >
             Cancel
           </button>
@@ -192,7 +197,7 @@ export function CreateFolderDialog() {
             type="button"
             onClick={handleCreateFolder}
             disabled={!folderName.trim() || createFolderMutation.isPending} // 이름이 없거나 생성 중이면 비활성화
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed max-tablet-lg:w-full max-tablet-lg:text-center max-tablet-lg:py-3.5 max-tablet-lg:text-[15px]"
           >
             {createFolderMutation.isPending ? 'Creating...' : 'Create Folder'}
           </button>
