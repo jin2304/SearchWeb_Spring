@@ -17,6 +17,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,7 +26,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(name = "member_folder")
-@org.hibernate.annotations.SQLRestriction("deleted_at IS NULL")
+@SQLRestriction("deleted_at IS NULL")
 public class MemberFolder extends BaseEntity {
 
     @Id
@@ -43,6 +45,9 @@ public class MemberFolder extends BaseEntity {
     @Column(name = "folder_type", nullable = false, length = 20)
     @Builder.Default
     private FolderType folderType = FolderType.CUSTOM;
+
+    @Formula("(SELECT COUNT(*) FROM member_saved_link msl WHERE msl.member_folder_id = member_folder_id AND msl.deleted_at IS NULL)")
+    private Integer bookmarkCount;
 
     public boolean isUnorganized() {
         return FolderType.UNORGANIZED.equals(this.folderType);
