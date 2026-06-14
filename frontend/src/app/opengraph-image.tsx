@@ -12,24 +12,33 @@ export const contentType = "image/png";
 
 // 로컬 시스템 및 CDN에서 사용 가능한 폰트 바이너리를 확보합니다. (네트워크 fetch 및 오프라인 빌드 대비)
 async function getFontBuffer(): Promise<ArrayBuffer> {
-  // 1. Google Fonts CDN에서 Noto Sans KR Bold 폰트 다운로드 시도
+  // 1. 프로젝트 내장 폰트 (public/fonts/NotoSansKR-Bold.ttf) 우선 로드
   try {
-    const fontUrl = "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosanskr/static/NotoSansKR-Bold.ttf";
+    const localFontPath = path.join(process.cwd(), "public", "fonts", "NotoSansKR-Bold.ttf");
+    if (fs.existsSync(localFontPath)) {
+      const buffer = fs.readFileSync(localFontPath);
+      return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+    }
+  } catch (e) {
+    console.warn("Failed to load local embedded font, falling back to CDN/system fonts:", e);
+  }
+
+  // 2. Google Fonts GitHub Raw에서 Noto Sans KR Bold 폰트 다운로드 시도
+  try {
+    const fontUrl = "https://github.com/google/fonts/raw/main/ofl/notosanskr/static/NotoSansKR-Bold.ttf";
     const response = await fetch(fontUrl);
     if (response.ok) {
       return await response.arrayBuffer();
     }
   } catch (e) {
-    console.warn("Failed to fetch Noto Sans KR from CDN, falling back to local fonts:", e);
+    console.warn("Failed to fetch Noto Sans KR from CDN:", e);
   }
 
-  // 2. 실패할 경우 로컬 시스템 폰트 로드 폴백
+  // 3. 실패할 경우 로컬 시스템 폰트 로드 폴백 (.ttc 컬렉션은 satori 미지원으로 제외)
   const paths = [
     "C:\\Windows\\Fonts\\malgun.ttf",                                      // Windows 맑은 고딕
-    "/System/Library/Fonts/AppleSDGothicNeo.ttc",                          // macOS 애플 산돌고딕
     "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",                     // Linux 나눔고딕
     "/usr/share/fonts/nanumfont/NanumGothic.ttf",                          // Linux 나눔고딕 alternative
-    "/usr/share/fonts/noto/NotoSansCJK-Regular.ttc",                       // Linux Noto CJK (Alpine apk add font-noto-cjk)
     "/usr/share/fonts/noto/NotoSansCJK-Bold.otf",                          // Linux Noto CJK Bold
   ];
 

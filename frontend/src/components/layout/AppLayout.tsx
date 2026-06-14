@@ -10,21 +10,19 @@ import { isPublicPath } from "@/lib/config/publicRoutes";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLandingPage = pathname === "/";
   
   const mobileSidebarOpen = useUIStore((s) => s.mobileSidebarOpen);
   const toggleMobileSidebar = useUIStore((s) => s.toggleMobileSidebar);
 
-  if (isLandingPage) {
-    return (
-      <>
-        {children}
-        <MobileBottomNavBar />
-      </>
-    );
-  }
-
   if (isPublicPath(pathname)) {
+    if (pathname === "/") {
+      return (
+        <>
+          {children}
+          <MobileBottomNavBar />
+        </>
+      );
+    }
     return <>{children}</>;
   }
 

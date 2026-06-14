@@ -3,6 +3,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@10.30.1 --activate
+RUN apk add --no-cache font-noto-cjk
 
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
