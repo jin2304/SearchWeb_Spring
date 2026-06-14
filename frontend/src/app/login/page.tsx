@@ -13,7 +13,7 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden w-screen text-text-main font-sans selection:bg-primary/20 bg-background-light dark:bg-background-dark">
       {/* Sync Header with Landing Page (page.tsx) */}
-      <LandingHeader isLoginPage />
+      <LandingHeader surface="light" hideLoginAction />
 
       {/* ========================================================
           1. DESKTOP VERSION (lg:flex, hidden on mobile)
