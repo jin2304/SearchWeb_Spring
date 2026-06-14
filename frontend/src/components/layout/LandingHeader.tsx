@@ -3,25 +3,24 @@
 import NextLink from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/lib/store/authStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { buildBackendUrl } from "@/lib/config/backend";
 
 interface LandingHeaderProps {
-  activeSection?: string;
-  isLoginPage?: boolean;
+  surface?: "dark" | "light";
+  hideLoginAction?: boolean;
 }
 
-export function LandingHeader({ activeSection, isLoginPage = false }: LandingHeaderProps) {
-  const [mounted, setMounted] = useState(false);
+export function LandingHeader({
+  surface = "dark",
+  hideLoginAction = false,
+}: LandingHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
-  const { isAuthenticated } = useAuthStore();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isLight = surface === "light";
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
 
   // Prevent scroll when mobile menu is open
   useEffect(() => {
@@ -40,35 +39,20 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
 
   const navLinks = [
     { name: "기능", href: isLoginPage ? "/#features" : "#features" },
-    // Pricing is currently commented out in landing page, so we keep it hidden or consistent
-    // { name: "가격", href: isLoginPage ? "/#pricing" : "#pricing" },
     { name: "문의하기", href: "https://relink.featurebase.app/en", isExternal: true },
   ];
-
-  if (!mounted) return (
-    <header className={`fixed w-full top-0 z-sticky flex h-9 md:h-11 items-center justify-between whitespace-nowrap px-5 sm:px-8 lg:px-20 transition-all duration-300 ${
-      isLoginPage 
-        ? "bg-[#F5F3FF]/85 dark:bg-[#020617]/85 backdrop-blur-md lg:bg-transparent text-slate-800 dark:text-white" 
-        : "border-b border-white/10 bg-black/95 backdrop-blur-md shadow-sm text-white"
-    }`}>
-      <NextLink href="/" className="flex items-center space-x-2 group transition-opacity select-none">
-        <Image src="/relink_logo.png" alt="ReLink" width={24} height={24} className="object-contain group-hover:scale-110 transition-transform" />
-        <span className={`text-xl font-bold tracking-tight uppercase sm:normal-case ${isLoginPage ? 'text-slate-900 dark:text-white' : 'text-white'}`}>ReLink</span>
-      </NextLink>
-    </header>
-  );
 
   return (
     <>
       <header className={`fixed w-full top-0 z-sticky flex h-9 md:h-11 items-center justify-between whitespace-nowrap px-5 sm:px-8 lg:px-20 transition-all duration-300 ${
-        isLoginPage 
-          ? "bg-[#F5F3FF]/85 dark:bg-[#020617]/85 backdrop-blur-md lg:bg-transparent text-slate-800 dark:text-white" 
+        isLight
+          ? "border-b border-slate-200/70 bg-[#F5F3FF]/95 text-slate-800 backdrop-blur-md dark:border-white/10 dark:bg-[#020617]/95 dark:text-white"
           : "border-b border-white/10 bg-black/95 backdrop-blur-md shadow-sm text-white"
       }`}>
         {/* Logo */}
         <NextLink href="/" className="flex items-center space-x-2 group transition-opacity select-none" onClick={closeMenu}>
           <Image src="/relink_logo.png" alt="ReLink" width={24} height={24} className="object-contain group-hover:scale-110 transition-transform" />
-          <span className={`text-xl font-bold tracking-tight ${isLoginPage ? 'text-slate-900 dark:text-white' : 'text-white'}`}>ReLink</span>
+          <span className={`text-xl font-bold tracking-tight ${isLight ? 'text-slate-900 dark:text-white' : 'text-white'}`}>ReLink</span>
         </NextLink>
 
         <div className="flex items-center gap-6">
@@ -78,7 +62,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
               <a 
                 key={link.name}
                 className={`text-[13px] font-medium transition-colors ${
-                  isLoginPage 
+                  isLight
                     ? 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' 
                     : 'text-slate-300 hover:text-white'
                 }`}
@@ -88,8 +72,15 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
                 {link.name}
               </a>
             ))}
-            {!isLoginPage && (
-              <NextLink href="/login" className="text-slate-300 hover:text-white text-[13px] font-medium transition-colors">
+            {!hideLoginAction && (
+              <NextLink
+                href="/login"
+                className={`text-[13px] font-medium transition-colors ${
+                  isLight
+                    ? "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
+                    : "text-slate-300 hover:text-white"
+                }`}
+              >
                 로그인
               </NextLink>
             )}
@@ -100,14 +91,17 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
             <button
               type="button"
               className={`flex items-center justify-center p-1.5 md:p-2 rounded-full transition-colors ${
-                isLoginPage 
+                isLight
                   ? 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-white/10' 
                   : 'text-white hover:bg-white/10'
               }`}
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
               aria-label="테마 전환"
             >
-              <span className="material-symbols-outlined !text-[18px]">
+              <span
+                suppressHydrationWarning
+                className="material-symbols-outlined !text-[18px]"
+              >
                 {resolvedTheme === 'dark' ? 'light_mode' : 'dark_mode'}
               </span>
             </button>
@@ -115,7 +109,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
             {/* Mobile Menu Button */}
             <button 
               className={`md:hidden flex items-center p-1.5 md:p-2 rounded-full transition-all active:scale-90 ${
-                isLoginPage 
+                isLight
                   ? 'text-slate-800 dark:text-white hover:bg-slate-200/50 dark:hover:bg-white/10' 
                   : 'text-white hover:bg-white/10'
               }`}
@@ -179,7 +173,7 @@ export function LandingHeader({ activeSection, isLoginPage = false }: LandingHea
                     </a>
                   ))}
                   
-                  {!isLoginPage && (
+                  {!hideLoginAction && (
                     <NextLink
                       href="/login"
                       onClick={closeMenu}
