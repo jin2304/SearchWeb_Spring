@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const footerLinks: { label: string; href: string }[] = [];
+// TODO: 향후 서비스 약관, 개인정보처리방침 등 추가 예정인 링크들을 이곳에 등록합니다.
+const footerLinks: { label: string; href: string }[] = [
+  // { label: "이용약관", href: "/terms" },
+  // { label: "개인정보처리방침", href: "/privacy" },
+];
 
 export function PublicFooter() {
   return (
@@ -26,20 +30,22 @@ export function PublicFooter() {
               활용하는 AI 링크 관리 서비스입니다.
             </p>
           </div>
-          <nav
-            aria-label="하단 메뉴"
-            className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3"
-          >
-            {footerLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-slate-600 transition-colors hover:text-violet-700 dark:text-slate-400 dark:hover:text-violet-300"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          {footerLinks.length > 0 && (
+            <nav
+              aria-label="하단 메뉴"
+              className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3"
+            >
+              {footerLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-slate-600 transition-colors hover:text-violet-700 dark:text-slate-400 dark:hover:text-violet-300"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          )}
         </div>
         <div className="flex flex-col justify-between gap-3 border-t border-slate-200 pt-6 text-xs text-slate-500 dark:border-white/10 dark:text-slate-500 sm:flex-row">
           <span>© 2026 ReLink. All rights reserved.</span>

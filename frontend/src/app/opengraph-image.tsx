@@ -10,13 +10,27 @@ export const size = {
 };
 export const contentType = "image/png";
 
-// 로컬 시스템에서 사용 가능한 폰트 바이너리를 확보합니다. (네트워크 fetch 우회 및 오프라인 빌드 대비)
-function getLocalFontBuffer(): ArrayBuffer {
+// 로컬 시스템 및 CDN에서 사용 가능한 폰트 바이너리를 확보합니다. (네트워크 fetch 및 오프라인 빌드 대비)
+async function getFontBuffer(): Promise<ArrayBuffer> {
+  // 1. Google Fonts CDN에서 Noto Sans KR Bold 폰트 다운로드 시도
+  try {
+    const fontUrl = "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosanskr/static/NotoSansKR-Bold.ttf";
+    const response = await fetch(fontUrl);
+    if (response.ok) {
+      return await response.arrayBuffer();
+    }
+  } catch (e) {
+    console.warn("Failed to fetch Noto Sans KR from CDN, falling back to local fonts:", e);
+  }
+
+  // 2. 실패할 경우 로컬 시스템 폰트 로드 폴백
   const paths = [
     "C:\\Windows\\Fonts\\malgun.ttf",                                      // Windows 맑은 고딕
     "/System/Library/Fonts/AppleSDGothicNeo.ttc",                          // macOS 애플 산돌고딕
     "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",                     // Linux 나눔고딕
-    "/usr/share/fonts/nanumfont/NanumGothic.ttf"                           // Linux 나눔고딕 alternative
+    "/usr/share/fonts/nanumfont/NanumGothic.ttf",                          // Linux 나눔고딕 alternative
+    "/usr/share/fonts/noto/NotoSansCJK-Regular.ttc",                       // Linux Noto CJK (Alpine apk add font-noto-cjk)
+    "/usr/share/fonts/noto/NotoSansCJK-Bold.otf",                          // Linux Noto CJK Bold
   ];
 
   for (const fontPath of paths) {
@@ -34,14 +48,21 @@ function getLocalFontBuffer(): ArrayBuffer {
   return new ArrayBuffer(0);
 }
 
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
   // 로컬 로고 이미지를 Base64 데이터로 읽어들임
   const logoPath = path.join(process.cwd(), "public", "relink_logo.png");
-  const logoData = fs.readFileSync(logoPath);
-  const logoBase64 = `data:image/png;base64,${logoData.toString("base64")}`;
+  let logoBase64 = "";
+  try {
+    if (fs.existsSync(logoPath)) {
+      const logoData = fs.readFileSync(logoPath);
+      logoBase64 = `data:image/png;base64,${logoData.toString("base64")}`;
+    }
+  } catch (e) {
+    console.warn("Failed to load logo image:", e);
+  }
 
   // 오프라인 빌드 친화적인 시스템 폰트 데이터 로드
-  const fontData = getLocalFontBuffer();
+  const fontData = await getFontBuffer();
 
   const fontConfig = fontData.byteLength > 0 ? [
     {
@@ -71,7 +92,7 @@ export default function OpenGraphImage() {
           style={{
             display: "flex",
             flexDirection: "column",
-            maxWidth: "720px",
+            maxWidth: logoBase64 ? "720px" : "100%",
             gap: "24px",
           }}
         >
@@ -99,17 +120,19 @@ export default function OpenGraphImage() {
             <span>AI 링크 관리 서비스 ReLink</span>
           </div>
         </div>
-        <img
-          src={logoBase64}
-          alt="ReLink Logo"
-          style={{
-            width: "260px",
-            height: "260px",
-            objectFit: "cover",
-            borderRadius: "56px",
-            boxShadow: "0 30px 80px rgba(124, 58, 237, 0.45)",
-          }}
-        />
+        {logoBase64 && (
+          <img
+            src={logoBase64}
+            alt="ReLink Logo"
+            style={{
+              width: "260px",
+              height: "260px",
+              objectFit: "cover",
+              borderRadius: "56px",
+              boxShadow: "0 30px 80px rgba(124, 58, 237, 0.45)",
+            }}
+          />
+        )}
       </div>
     ),
     {

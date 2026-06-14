@@ -4,24 +4,20 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { absoluteUrl } from "@/lib/config/site";
 import { createPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  ...createPageMetadata({
-    title: "AI 링크 관리 서비스",
-    description:
-      "흩어진 링크를 AI로 분류하고, 폴더·태그 검색으로 원하는 링크를 빠르게 다시 찾으세요.",
-    path: "/",
-    keywords: [
-      "링크 관리",
-      "링크 관리 도구",
-      "AI 링크 관리",
-      "북마크 관리",
-      "북마크 정리",
-    ],
-  }),
-  title: {
-    absolute: "AI 링크 관리 서비스 | ReLink",
-  },
-};
+export const metadata: Metadata = createPageMetadata({
+  title: "AI 링크 관리 서비스",
+  description:
+    "흩어진 링크를 AI로 분류하고, 폴더·태그 검색으로 원하는 링크를 빠르게 다시 찾으세요.",
+  path: "/",
+  keywords: [
+    "링크 관리",
+    "링크 관리 도구",
+    "AI 링크 관리",
+    "북마크 관리",
+    "북마크 정리",
+  ],
+  absoluteTitle: "ReLink - AI 링크 관리 서비스",
+});
 
 const jsonLd = [
   {

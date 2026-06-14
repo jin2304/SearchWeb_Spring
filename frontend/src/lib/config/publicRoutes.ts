@@ -7,8 +7,10 @@ const PUBLIC_EXACT_PATHS = new Set([
 const PUBLIC_PATH_PREFIXES: string[] = [];
 
 export function isPublicPath(pathname: string) {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+
   return (
-    PUBLIC_EXACT_PATHS.has(pathname) ||
-    PUBLIC_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+    PUBLIC_EXACT_PATHS.has(normalized) ||
+    PUBLIC_PATH_PREFIXES.some((prefix) => normalized.startsWith(prefix))
   );
 }

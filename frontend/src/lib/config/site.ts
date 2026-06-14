@@ -1,6 +1,6 @@
 export const SITE_NAME = "ReLink";
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://relink.ai.kr"
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://relink.ai.kr"
 ).replace(/\/+$/, "");
 
 export const SITE_TITLE = "ReLink | AI 링크 관리 서비스";
