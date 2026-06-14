@@ -6,11 +6,11 @@ import { Header } from "@/components/layout/Header";
 import { useUIStore } from "@/lib/store/uiStore";
 
 import { MobileBottomNavBar } from "@/components/layout/MobileBottomNavBar";
+import { isPublicPath } from "@/lib/config/publicRoutes";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLandingPage = pathname === "/";
-  const isAuthPage = pathname === "/login";
   
   const mobileSidebarOpen = useUIStore((s) => s.mobileSidebarOpen);
   const toggleMobileSidebar = useUIStore((s) => s.toggleMobileSidebar);
@@ -24,7 +24,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (isAuthPage) {
+  if (isPublicPath(pathname)) {
     return <>{children}</>;
   }
 

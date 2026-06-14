@@ -3,9 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
-
-// 로그인 없이 접근 가능한 공개 경로
-const PUBLIC_PATHS = ['/', '/login', '/auth/callback'];
+import { isPublicPath } from '@/lib/config/publicRoutes';
 
 /**
  * 인증 초기화 및 라우트 가드를 담당하는 Provider
@@ -21,10 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // 1. 현재 경로가 공개 경로인지 판별 (렌더링 시점과 useEffect 양쪽에서 활용)
-  const isPublicPath = PUBLIC_PATHS.some((path) => {
-    if (path === '/') return pathname === '/';
-    return pathname === path || pathname.startsWith(`${path}/`);
-  });
+  const isCurrentPathPublic = isPublicPath(pathname);
 
   // 앱 마운트 시 단 한 번 실행 — 로그인 상태 복구
   useEffect(() => {
@@ -35,16 +30,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isInitializing) return;
 
-    if (!isAuthenticated && !isPublicPath) {
+    if (!isAuthenticated && !isCurrentPathPublic) {
       if (authError) {
         sessionStorage.setItem('authError', authError);
       }
       router.replace('/login');
     }
-  }, [isInitializing, isAuthenticated, pathname, authError, router, isPublicPath]);
+  }, [isInitializing, isAuthenticated, pathname, authError, router, isCurrentPathPublic]);
 
   // 2. 초기화 중이거나, 미인증 사용자가 보호된 경로에 있는 동안은 '로딩 중' 표시 (콘텐츠 노출 방지)
-  if (isInitializing || (!isAuthenticated && !isPublicPath)) {
+  if (isInitializing || (!isAuthenticated && !isCurrentPathPublic)) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background-light dark:bg-background-dark">
         <div className="flex flex-col items-center gap-3">
