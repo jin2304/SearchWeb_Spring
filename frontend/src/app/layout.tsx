@@ -9,6 +9,7 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 import { AgentationProvider } from "@/components/providers/AgentationProvider";
+import { SITE_URL } from "@/lib/config/site";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -17,6 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "ReLink - 북마크의 진화, AI 지능형 관리",
   description: "AI를 통해 북마크를 지능적으로 관리하세요. ReLink.",
 };

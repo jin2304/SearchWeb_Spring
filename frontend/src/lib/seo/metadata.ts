@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_NAME, absoluteUrl } from "@/lib/config/site";
+import { SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/config/site";
 
 interface PageMetadataOptions {
   title: string;
@@ -26,6 +26,7 @@ export function createPageMetadata({
       : `${title} | ${SITE_NAME}`;
 
   return {
+    metadataBase: new URL(SITE_URL),
     title: absoluteTitle ? { absolute: brandedTitle } : title,
     description,
     keywords,
