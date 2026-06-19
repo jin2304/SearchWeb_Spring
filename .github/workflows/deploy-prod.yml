@@ -42,6 +42,7 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_SITE_URL=https://relink.ai.kr" > frontend/.env
           echo "NEXT_PUBLIC_BACKEND_ORIGIN=https://relink.ai.kr" >> frontend/.env
+          echo "NEXT_PUBLIC_GTM_ID=GTM-WR9ZVNQL" >> frontend/.env
 
       - name: Build and Push Frontend Docker Image
         uses: docker/build-push-action@v5

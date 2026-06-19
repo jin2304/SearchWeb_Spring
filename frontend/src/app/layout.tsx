@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { GoogleTagManager } from "@next/third-parties/google";
 import "./globals.css";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SaveLinkDialog } from "@/components/dialogs/SaveLinkDialog";
@@ -10,6 +11,8 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 import { AgentationProvider } from "@/components/providers/AgentationProvider";
 import { SITE_URL } from "@/lib/config/site";
+
+const gtmId = process.env.NEXT_PUBLIC_GTM_ID?.trim();
 
 const inter = Inter({
   variable: "--font-inter",
@@ -36,6 +39,7 @@ export default function RootLayout({
         <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet" />
       </head>
+      {gtmId ? <GoogleTagManager gtmId={gtmId} /> : null}
       <body className={`${inter.variable} font-sans antialiased bg-background-light dark:bg-background-dark text-text-main h-screen overflow-hidden flex transition-colors duration-200`}>
         <ThemeProvider
           attribute="class"

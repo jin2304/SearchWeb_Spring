@@ -1,6 +1,6 @@
-# ReLink SEO 최적화 계획
+# ReLink GTM 및 GA4 도입 계획
 
-최종 수정일: 2026-06-13
+최종 수정일: 2026-06-20
 
 ## 1. 목표와 제품 방향
 
@@ -226,7 +226,7 @@ Search Console과 서치어드바이저는 검색 노출 이전 단계를, GA4�
 
 ## 11. 구현 현황
 
-기준일: 2026-06-13
+기준일: 2026-06-20
 
 ### 애플리케이션 구현 완료
 
@@ -239,16 +239,18 @@ Search Console과 서치어드바이저는 검색 노출 이전 단계를, GA4�
 - 랜딩 페이지 핵심 콘텐츠 서버 렌더링
 - 프로덕션 빌드와 정적 내보내기 검증
 - 데스크톱·모바일 화면, canonical, H1, 색인 정책 검증
+- 구글 태그 관리자(GTM) 및 GA4 연동: `layout.tsx`에 GoogleTagManager 컴포넌트 탑재 및 배포 워크플로우에 자동 환경 변수 주입 구성 완료
+- GA4 이벤트 연동: `src/lib/analytics.ts` 모듈을 구축하여 GTM dataLayer 전송 환경과 제품 행동 이벤트(`login`, `sign_up`, `search`, `bookmark_saved` 등) 기본 구조 설계 및 연동 완료
 - (보류) `/features`, `/use-cases/*`, `/privacy`, `/terms` 페이지들: 개발 완료 후 이번 배포 범위에서 보류하여 Git Stash에 보관 (향후 추가 배포 예정)
-- (보류) GA4 이벤트 연결(`sign_up_start` 등): 개발 완료 후 이번 배포 범위에서 보류하여 Git Stash에 보관 (향후 추가 배포 예정)
 
-### 배포 환경 설정 (향후 과제)
+### 배포 환경 설정 (완료)
 
-향후 외부 서비스 인증 및 GA4 실적용 배포 시 프로덕션 환경 변수에 다음 값을 설정한다.
+프로덕션 배포 및 GA4 실적용을 위해 CI/CD 빌드 시점에 다음 프로덕션 환경 변수가 주입된다.
 
 ```env
 NEXT_PUBLIC_SITE_URL=https://relink.ai.kr
-NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_GTM_ID=GTM-WR9ZVNQL
+NEXT_PUBLIC_BACKEND_ORIGIN=https://relink.ai.kr
 GOOGLE_SITE_VERIFICATION=발급된_구글_인증값
 NAVER_SITE_VERIFICATION=발급된_네이버_인증값
 ```
@@ -266,3 +268,5 @@ NAVER_SITE_VERIFICATION=발급된_네이버_인증값
 - 실제 신규 가입과 기존 회원 로그인을 구분할 수 있도록 백엔드 응답을 보완한 뒤 `sign_up` 이벤트를 추가한다.
 - 개인정보처리방침과 이용약관에 운영자 정보, 문의처, 보관 기간을 확정해 반영하고 법률 검토한다.
 - 배포 후 Search Console Core Web Vitals 실측값을 4주간 수집한다.
+- **백엔드 로그 설계 방향성 수립:** 비즈니스 결과물의 무결성 검증을 위한 자체 `event_log` 테이블 스키마를 구성하고, 성능 영향을 최소화하도록 비동기(@Async) 이벤트 처리 구조를 적용하며, JSONB 포맷을 활용해 신뢰할 수 있는 비즈니스 완료 이벤트(가입 완료, 저장 성공, AI 처리 성공 등)의 원천 데이터 수집을 설계한다.
+
