@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUIStore } from '@/lib/store/uiStore';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,6 +14,7 @@ import type { LinkAnalysisResponse } from '@/lib/types/linkAnalysis';
 import { FOLDER_TYPE } from '@/lib/types/folder';
 import { Spinner } from '@/components/ui/spinner';
 import { buildGoogleFaviconUrl, buildDirectFaviconUrl } from '@/lib/utils/favicon';
+import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
 
 // 디자인 시안에서 추출한 커스텀 테마 매핑
 const theme = {
@@ -39,11 +40,78 @@ const styles = {
 };
 
 /**
+ * URL에서 도메인만 추출하는 헬퍼 함수 (개인정보 보호용)
+ */
+function getUrlDomain(value: string): string {
+  try {
+    return new URL(value).hostname.replace(/^www\./, '') || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+
+/**
+ * 소요 시간을 분석용 범주형 버킷(문자열)으로 변환하는 헬퍼 함수
+ */
+function getSaveDurationBucket(startedAt: number | null): string {
+  if (!startedAt) return 'unknown';
+
+  const seconds = (Date.now() - startedAt) / 1000;
+  if (seconds <= 3) return '0_3s';
+  if (seconds <= 5) return '3_5s';
+  if (seconds <= 8) return '5_8s';
+  if (seconds <= 15) return '8_15s';
+  return '15s_plus';
+}
+
+/**
+ * AI 분석을 요청하게 된 진입 경로(트리거)를 판별하는 헬퍼 함수
+ */
+function getLinkAnalysisTrigger(
+  defaultUrl: string | undefined,
+  currentUrl: string,
+  hasPreviousAttempt: boolean,
+): string {
+  if (hasPreviousAttempt) return 'retry';
+  if (defaultUrl && defaultUrl.trim() === currentUrl) return 'clipboard';
+  return 'url_input';
+}
+
+/**
+ * AI 분석 실패 시 에러 객체를 파싱하여 실패 유형을 분류하는 헬퍼 함수
+ */
+function getLinkAnalysisFailureType(error: unknown): string {
+  if (!error || typeof error !== 'object') return 'unknown';
+
+  const maybeApiError = error as { status?: unknown; code?: unknown; message?: unknown };
+  const status = typeof maybeApiError.status === 'number' ? maybeApiError.status : undefined;
+  const code = typeof maybeApiError.code === 'string' ? maybeApiError.code.toLowerCase() : '';
+  const message = typeof maybeApiError.message === 'string' ? maybeApiError.message.toLowerCase() : '';
+
+  if (status === 408 || status === 504 || code.includes('timeout') || message.includes('timeout')) {
+    return 'timeout';
+  }
+  if (code.includes('parse') || message.includes('parse')) {
+    return 'parse';
+  }
+  if (status && status >= 500) {
+    return 'ai_unavailable';
+  }
+  if (error instanceof TypeError || message.includes('network') || message.includes('failed to fetch')) {
+    return 'network';
+  }
+
+  return 'unknown';
+}
+
+/**
  * 링크(북마크) 저장 다이얼로그 컴포넌트
  */
 export function SaveLinkDialog() {
   // 전역 UI 상태 (다이얼로그 열림/닫힘)
   const { saveLinkDialogOpen, saveLinkDefaultUrl, toggleSaveLinkDialog } = useUIStore();
+  const saveOpenedAtRef = useRef<number | null>(null);
+  const hasTrackedOpenRef = useRef(false);
 
   // --- UI 전용 상태 (태그 팝오버, 입력값 등) ---
   const [tagInput, setTagInput] = useState('');                    // 태그 검색어
@@ -60,6 +128,7 @@ export function SaveLinkDialog() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);                // 선택된 태그 목록 (이름 리스트)
   const [pinnedFolderId, setPinnedFolderId] = useState<number | null>(null);     // 외부에서 끌어온 폴더 (타일 1번 자리에 고정)
   const [pendingNewFolderName, setPendingNewFolderName] = useState<string | null>(null); // AI 추천 새 폴더 (저장 시 생성)
+  const [hasAiSuggestedFolder, setHasAiSuggestedFolder] = useState(false);
 
   // --- API 연동 (React Query Hooks) ---
   const memberId = useAuthStore((s) => s.member?.memberId);
@@ -128,10 +197,25 @@ export function SaveLinkDialog() {
   // --- 팝업이 열고 닫힐 때마다 모든 입력 상태 초기화 ---
   useEffect(() => {
     if (saveLinkDialogOpen) {
+      if (!hasTrackedOpenRef.current) {
+        // KPI: 다이얼로그가 열린 시각을 기록 (저장 소요 시간 측정용)
+        saveOpenedAtRef.current = Date.now();
+        hasTrackedOpenRef.current = true;     // 중복 호출 방지 플래그 설정
+        // KPI: 다이얼로그 오픈 이벤트 전송 (클립보드 진입 또는 버튼 진입 구분)
+        trackEvent(ANALYTICS_EVENTS.BOOKMARK_SAVE_OPENED, {
+          event_params: {
+            trigger: saveLinkDefaultUrl ? 'clipboard' : 'button',
+          },
+        });
+      }
       if (saveLinkDefaultUrl) {
         setUrl(saveLinkDefaultUrl);
       }
     } else {
+      // 팝업이 닫힐 때: 소요 시간 측정을 위한 변수 및 AI 추천 상태 초기화
+      saveOpenedAtRef.current = null;
+      hasTrackedOpenRef.current = false;
+      
       // 팝업이 닫힐 때: 모든 입력 상태 초기화
       setOpenFolderBrowser(false);
       setUrl('');
@@ -144,6 +228,7 @@ export function SaveLinkDialog() {
       setIsCreatingNewTag(false);
       setAiSuggestedTags(new Set());
       setPendingNewFolderName(null);
+      setHasAiSuggestedFolder(false);
     }
   }, [saveLinkDialogOpen, saveLinkDefaultUrl]); // 내부 상태(url 등) 의존성 제어
 
@@ -165,10 +250,36 @@ export function SaveLinkDialog() {
    * [핸들러] AI 분석 요청
    */
   const handleAiAnalysis = () => {
-    if (!url.trim() || !(url.startsWith('http://') || url.startsWith('https://'))) return;
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl || !(trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://'))) return;
 
-    analyzeLinkMutation.mutate(url.trim(), {
+    // KPI: AI 분석을 요청한 시작 시각 기록 (분석 소요 시간 측정용)
+    const startedAt = Date.now();
+    const trigger = getLinkAnalysisTrigger(
+      saveLinkDefaultUrl,
+      trimmedUrl,
+      analyzeLinkMutation.isSuccess || analyzeLinkMutation.isError,
+    );
+
+    // KPI: AI 분석 시작 이벤트 전송
+    trackEvent(ANALYTICS_EVENTS.LINK_ANALYSIS_STARTED, {
+      event_params: { trigger }
+    });
+
+    analyzeLinkMutation.mutate(trimmedUrl, {
       onSuccess: (result: LinkAnalysisResponse) => {
+        // KPI: AI 분석 성공 및 추천 정보 유무, 소요 시간 전송
+        trackEvent(ANALYTICS_EVENTS.LINK_ANALYSIS_COMPLETED, {
+          event_params: {
+            duration_bucket: getSaveDurationBucket(startedAt), // 분석 소요 시간 범위 변환 (예: '3_5s')
+            has_ai_tag: Boolean(result.suggestedTags?.length),
+            has_ai_folder: Boolean(result.suggestedFolder),
+          }
+        });
+
+        // AI 추천 폴더 존재 여부 상태 업데이트 (최종 저장 시 채택률 분석용)
+        setHasAiSuggestedFolder(Boolean(result.suggestedFolder));
+
         // 제목 → displayTitle 필드에 무조건 매핑 (AI 분석 시 최신 제목으로 덮어씀)
         if (result.title) {
           setDisplayTitle(result.title);
@@ -233,6 +344,15 @@ export function SaveLinkDialog() {
           setSelectedFolderId(null);
         }
       },
+      onError: (error) => {
+        // KPI: AI 분석 실패 정보 및 에러 원인, 소요 시간 전송
+        trackEvent(ANALYTICS_EVENTS.LINK_ANALYSIS_FAILED, {
+          event_params: {
+            duration_bucket: getSaveDurationBucket(startedAt),
+            failure_type: getLinkAnalysisFailureType(error), // 에러 유형 분류 (timeout, network 등)
+          }
+        });
+      },
     });
   };
 
@@ -250,6 +370,18 @@ export function SaveLinkDialog() {
       },
       {
         onSuccess: () => {
+          // KPI: 최종 북마크 저장 완료 이벤트 전송
+          trackEvent(ANALYTICS_EVENTS.BOOKMARK_SAVED, {
+            event_params: {
+              url_domain: getUrlDomain(url.trim()), // 도메인만 추출 (개인정보 보호)
+              // 최종 저장 시 AI 추천 태그가 포함되었는지 확인
+              has_ai_tag: selectedTags.some((tag) => aiSuggestedTags.has(tag)),
+              // AI 추천 폴더를 사용하여 저장했는지 확인
+              has_ai_folder: hasAiSuggestedFolder,
+              // 다이얼로그가 열린 시점(saveOpenedAtRef.current)부터 저장 완료까지 걸린 총 소요시간 측정
+              duration_bucket: getSaveDurationBucket(saveOpenedAtRef.current),
+            }
+          });
           toggleSaveLinkDialog(false);
         },
       }

@@ -9,11 +9,12 @@ import { useAuthStore } from '@/lib/store/authStore';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import { useBookmarks } from '@/lib/api/bookmarkApi';
 import { useLinkStore } from '@/lib/store/linkStore';
-import { FOLDER_TYPE } from '@/lib/types/folder';
-import { useState, useEffect, useMemo } from 'react';
+import { FOLDER_TYPE, type FolderResponse } from '@/lib/types/folder';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { compareFolders } from '@/lib/utils/folderUtils';
 import { motion } from 'framer-motion';
+import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
 
 export default function MyLinksPage() {
   const { toggleRightPanel, toggleSaveLinkDialog, saveLinkDialogOpen } = useUIStore();
@@ -96,6 +97,11 @@ export default function MyLinksPage() {
 
   // 검색어 디바운스 처리를 위한 로컬 상태
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+  // KPI: 검색 완료 시점을 정확히 파악하여 트래킹하기 위한 분석용 임시 대기열 레퍼런스
+  const pendingSearchAnalyticsRef = useRef<{
+    query: string;
+    searchScope: SearchScope;
+  } | null>(null);
 
   // 외부(스토어)에서 검색어가 직접 변경될 경우(예: 초기화 버튼) 로컬 상태와 동기화
   useEffect(() => {
@@ -106,11 +112,16 @@ export default function MyLinksPage() {
   useEffect(() => {
     const handler = setTimeout(() => {
       if (localSearchQuery !== searchQuery) {
+        const trimmedQuery = localSearchQuery.trim();
+        // KPI: 타이핑이 끝났을 때 분석 대기열에 검색어 조건 임시 저장
+        pendingSearchAnalyticsRef.current = trimmedQuery
+          ? { query: trimmedQuery, searchScope }
+          : null;
         setSearchQuery(localSearchQuery);
       }
     }, 250);
     return () => clearTimeout(handler);
-  }, [localSearchQuery, searchQuery, setSearchQuery]);
+  }, [localSearchQuery, searchQuery, searchScope, setSearchQuery]);
 
   // CSS 변수에서 tablet-lg 브레이크포인트를 읽어 px 값으로 변환합니다.
   // globals.css의 --breakpoint-tablet-lg 값과 항상 동기화됩니다.
@@ -164,12 +175,20 @@ export default function MyLinksPage() {
   ];
 
   // 상단 고정 폴더 배지 클릭 처리
-  const handleFolderBadgeClick = (folderId: number) => {
+  const handleFolderBadgeClick = (folder: FolderResponse) => {
+    const folderId = folder.memberFolderId;
     const currentSelectedId = useFolderStore.getState().selectedFolderId;
     if (currentSelectedId === folderId) {
       setSelectedFolderId(null);
     } else {
       setSelectedFolderId(folderId); // 선택된 폴더 변경
+      
+      // KPI: 폴더 탐색(클릭) 이벤트 전송 (해당 폴더 내부 북마크 개수 포함)
+      trackEvent(ANALYTICS_EVENTS.FOLDER_CLICK, {
+        event_params: {
+          result_count: folder.bookmarkCount,
+        }
+      });
       
       // 선택 시에만 수행: 현재 폴더 검색어를 링크 검색어로 동기화
       if (searchQuery) {
@@ -222,7 +241,11 @@ export default function MyLinksPage() {
   if (unreadFilter) bookmarkParams.unreadOnly = true;
   if (savedTodayFilter) bookmarkParams.savedTodayOnly = true;
   if (unorganizedFilter && unorganizedFolderId) bookmarkParams.folderId = unorganizedFolderId;
-  const { data: allBookmarks } = useBookmarks(
+  const {
+    data: allBookmarks,
+    isFetching: isSearchFetching,
+    isError: isSearchError,
+  } = useBookmarks(
     bookmarkParams,
     { enabled: shouldFetchBookmarks }
   );
@@ -275,6 +298,52 @@ export default function MyLinksPage() {
 
   const searchResultFolderCount = processedSearchResultFolders.length;
   const matchedLinksCount = allBookmarks?.bookmarks?.length ?? 0;
+  const searchResultCount = searchScope === 'folders'
+    ? searchResultFolderCount
+    : searchScope === 'links'
+      ? allBookmarks?.totalCount ?? 0
+      : searchResultFolderCount + (allBookmarks?.totalCount ?? 0);
+
+  // KPI: 검색 완료 시점 및 검색 결과 통계(이벤트) 기록을 위한 이펙트 (분석 전용 2초 디바운스 적용)
+  useEffect(() => {
+    const pendingSearch = pendingSearchAnalyticsRef.current;
+    const trimmedQuery = searchQuery.trim();
+
+    // 검색 통계 수집 조건 판정 예외처리: 타이핑 중이거나, 로딩 중이거나, 에러 발생 시에는 전송 보류
+    if (
+      !pendingSearch ||
+      !trimmedQuery ||
+      pendingSearch.query !== trimmedQuery ||
+      pendingSearch.searchScope !== searchScope ||
+      isSearchFetching ||
+      isSearchError
+    ) {
+      return;
+    }
+
+    // 서버 응답이 최종 완료된 후, 2초(2000ms) 동안 추가 검색어 변경이 없을 때만 이벤트 전송 (중간 오염 데이터 방지)
+    const analyticsTimer = setTimeout(() => {
+      trackEvent(ANALYTICS_EVENTS.SEARCH, {
+        event_params: {
+          search_scope: searchScope,
+          query_length: trimmedQuery.length,
+          result_count: searchResultCount,
+        }
+      });
+      // 이벤트 전송 완료 후 대기열 초기화
+      pendingSearchAnalyticsRef.current = null;
+    }, 2000);
+
+    return () => {
+      clearTimeout(analyticsTimer);
+    };
+  }, [
+    searchQuery,
+    searchScope,
+    searchResultCount,
+    isSearchFetching,
+    isSearchError,
+  ]);
 
   // 헤더 메시지 생성
   let headerLabel = '';
@@ -341,7 +410,14 @@ export default function MyLinksPage() {
               {/* Search Scope Toggle Dropdown using common component */}
               <SortDropdown 
                 value={searchScope}
-                onChange={(val) => setSearchScope(val as SearchScope)}
+                onChange={(val) => {
+                  const nextScope = val as SearchScope;
+                  const trimmedQuery = localSearchQuery.trim();
+                  pendingSearchAnalyticsRef.current = trimmedQuery
+                    ? { query: trimmedQuery, searchScope: nextScope }
+                    : null;
+                  setSearchScope(nextScope);
+                }}
                 options={scopeOptions}
                 className="shrink-0 mr-1 ml-1"
                 panelClassName="w-28 right-[-12px]"
@@ -367,6 +443,7 @@ export default function MyLinksPage() {
                 <button 
                   type="button" 
                   onClick={() => {
+                    pendingSearchAnalyticsRef.current = null;
                     setSearchQuery('');
                   }}
                   className="group/close flex items-center justify-center h-[18px] w-[18px] aspect-square bg-gray-200/70 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-full transition-all duration-200 mr-1.5 shrink-0"
@@ -472,7 +549,7 @@ export default function MyLinksPage() {
                       key={folder.memberFolderId}
                       role="button"
                       tabIndex={0}
-                      onClick={() => handleFolderBadgeClick(folder.memberFolderId)}
+                      onClick={() => handleFolderBadgeClick(folder)}
                       className={cn(
                         PINNED_COLORS[idx % PINNED_COLORS.length],
                         "text-white rounded-lg p-2.5 flex flex-col justify-between h-20 relative overflow-hidden group hover:scale-[1.01] transition-all duration-300 cursor-pointer outline-none",

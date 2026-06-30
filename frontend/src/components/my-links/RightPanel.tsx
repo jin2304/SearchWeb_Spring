@@ -11,6 +11,7 @@ import type { BookmarkResponse } from '@/lib/types/bookmark';
 import { FOLDER_TYPE } from '@/lib/types/folder';
 import { compareFolders } from '@/lib/utils/folderUtils';
 import { buildGoogleFaviconUrl, getUrlHostname, buildDirectFaviconUrl, isGoogleFaviconUrl } from '@/lib/utils/favicon';
+import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -28,6 +29,22 @@ function formatRelativeTime(dateString: string): string {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
   return new Date(dateString).toLocaleDateString();
+}
+/**
+ * KPI: 저장 후 재사용 시점까지 걸린 일수를 범주형 버킷 문자열 변환 메서드
+ */
+function getDaysSinceSaveBucket(createdAt: string): string {
+  const savedAt = new Date(createdAt).getTime();
+  if (!Number.isFinite(savedAt)) return 'unknown';
+
+  // 저장일과 오늘 사이의 날짜 차이 계산
+  const days = Math.floor((Date.now() - savedAt) / (1000 * 60 * 60 * 24));
+
+  // 분석용 주기 버킷으로 변환하여 반환
+  if (days <= 0) return '0d';        // 저장 당일
+  if (days <= 7) return '1_7d';      // 2일~7일
+  if (days <= 30) return '8_30d';    // 8일~30일
+  return '31d_plus';                 // 31일 이상
 }
 
 /**
@@ -609,6 +626,7 @@ export function RightPanel() {
 
   // 검색어 디바운스 처리를 위한 로컬 상태
   const [pendingSearch, setPendingSearch] = useState(linkSearchQuery);
+  const pendingSearchAnalyticsRef = useRef<string | null>(null);
 
   // 외부(스토어)에서 검색어가 변경될 경우 로컬 상태와 동기화
   useEffect(() => {
@@ -619,6 +637,7 @@ export function RightPanel() {
   useEffect(() => {
     const handler = setTimeout(() => {
       if (pendingSearch !== linkSearchQuery) {
+        pendingSearchAnalyticsRef.current = pendingSearch.trim() || null;
         setLinkSearchQuery(pendingSearch);
       }
     }, 250);
@@ -655,6 +674,7 @@ export function RightPanel() {
   const { 
     data: infiniteData, 
     isLoading: isBookmarksLoading,
+    isError: isBookmarksError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
@@ -672,6 +692,42 @@ export function RightPanel() {
   // 모든 페이지의 북마크를 하나의 배열로 펼침
   const bookmarks = infiniteData?.pages.flatMap(page => page.bookmarks) ?? [];
   const totalCount = infiniteData?.pages[0]?.totalCount ?? 0;
+
+  // KPI: 링크 검색 완료 시점 및 통계(이벤트) 기록을 위한 이펙트 (분석 전용 2초 디바운스 적용)
+  useEffect(() => {
+    const trackedQuery = pendingSearchAnalyticsRef.current;
+    const trimmedQuery = linkSearchQuery.trim();
+
+    if (
+      !trackedQuery ||
+      trackedQuery !== trimmedQuery ||
+      isBookmarksLoading ||
+      isBookmarksError
+    ) {
+      return;
+    }
+
+    // 서버 응답이 최종 완료된 후, 2초(2000ms) 동안 추가 검색어 변경이 없을 때만 이벤트 전송 (중간 오염 데이터 방지)
+    const analyticsTimer = setTimeout(() => {
+      trackEvent(ANALYTICS_EVENTS.SEARCH, {
+        event_params: {
+          search_scope: 'links',
+          query_length: trimmedQuery.length,
+          result_count: totalCount,
+        }
+      });
+      pendingSearchAnalyticsRef.current = null;
+    }, 2000);
+
+    return () => {
+      clearTimeout(analyticsTimer);
+    };
+  }, [
+    linkSearchQuery,
+    totalCount,
+    isBookmarksLoading,
+    isBookmarksError,
+  ]);
 
   // 스크롤 하단 감지를 위한 Ref 및 Observer
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -697,9 +753,25 @@ export function RightPanel() {
   const deleteBookmarkMutation = useDeleteBookmark();
   const updateBookmarkMutation = useUpdateBookmark();
   const recordViewMutation = useRecordBookmarkView();
+  // KPI: 북마크 클릭 시 유입 소스 판정 메서드(검색어 여부, 태그 여부, 필터/폴더 여부 등 기준)
+  // 필터(오늘 저장/미읽음/미분류 등)가 적용된 상태에서 폴더를 클릭해 범위를 좁힌 경우, 필터 탐색의 맥락을 보존하기 위해 filter 판정을 folder보다 우선하여 처리
+  const getBookmarkClickSource = () => {
+    if (linkSearchQuery.trim()) return 'search';
+    if (selectedTags.length > 0) return 'tag';
+    if (savedTodayFilter || unreadFilter || unorganizedFilter) return 'filter';
+    if (selectedFolderId != null) return 'folder';
+    return 'all';
+  };
 
-  /** 링크 카드 클릭 시 조회 기록 (view_count += 1, last_viewed_at = now()) */
+  /** [이벤트 핸들러] 저장된 링크 클릭 시 호출 메서드 */
   const handleOpenLink = (bookmark: BookmarkResponse) => {
+    // KPI: 북마크 클릭(재사용) 이벤트 전송 (유입 유형 및 저장 후 경과 일수 정보 포함)
+    trackEvent(ANALYTICS_EVENTS.BOOKMARK_CLICK, {
+      event_params: {
+        source: getBookmarkClickSource(),                                   // 북마크 클릭 시 유입 소스 판정 메서드
+        days_since_save_bucket: getDaysSinceSaveBucket(bookmark.createdAt), // 저장 후 재사용 시점까지 걸린 일수를 범주형 버킷 문자열로 변환 메서드
+      }
+    });
     recordViewMutation.mutate(bookmark.bookmarkId);
   };
 
@@ -765,9 +837,25 @@ export function RightPanel() {
 
   /** 태그 선택/해제 */
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
+
+    // 다음으로 선택될 태그 목록을 가상으로 먼저 계산
+    const nextSelectedTags = selectedTags.includes(tag)
+      ? selectedTags.filter((selectedTag) => selectedTag !== tag)  // 클릭한 태그가 이미 있으면 제거
+      : [...selectedTags, tag];                                    // 없으면 추가
+
+    // 위에서 만든 가상의 태그 목록을 기준으로 필터링될 북마크 개수를 즉시 구함
+    const resultCount = nextSelectedTags.length > 0
+      ? allLinks.filter((link) =>
+          link.tags?.some((linkTag) => nextSelectedTags.includes(linkTag))).length
+      : allLinks.length;
+
+    setSelectedTags(nextSelectedTags);
+    // KPI: 태그 클릭(필터 탐색) 이벤트 전송 (필터링된 북마크 개수 포함)
+    trackEvent(ANALYTICS_EVENTS.TAG_CLICK, {
+      event_params: {
+        result_count: resultCount,
+      }
+    });
   };
 
   /** 대량 편집 시 링크 선택/해제 */

@@ -7,6 +7,7 @@ import { useFolderStore } from '@/lib/store/folderStore';
 import { useLinkStore } from '@/lib/store/linkStore';
 import { useUIStore } from '@/lib/store/uiStore';
 import { FolderEditModal, FolderDeleteModal, FolderMoveModal } from './FolderManagementModals';
+import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
 
 interface FolderCardProps {
   folder: FolderResponse;
@@ -83,6 +84,12 @@ export function FolderCard({ folder, color }: FolderCardProps) {
         setSelectedFolderId(null);
       } else {
         setSelectedFolderId(folder.memberFolderId);
+        // KPI: 폴더 클릭(탐색) 이벤트 전송 (해당 폴더 내부 북마크 개수 포함)
+        trackEvent(ANALYTICS_EVENTS.FOLDER_CLICK, {
+          event_params: {
+            result_count: folder.bookmarkCount,
+          }
+        });
         
         // 2. 선택 시에만 수행: 기존 폴더 검색어가 있다면 링크 검색어로 전이
         if (searchQuery) {
