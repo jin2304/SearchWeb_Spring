@@ -27,9 +27,9 @@ export const ANALYTICS_EVENTS = {
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS];
 
 /**
- * 이벤트 매개변수들을 키-값 쌍으로 담는 객체 타입
+ * 이벤트 매개변수들을 키-값 쌍으로 담는 객체 타입 (GTM 리셋을 위해 undefined 허용)
  */
-type AnalyticsEventParameters = Record<string, string | number | boolean>;
+type AnalyticsEventParameters = Record<string, string | number | boolean | undefined>;
 
 /**
  * trackEvent 호출 시 사용할 수 있는 매개변수 구조 타입.
@@ -83,7 +83,7 @@ function sanitizeForGA4(
       }
     } else {
       // undefined를 명시적으로 할당하여 GTM 캐시는 지우되, 최종 GA4 전송 페이로드와 디버거 변수 테이블에서는 아예 생략되도록 처리.
-      sanitizedParams[key] = undefined as any;
+      sanitizedParams[key] = undefined;
     }
   });
 
@@ -101,7 +101,8 @@ export function trackEvent(
   event: AnalyticsEventName,
   payload: TrackEventPayload = {},
 ) {
-  if (!process.env.NEXT_PUBLIC_GTM_ID) return;
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID?.trim();
+  if (!gtmId) return;
 
   const rawParams = payload.event_params ?? {};
   const sanitized = sanitizeForGA4(event, rawParams);

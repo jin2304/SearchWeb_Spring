@@ -128,7 +128,7 @@ export function SaveLinkDialog() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);                // 선택된 태그 목록 (이름 리스트)
   const [pinnedFolderId, setPinnedFolderId] = useState<number | null>(null);     // 외부에서 끌어온 폴더 (타일 1번 자리에 고정)
   const [pendingNewFolderName, setPendingNewFolderName] = useState<string | null>(null); // AI 추천 새 폴더 (저장 시 생성)
-  const [hasAiSuggestedFolder, setHasAiSuggestedFolder] = useState(false);
+  const aiSuggestedFolderRef = useRef<{ id: number | null; name: string | null }>({ id: null, name: null });
 
   // --- API 연동 (React Query Hooks) ---
   const memberId = useAuthStore((s) => s.member?.memberId);
@@ -228,7 +228,7 @@ export function SaveLinkDialog() {
       setIsCreatingNewTag(false);
       setAiSuggestedTags(new Set());
       setPendingNewFolderName(null);
-      setHasAiSuggestedFolder(false);
+      aiSuggestedFolderRef.current = { id: null, name: null };
     }
   }, [saveLinkDialogOpen, saveLinkDefaultUrl]); // 내부 상태(url 등) 의존성 제어
 
@@ -278,7 +278,10 @@ export function SaveLinkDialog() {
         });
 
         // AI 추천 폴더 존재 여부 상태 업데이트 (최종 저장 시 채택률 분석용)
-        setHasAiSuggestedFolder(Boolean(result.suggestedFolder));
+        aiSuggestedFolderRef.current = {
+          id: result.suggestedFolder?.isExisting ? result.suggestedFolder.memberFolderId ?? null : null,
+          name: result.suggestedFolder && !result.suggestedFolder.isExisting ? result.suggestedFolder.folderName : null,
+        };
 
         // 제목 → displayTitle 필드에 무조건 매핑 (AI 분석 시 최신 제목으로 덮어씀)
         if (result.title) {
@@ -377,7 +380,9 @@ export function SaveLinkDialog() {
               // 최종 저장 시 AI 추천 태그가 포함되었는지 확인
               has_ai_tag: selectedTags.some((tag) => aiSuggestedTags.has(tag)),
               // AI 추천 폴더를 사용하여 저장했는지 확인
-              has_ai_folder: hasAiSuggestedFolder,
+              has_ai_folder:
+                (aiSuggestedFolderRef.current.id !== null && folderId === aiSuggestedFolderRef.current.id) ||
+                (aiSuggestedFolderRef.current.name !== null && pendingNewFolderName === aiSuggestedFolderRef.current.name),
               // 다이얼로그가 열린 시점(saveOpenedAtRef.current)부터 저장 완료까지 걸린 총 소요시간 측정
               duration_bucket: getSaveDurationBucket(saveOpenedAtRef.current),
             }

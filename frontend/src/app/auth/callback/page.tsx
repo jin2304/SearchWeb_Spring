@@ -13,7 +13,7 @@ type AuthAnalyticsEvent = 'login' | 'sign_up';
 function readAuthAnalyticsParams(): { event: AuthAnalyticsEvent | null; method: string } {
   // 서버 사이드 렌더링(SSR) 환경인 경우 window 객체가 없으므로 안전하게 기본값 반환
   if (typeof window === 'undefined') {
-    return { event: null, method: 'google' };
+    return { event: null, method: 'unknown' };
   }
 
   // 주소창의 쿼리 스트링(?auth_event=...&method=...) 파싱 객체 생성
@@ -21,10 +21,10 @@ function readAuthAnalyticsParams(): { event: AuthAnalyticsEvent | null; method: 
   const event = searchParams.get('auth_event');
   const rawMethod = searchParams.get('method');
   
-  // 허용된 로그인/가입 수단(method)만 필터링하고, 아닐 경우 기본값 'google' 지정
+  // 허용된 로그인/가입 수단(method)만 필터링하고, 아닐 경우 'unknown'으로 처리하여 오분류 방지
   const method = rawMethod === 'google' || rawMethod === 'local' || rawMethod === 'naver' || rawMethod === 'kakao'
     ? rawMethod
-    : 'google';
+    : 'unknown';
 
   // 수집 대상 이벤트('sign_up', 'login')만 정상 반환하고, 그 외의 경우 null 처리
   return {
