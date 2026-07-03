@@ -76,6 +76,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // 3. 검증 통과 시에만 토큰 발급 (실패 시 이 아래는 실행되지 않음)
         CustomOAuth2Member oAuth2Member = (CustomOAuth2Member) authentication.getPrincipal();
         Long memberId = oAuth2Member.getMemberId();
+        String authEvent = oAuth2Member.isNewMember() ? "sign_up" : "login";
+        String method = oAuth2Member.getProvider();
+        targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
+                .replaceQueryParam("auth_event", authEvent)
+                .replaceQueryParam("method", method)
+                .build()
+                .toUriString();
         String refreshToken = authService.issueRefreshToken(memberId);
 
         // 보안: 원본 토큰 노출 방지를 위해 마스킹 처리된 로그만 남김

@@ -39,11 +39,17 @@ public class CustomOAuth2Member implements OAuth2User {
     private final OAuth2Response oAuth2Response;
     private final String role;
     private final Long memberId;
+    private final boolean newMember;
 
     public CustomOAuth2Member(OAuth2Response oAuth2Response, String role, Long memberId) {
+        this(oAuth2Response, role, memberId, false);
+    }
+
+    public CustomOAuth2Member(OAuth2Response oAuth2Response, String role, Long memberId, boolean newMember) {
         this.oAuth2Response = oAuth2Response;
         this.role = role;
         this.memberId = memberId;
+        this.newMember = newMember;
     }
 
     @Override
@@ -69,6 +75,13 @@ public class CustomOAuth2Member implements OAuth2User {
         return memberId;
     }
 
+    public boolean isNewMember() {
+        return newMember;
+    }
+
+    public String getProvider() {
+        return oAuth2Response.getProvider();
+    }
 
     public String getLoginId() {
         return oAuth2Response.getProvider() + oAuth2Response.getProviderId();

@@ -75,6 +75,7 @@ public class CustomOAuth2MemberService extends DefaultOAuth2UserService {
         Member existMember = memberDao.findByLoginId(loginId);
         String role = "ROLE_USER";
         Long memberId;
+        boolean newMember = false;
 
         // 사용자가 존재하지 않으면 회원가입하고, 사용자가  이미 존재한다면 업데이트
         if (existMember == null) {
@@ -90,6 +91,7 @@ public class CustomOAuth2MemberService extends DefaultOAuth2UserService {
                 // 소셜 회원가입
                 memberDao.insertSocialMember(member);
                 existMember = member;
+                newMember = true;
             } catch (DataIntegrityViolationException e) {
                 // 동시 가입 시도로 인한 예외 발생 시 다시 조회
                 existMember = memberDao.findByLoginId(loginId);
@@ -117,7 +119,7 @@ public class CustomOAuth2MemberService extends DefaultOAuth2UserService {
         memberId = existMember.getMemberId();
 
         // 인증 객체로 사용할 CustomOAuth2Member 반환
-        return new CustomOAuth2Member(oAuth2Response, role, memberId);
+        return new CustomOAuth2Member(oAuth2Response, role, memberId, newMember);
     }
 
 
