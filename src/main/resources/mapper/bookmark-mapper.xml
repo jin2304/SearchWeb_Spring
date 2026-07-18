@@ -66,6 +66,17 @@
 
 
     <!-- 북마크 단일 조회 -->
+    <select id="checkBookmarkExistsByUrl" resultType="int">
+        SELECT COUNT(*)
+          FROM member_saved_link msl
+          JOIN link l
+            ON msl.link_id = l.link_id
+         WHERE msl.created_by_member_id = #{memberId}
+           AND l.canonical_url = #{url}
+           AND msl.deleted_at IS NULL
+           AND l.deleted_at IS NULL
+    </select>
+
     <select id="selectBookmark" parameterType="map" resultMap="BookmarkResultMap">
         SELECT msl.*,
                l.original_url, l.canonical_url, l.domain, l.thumbnail_url,
