@@ -496,7 +496,7 @@ function buildBookmarkPayload() {
 }
 
 function describeError(error) {
-  if (error instanceof ApiError && error.status === 409) {
+  if (error instanceof ApiError && error.status === 409 && error.code === "B001") {
     return "이미 저장된 링크입니다.";
   }
   return error?.message || "처리 중 오류가 발생했습니다.";
@@ -516,8 +516,8 @@ async function saveBookmark({ silent = false } = {}) {
   setStatus(silent ? "저장 중" : "저장 중...");
   const pendingFolderName = state.pendingFolderName;
   try {
-    const bookmarkId = await createBookmark(buildBookmarkPayload());
-    state.savedBookmarkId = bookmarkId;
+    const result = await createBookmark(buildBookmarkPayload());
+    state.savedBookmarkId = result.bookmarkId;
 
     if (pendingFolderName) {
       try {
@@ -531,14 +531,10 @@ async function saveBookmark({ silent = false } = {}) {
         // 저장 자체는 성공했으므로 폴더 목록 재조회 실패가 성공 상태를 덮어쓰지 않게 한다.
       }
     }
-    setStatus("저장되었습니다.", "success");
+    setStatus(result.created ? "저장되었습니다." : "이미 저장된 링크입니다.", "success");
   } catch (error) {
     const message = describeError(error);
-    if (error instanceof ApiError && error.status === 409) {
-      setStatus(message, "success");
-    } else {
-      setStatus(message, "error");
-    }
+    setStatus(message, "error");
   } finally {
     setBusy(false);
   }

@@ -1,6 +1,7 @@
 package com.web.SearchWeb.bookmark.controller;
 
 
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkCreateResponse;
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkSearchResponse;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
@@ -33,11 +34,11 @@ public class BookmarkApiController {
      *  북마크 추가
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> insertBookmark(
+    public ResponseEntity<ApiResponse<BookmarkCreateResponse>> insertBookmark(
             @CurrentMemberId Long memberId,
             @Valid @RequestBody BookmarkRequests.CreateDto request) {
         
-        Long bookmarkId = bookmarkService.insertBookmark(
+        BookmarkCreateResponse createResponse = bookmarkService.insertBookmark(
             memberId, 
             request.getUrl(),
             request.getDisplayTitle(),
@@ -48,8 +49,8 @@ public class BookmarkApiController {
         );
         
         return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(ApiResponse.success(bookmarkId));
+            .status(createResponse.created() ? HttpStatus.CREATED : HttpStatus.OK)
+            .body(ApiResponse.success(createResponse));
     }
 
 

@@ -121,6 +121,11 @@ public class MybatisBookmarkDao implements BookmarkDao {
         return mapper.checkBookmarkExists(memberId, folderId, linkId);
     }
 
+    @Override
+    public Long selectActiveBookmarkId(Long memberId, Long folderId, Long linkId) {
+        return mapper.selectActiveBookmarkId(memberId, folderId, linkId);
+    }
+
 
     /**
      *  URL 기반 북마크 존재 여부 확인 (Board Bridge용)

@@ -6,6 +6,7 @@ import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 import com.web.SearchWeb.bookmark.service.command.BookmarkFolderTarget;
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkCreateResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,8 +51,8 @@ public class BookmarkServiceImpl implements BookmarkService {
      */
     @Override
     @Transactional
-    public Long insertBookmark(Long memberId, String url, String displayTitle, String note,
-                               Long primaryCategoryId, String tags, BookmarkFolderTarget folderTarget) {
+    public BookmarkCreateResponse insertBookmark(Long memberId, String url, String displayTitle, String note,
+                                               Long primaryCategoryId, String tags, BookmarkFolderTarget folderTarget) {
         
         // 요청으로 전달된 폴더 타겟을 바탕으로 실제 저장될 폴더 ID를 확정
         Long resolvedFolderId = resolveMemberFolderId(memberId, folderTarget);
@@ -69,23 +70,28 @@ public class BookmarkServiceImpl implements BookmarkService {
                 .createdByMemberId(memberId)
                 .build();
 
-        // 북마크 추가
-        try {
-            int result = bookmarkDao.insertBookmark(bookmark);
-
-            // 태그 처리 및 저장
-            if (result > 0) {
-                if (tags != null && !tags.isEmpty()) {
-                     // MyBatis의 useGeneratedKeys="true" 설정에 의해 insert 성공 시, bookmark.bookmarkId에 생성된 PK가 자동으로 채워짐
-                    processAndCreateTags(bookmark.getBookmarkId(), memberId, tags);
-                }
-                return bookmark.getBookmarkId();
+        int insertedCount = bookmarkDao.insertBookmark(bookmark);
+        if (insertedCount == 0) {
+            Long existingBookmarkId = bookmarkDao.selectActiveBookmarkId(
+                    memberId,
+                    resolvedFolderId,
+                    link.getLinkId()
+            );
+            if (existingBookmarkId == null) {
+                throw BookmarkException.of(CommonErrorCode.INTERNAL_SERVER_ERROR);
             }
-            throw BookmarkException.of(CommonErrorCode.INTERNAL_SERVER_ERROR);
-        } catch (DataIntegrityViolationException e) {
-            log.warn("북마크 중복 저장 시도: memberId={}, folderId={}, linkId={}", memberId, resolvedFolderId, (link != null ? link.getLinkId() : "null"));
-            throw BookmarkException.of(BookmarkErrorCode.DUPLICATE_BOOKMARK);
+            return new BookmarkCreateResponse(existingBookmarkId, false, resolvedFolderId);
         }
+
+        Long bookmarkId = bookmark.getBookmarkId();
+        if (bookmarkId == null) {
+            throw BookmarkException.of(CommonErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        if (tags != null && !tags.isEmpty()) {
+            processAndCreateTags(bookmarkId, memberId, tags);
+        }
+        return new BookmarkCreateResponse(bookmarkId, true, resolvedFolderId);
     }
 
     

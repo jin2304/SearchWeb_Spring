@@ -64,6 +64,16 @@
         AND deleted_at IS NULL
     </select>
 
+    <select id="selectActiveBookmarkId" resultType="long">
+        SELECT member_saved_link_id
+        FROM member_saved_link
+        WHERE created_by_member_id = #{memberId}
+          AND member_folder_id = #{folderId}
+          AND link_id = #{linkId}
+          AND deleted_at IS NULL
+        LIMIT 1
+    </select>
+
 
     <!-- 북마크 단일 조회 -->
     <select id="checkBookmarkExistsByUrl" resultType="int">
@@ -227,6 +237,9 @@
     <insert id="insertBookmark" parameterType="com.web.SearchWeb.bookmark.domain.Bookmark" useGeneratedKeys="true" keyProperty="bookmarkId" keyColumn="member_saved_link_id">
         INSERT INTO member_saved_link (link_id, member_folder_id, display_title, note, primary_category_id, created_by_member_id)
         VALUES (#{linkId}, #{memberFolderId}, #{displayTitle}, #{note}, #{primaryCategoryId}, #{createdByMemberId})
+        ON CONFLICT (member_folder_id, link_id)
+        WHERE deleted_at IS NULL
+        DO NOTHING
     </insert>
 
 

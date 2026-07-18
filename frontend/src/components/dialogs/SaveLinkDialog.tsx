@@ -371,25 +371,27 @@ export function SaveLinkDialog() {
         tags: selectedTags.length > 0 ? selectedTags.join(',') : undefined,
       },
       {
-        onSuccess: () => {
-          // KPI: 최종 북마크 저장 완료 이벤트 전송
-          trackEvent(ANALYTICS_EVENTS.BOOKMARK_SAVED, {
-            event_params: {
-              url_domain: getUrlDomain(url.trim()), // 도메인만 추출 (개인정보 보호)
-              // 최종 저장 시 AI 추천 태그가 포함되었는지 확인
-              has_ai_tag: selectedTags.some((tag) => aiSuggestedTags.has(tag)),
-              // AI 추천 폴더를 사용하여 저장했는지 확인
-              has_ai_folder:
-                (aiSuggestedFolderRef.current.id !== null &&
-                  folderTarget.type === 'EXISTING' &&
-                  folderTarget.memberFolderId === aiSuggestedFolderRef.current.id) ||
-                (aiSuggestedFolderRef.current.name !== null &&
-                  folderTarget.type === 'CREATE_IF_ABSENT' &&
-                  folderTarget.folderName === aiSuggestedFolderRef.current.name.trim()),
-              // 다이얼로그가 열린 시점(saveOpenedAtRef.current)부터 저장 완료까지 걸린 총 소요시간 측정
-              duration_bucket: getSaveDurationBucket(saveOpenedAtRef.current),
-            }
-          });
+        onSuccess: (createResponse) => {
+          if (createResponse.created) {
+            // KPI: 최종 북마크 저장 완료 이벤트 전송
+            trackEvent(ANALYTICS_EVENTS.BOOKMARK_SAVED, {
+              event_params: {
+                url_domain: getUrlDomain(url.trim()), // 도메인만 추출 (개인정보 보호)
+                // 최종 저장 시 AI 추천 태그가 포함되었는지 확인
+                has_ai_tag: selectedTags.some((tag) => aiSuggestedTags.has(tag)),
+                // AI 추천 폴더를 사용하여 저장했는지 확인
+                has_ai_folder:
+                  (aiSuggestedFolderRef.current.id !== null &&
+                    folderTarget.type === 'EXISTING' &&
+                    folderTarget.memberFolderId === aiSuggestedFolderRef.current.id) ||
+                  (aiSuggestedFolderRef.current.name !== null &&
+                    folderTarget.type === 'CREATE_IF_ABSENT' &&
+                    folderTarget.folderName === aiSuggestedFolderRef.current.name.trim()),
+                // 다이얼로그가 열린 시점(saveOpenedAtRef.current)부터 저장 완료까지 걸린 총 소요시간 측정
+                duration_bucket: getSaveDurationBucket(saveOpenedAtRef.current),
+              }
+            });
+          }
           toggleSaveLinkDialog(false);
         },
       }

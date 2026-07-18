@@ -1,6 +1,7 @@
 package com.web.SearchWeb.bookmark.service;
 
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkSearchResponse;
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkCreateResponse;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
 import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
@@ -9,8 +10,8 @@ import com.web.SearchWeb.bookmark.service.command.BookmarkFolderTarget;
 
 public interface BookmarkService {
     //북마크 추가
-    Long insertBookmark(Long memberId, String url, String displayTitle, String note,
-                        Long primaryCategoryId, String tags, BookmarkFolderTarget folderTarget);
+    BookmarkCreateResponse insertBookmark(Long memberId, String url, String displayTitle, String note,
+                                        Long primaryCategoryId, String tags, BookmarkFolderTarget folderTarget);
     
     //북마크 단일 조회
     Bookmark selectBookmark(Long memberId, Long bookmarkId);

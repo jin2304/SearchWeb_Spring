@@ -46,6 +46,11 @@ public interface BookmarkDao {
     //북마크 링크 중복 확인 (동일 폴더에 동일 링크)
     int checkBookmarkExists(@Param("memberId") Long memberId, @Param("folderId") Long folderId, @Param("linkId") Long linkId);
 
+    //동일 폴더의 기존 활성 북마크 ID 조회
+    Long selectActiveBookmarkId(@Param("memberId") Long memberId,
+                                @Param("folderId") Long folderId,
+                                @Param("linkId") Long linkId);
+
     //상세 링크 조회 (정규화된 URL 기반)
     Link selectLinkByCanonicalUrl(String url);
     
