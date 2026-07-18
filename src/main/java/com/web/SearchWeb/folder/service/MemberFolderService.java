@@ -22,6 +22,9 @@ public interface MemberFolderService {
     /** 없으면 생성하고, 있으면 기존 ID를 반환. idempotent. (미분류(UNORGANIZED) 폴더를 보장) */
     Long getOrCreateUnorganizedFolderId(Long memberId);
 
+    /** 활성 루트 폴더를 이름 기준(대소문자 무시)으로 재사용하고, 없으면 현재 트랜잭션에서 생성. */
+    Long getOrCreateRootFolderIdIgnoreCase(Long memberId, String folderName);
+
     /** 미분류 폴더를 단건으로 반환한다. 없으면 getOrCreate 경로로 생성 후 반환. */
     MemberFolder getDefaultFolder(Long memberId);
 }

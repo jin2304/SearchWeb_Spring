@@ -61,15 +61,8 @@ public class MemberFolderServiceImpl implements MemberFolderService {
                 throw new FolderException(FolderErrorCode.DUPLICATE_FOLDER_NAME);
             }
         } else {
-            // 4. 루트 폴더일 때 동일 이름 중복 검증
-            boolean exists = memberFolderJpaRepository
-                .existsByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(
-                    memberId, normalizedFolderName
-                );
-
-            if (exists) {
-                throw new FolderException(FolderErrorCode.DUPLICATE_FOLDER_NAME);
-            }
+            // 4. 루트 폴더 생성은 이름변경/루트 이동과 동일한 대소문자 무시 규칙을 사용합니다.
+            validateUniqueRootFolderName(memberId, normalizedFolderName, null);
         }
 
         MemberFolder folder = MemberFolder.builder()
@@ -106,6 +99,41 @@ public class MemberFolderServiceImpl implements MemberFolderService {
         }
 
         return normalizedDescription;
+    }
+
+    /**
+     * 최상위(루트) 폴더명이 대소문자 구분 없이 중복되는지 검사.
+     * (동시 생성 방지용 락 적용 / 본인 폴더의 대소문자 변경은 허용)
+     */
+    private void validateUniqueRootFolderName(
+        Long memberId,
+        String folderName,
+        Long excludedMemberFolderId
+    ) {
+        // 동시성 대비 회원별 루트 폴더 락 획득
+        memberFolderJpaRepository.lockRootFolderNamespace(memberId);
+
+        // 신규 생성(ID 없음) vs 수정·이동(ID 있음) 분기 검사
+        boolean exists = excludedMemberFolderId == null
+            ? memberFolderJpaRepository
+                // [신규 생성인 경우] 대소문자 구분 없이 동일한 이름의 루트 폴더 존재 확인
+                .findFirstByOwnerMemberIdAndParentFolderIdIsNullAndFolderNameIgnoreCaseAndDeletedAtIsNull(
+                    memberId,
+                    folderName
+                )
+                .isPresent()
+            : memberFolderJpaRepository
+                // [수정/이동인 경우] 자신(ID)을 제외하고 대소문자 구분 없이 동일한 이름 존재 확인
+                .existsActiveRootFolderNameIgnoreCaseExcludingId(
+                    memberId,
+                    folderName,
+                    excludedMemberFolderId
+                );
+
+        // 이름 중복 시 예외 발생
+        if (exists) {
+            throw new FolderException(FolderErrorCode.DUPLICATE_FOLDER_NAME);
+        }
     }
 
     @Override
@@ -145,32 +173,37 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     @Override
     @Transactional
     public void update(Long memberId, Long memberFolderId, String folderName, String description) {
+
+        // 폴더 소유권 확인 및 조회
         MemberFolder folder = getOwnedFolder(memberId, memberFolderId);
 
-        String resolvedFolderName = folderName == null
-            ? folder.getFolderName()
-            : normalizeFolderName(folderName);
-        String resolvedDescription = description == null
-            ? folder.getDescription()
-            : normalizeDescription(description);
+        // 입력값 검증 및 정규화 (null일 경우 기존 값 유지)
+        String resolvedFolderName = folderName == null ? folder.getFolderName() : normalizeFolderName(folderName);
+        String resolvedDescription = description == null ? folder.getDescription() : normalizeDescription(description);
 
+        // 폴더명 변경 시 중복 검사
         if (!folder.getFolderName().equals(resolvedFolderName)) {
-            boolean exists = folder.getParentFolderId() == null
-                ? memberFolderJpaRepository.existsByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(
-                    folder.getOwnerMemberId(),
-                    resolvedFolderName
-                )
-                : memberFolderJpaRepository.existsByOwnerMemberIdAndParentFolderIdAndFolderName(
-                    folder.getOwnerMemberId(),
-                    folder.getParentFolderId(),
-                    resolvedFolderName
-                );
+            // 루트 폴더인 경우
+            if (folder.getParentFolderId() == null) {
+                // 루트 폴더명 중복 검사
+                validateUniqueRootFolderName(folder.getOwnerMemberId(), resolvedFolderName, folder.getMemberFolderId());
+            // 하위 폴더인 경우
+            } else {
+                // 동일 부모 폴더 내 하위 폴더명 중복 검사
+                boolean exists = memberFolderJpaRepository
+                    .existsByOwnerMemberIdAndParentFolderIdAndFolderName(
+                        folder.getOwnerMemberId(),
+                        folder.getParentFolderId(),
+                        resolvedFolderName
+                    );
 
-            if (exists) {
-                throw new FolderException(FolderErrorCode.DUPLICATE_FOLDER_NAME);
+                if (exists) {
+                    throw new FolderException(FolderErrorCode.DUPLICATE_FOLDER_NAME);
+                }
             }
         }
 
+        // 폴더 정보 업데이트
         folder.changeInfo(resolvedFolderName, resolvedDescription);
     }
 
@@ -210,13 +243,11 @@ public class MemberFolderServiceImpl implements MemberFolderService {
                 throw new FolderException(FolderErrorCode.DUPLICATE_FOLDER_NAME);
             }
         } else {
-            boolean exists = memberFolderJpaRepository.existsByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(
+            validateUniqueRootFolderName(
                 folder.getOwnerMemberId(),
-                folder.getFolderName()
+                folder.getFolderName(),
+                folder.getMemberFolderId()
             );
-            if (exists) {
-                throw new FolderException(FolderErrorCode.DUPLICATE_FOLDER_NAME);
-            }
         }
 
         folder.changeParent(newParentFolderId);
@@ -301,6 +332,42 @@ public class MemberFolderServiceImpl implements MemberFolderService {
                 .orElseThrow(() -> new FolderException(FolderErrorCode.DEFAULT_FOLDER_NAME_CONFLICT))
                 .getMemberFolderId();
         }
+    }
+
+    /**
+     * 대소문자 구분 없이 기존에 존재하는 루트 폴더를 재사용하고,
+     * 없으면 현재 트랜잭션 내에서 새 루트 폴더를 안전하게 생성(Idempotent)하여 ID를 반환.
+     */
+    @Override
+    @Transactional
+    public Long getOrCreateRootFolderIdIgnoreCase(Long memberId, String folderName) {
+
+        // 폴더 이름 정규화
+        String normalizedFolderName = normalizeFolderName(folderName);
+
+        // 동시 생성 방지를 위해 Lock을 먼저 획득
+        memberFolderJpaRepository.lockRootFolderNamespace(memberId);
+
+        // 대소문자 무시 검색하여 기존 폴더가 존재하면 재사용
+        Optional<MemberFolder> existing = memberFolderJpaRepository
+            .findFirstByOwnerMemberIdAndParentFolderIdIsNullAndFolderNameIgnoreCaseAndDeletedAtIsNull(
+                memberId,
+                normalizedFolderName
+            );
+
+        // 기존 폴더가 존재하면 해당 ID 반환
+        if (existing.isPresent()) {
+            return existing.get().getMemberFolderId();
+        }
+
+        // 기존 폴더가 없는 경우 신규 루트 폴더 생성
+        MemberFolder newFolder = MemberFolder.builder()
+            .ownerMemberId(memberId)
+            .parentFolderId(null)
+            .folderName(normalizedFolderName)
+            .createdByMemberId(memberId)
+            .build();
+        return memberFolderJpaRepository.save(newFolder).getMemberFolderId();
     }
 
     @Override

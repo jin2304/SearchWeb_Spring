@@ -7,12 +7,11 @@ import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.config.common.ApiResponse;
 import com.web.SearchWeb.config.security.CurrentMemberId;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 /**
@@ -36,16 +35,16 @@ public class BookmarkApiController {
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> insertBookmark(
             @CurrentMemberId Long memberId,
-            @RequestBody BookmarkRequests.CreateDto request) {
+            @Valid @RequestBody BookmarkRequests.CreateDto request) {
         
         Long bookmarkId = bookmarkService.insertBookmark(
             memberId, 
             request.getUrl(),
-            request.getMemberFolderId(),
             request.getDisplayTitle(),
             request.getNote(),
             request.getPrimaryCategoryId(),
-            request.getTags()
+            request.getTags(),
+            request.getFolderTarget().toCommand()
         );
         
         return ResponseEntity

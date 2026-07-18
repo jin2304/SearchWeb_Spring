@@ -3,17 +3,14 @@ package com.web.SearchWeb.bookmark.service;
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkSearchResponse;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.domain.Link;
-// import com.web.SearchWeb.bookmark.dto.BoardBookmarkCheckDto;
-// import com.web.SearchWeb.bookmark.dto.BookmarkDto;
-
 import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
-import java.util.List;
+import com.web.SearchWeb.bookmark.service.command.BookmarkFolderTarget;
 
 
 public interface BookmarkService {
     //북마크 추가
-    Long insertBookmark(Long memberId, String url, Long memberFolderId, String displayTitle,
-                       String note, Long primaryCategoryId, String tags);
+    Long insertBookmark(Long memberId, String url, String displayTitle, String note,
+                        Long primaryCategoryId, String tags, BookmarkFolderTarget folderTarget);
     
     //북마크 단일 조회
     Bookmark selectBookmark(Long memberId, Long bookmarkId);
@@ -39,20 +36,4 @@ public interface BookmarkService {
 
     // URL로부터 페이지 제목 추출
     String extractTitle(String url);
-    
-    // ========== Legacy Board-Bookmark Methods (Commented Out) ==========
-    
-    /*
-    //게시글 북마크 확인
-    int checkBoardBookmark(BoardBookmarkCheckDto checkDto);
-    
-    //게시글 북마크 여부 확인 (for boardDetail)
-    int isBookmarked(Long boardId, Long memberId);
-    
-    //게시글 북마크 추가
-    int insertBookmarkForBoard(Long boardId, BookmarkDto bookmarkDto);
-    
-    //게시글 북마크 삭제
-    int deleteBookmarkBoard(BoardBookmarkCheckDto checkDto);
-    */
 }
