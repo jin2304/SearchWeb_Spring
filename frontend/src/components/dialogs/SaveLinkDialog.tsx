@@ -5,13 +5,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useUIStore } from '@/lib/store/uiStore';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useFolders, useCreateFolder } from '@/lib/api/folderApi';
+import { useFolders } from '@/lib/api/folderApi';
 import { useTags, useCreateTag } from '@/lib/api/tagApi';
 import { useCreateBookmark, useAnalyzeUrl } from '@/lib/api/bookmarkApi';
 import { useAnalyzeLink } from '@/lib/api/linkAnalysisApi';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { LinkAnalysisResponse } from '@/lib/types/linkAnalysis';
-import { FOLDER_TYPE } from '@/lib/types/folder';
+import type { BookmarkFolderTarget } from '@/lib/types/bookmark';
 import { Spinner } from '@/components/ui/spinner';
 import { buildGoogleFaviconUrl, buildDirectFaviconUrl } from '@/lib/utils/favicon';
 import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
@@ -132,10 +132,9 @@ export function SaveLinkDialog() {
 
   // --- API 연동 (React Query Hooks) ---
   const memberId = useAuthStore((s) => s.member?.memberId);
-  const { data: folders, isLoading: isFoldersLoading } = useFolders(memberId); // 기존 폴더 목록 조회
+  const { data: folders } = useFolders(memberId);          // 기존 폴더 목록 조회
   const { data: tagsData } = useTags(memberId);            // 기존 태그 목록 조회
   const createBookmarkMutation = useCreateBookmark();      // 북마크 생성 API 연동
-  const createFolderMutation = useCreateFolder();          // 폴더 생성 API 연동
   const createTagMutation = useCreateTag();                // 태그 생성 API 연동
   const analyzeUrlMutation = useAnalyzeUrl();              // URL 분석(제목 추출) API 연동
   const analyzeLinkMutation = useAnalyzeLink();            // AI 링크 분석 API 연동
@@ -362,12 +361,12 @@ export function SaveLinkDialog() {
   /**
    * [핸들러] 북마크 생성 공통 로직
    */
-  const saveBookmark = (folderId: number | null) => {
+  const saveBookmark = (folderTarget: BookmarkFolderTarget) => {
     createBookmarkMutation.mutate(
       {
         url: url.trim(),
         displayTitle: displayTitle.trim() || url.trim(),
-        memberFolderId: folderId,
+        folderTarget,
         note: note.trim() || undefined,
         tags: selectedTags.length > 0 ? selectedTags.join(',') : undefined,
       },
@@ -381,8 +380,12 @@ export function SaveLinkDialog() {
               has_ai_tag: selectedTags.some((tag) => aiSuggestedTags.has(tag)),
               // AI 추천 폴더를 사용하여 저장했는지 확인
               has_ai_folder:
-                (aiSuggestedFolderRef.current.id !== null && folderId === aiSuggestedFolderRef.current.id) ||
-                (aiSuggestedFolderRef.current.name !== null && pendingNewFolderName === aiSuggestedFolderRef.current.name),
+                (aiSuggestedFolderRef.current.id !== null &&
+                  folderTarget.type === 'EXISTING' &&
+                  folderTarget.memberFolderId === aiSuggestedFolderRef.current.id) ||
+                (aiSuggestedFolderRef.current.name !== null &&
+                  folderTarget.type === 'CREATE_IF_ABSENT' &&
+                  folderTarget.folderName === aiSuggestedFolderRef.current.name.trim()),
               // 다이얼로그가 열린 시점(saveOpenedAtRef.current)부터 저장 완료까지 걸린 총 소요시간 측정
               duration_bucket: getSaveDurationBucket(saveOpenedAtRef.current),
             }
@@ -395,41 +398,28 @@ export function SaveLinkDialog() {
 
   /**
    * [핸들러] 최종 저장 버튼 클릭 시 실행
-   * AI 추천 새 폴더가 있으면 폴더 생성 → 북마크 저장 순서로 처리
+   *  폴더 확정과 북마크 저장을 하나의 요청으로 처리
    */
   const handleSave = () => {
     const trimmedUrl = url.trim();
     if (!trimmedUrl || !(trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://'))) return;
     if (!memberId) return; // 방어 코드: 실제 memberId가 없는 경우 실행 방지
 
-    if (pendingNewFolderName) {
-      // 새 폴더 생성 후 해당 폴더에 북마크 저장
-      createFolderMutation.mutate(
-        {
-          ownerMemberId: memberId!,
-          folderName: pendingNewFolderName,
-        },
-        {
-          onSuccess: (newFolderId: number) => {
-            saveBookmark(newFolderId);
-          },
-        }
-      );
-    } else {
-      // Quick Save 경로: 폴더 미지정 시 미분류(UNORGANIZED) 폴더로 저장
-      const fallbackFolderId =
-        selectedFolderId
-        ?? folders?.find((f) => f.folderType === FOLDER_TYPE.UNORGANIZED)?.memberFolderId
-        ?? null;
-
-      // [추가] 폴더 목록 로딩이 끝났음에도 불구하고 대상 폴더를 결정할 수 없는 경우 예외 처리
-      if (fallbackFolderId === null) {
-        alert('폴더 정보를 불러오는 중이거나 폴더가 존재하지 않습니다. 잠시 후 다시 시도해주세요.');
-        return;
-      }
-
-      saveBookmark(fallbackFolderId);
+    const pendingFolderName = pendingNewFolderName?.trim();
+    if (pendingFolderName) {
+      // 1. 임시 생성 폴더명이 있는 경우: 폴더 자동 생성 후 저장
+      saveBookmark({ type: 'CREATE_IF_ABSENT', folderName: pendingFolderName });
+      return;
     }
+
+    if (selectedFolderId !== null) {
+      // 2. 기존 폴더가 선택된 경우: 해당 폴더 ID에 저장
+      saveBookmark({ type: 'EXISTING', memberFolderId: selectedFolderId });
+      return;
+    }
+
+    // 3. 아무것도 지정되지 않은 경우: 시스템 미분류 폴더에 저장
+    saveBookmark({ type: 'UNORGANIZED' });
   };
 
   
@@ -960,10 +950,10 @@ export function SaveLinkDialog() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending || createFolderMutation.isPending || isFoldersLoading}
+                disabled={!url.trim() || !(url.startsWith('http://') || url.startsWith('https://')) || createBookmarkMutation.isPending}
                 className={`${styles.btnGradient} text-xs max-tablet-lg:text-[15px] font-bold px-6 max-tablet-lg:w-full py-2.5 max-tablet-lg:py-3.5 rounded-xl transition-all flex justify-center items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg max-tablet-lg:shadow-[0_4px_12px_rgba(124,58,237,0.2)]`}
               >
-                {(createBookmarkMutation.isPending || createFolderMutation.isPending) ? 'Saving...' : 'Save Link'}
+                {createBookmarkMutation.isPending ? 'Saving...' : 'Save Link'}
               </button>
             </div>
 

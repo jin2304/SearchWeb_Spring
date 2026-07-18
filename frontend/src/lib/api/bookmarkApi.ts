@@ -180,6 +180,7 @@ export function useCreateBookmark() {
     mutationFn: createBookmark,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['folders'] });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
     },
   });
