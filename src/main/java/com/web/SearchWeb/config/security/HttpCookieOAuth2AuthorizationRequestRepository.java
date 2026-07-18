@@ -44,6 +44,9 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
         String redirectUriAfterLogin = request.getParameter(REDIRECT_URI_PARAM_COOKIE_NAME);
         if (StringUtils.hasText(redirectUriAfterLogin)) {
             CookieUtils.addCookie(response, REDIRECT_URI_PARAM_COOKIE_NAME, redirectUriAfterLogin, COOKIE_EXPIRE_SECONDS, cookieSecure);
+        } else {
+            // 확장 로그인 시도 후 중단/실패로 남은 redirect_uri가 일반 웹 로그인에 재사용되지 않도록 이전 세션의 잔재(확장 프로그램용 쿠키 등)를 삭제
+            CookieUtils.deleteCookie(request, response, REDIRECT_URI_PARAM_COOKIE_NAME);
         }
     }
 

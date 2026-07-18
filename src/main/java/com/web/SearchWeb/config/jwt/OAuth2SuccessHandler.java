@@ -3,6 +3,7 @@ package com.web.SearchWeb.config.jwt;
 import com.web.SearchWeb.auth.error.AuthErrorCode;
 import com.web.SearchWeb.auth.error.AuthException;
 import com.web.SearchWeb.auth.service.AuthService;
+import com.web.SearchWeb.auth.service.ExtensionAuthCodeService;
 import com.web.SearchWeb.config.security.CookieUtils;
 import com.web.SearchWeb.config.security.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.web.SearchWeb.member.dto.CustomOAuth2Member;
@@ -23,6 +24,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Arrays;
 
 /**
  * OAuth2 로그인 성공 시 호출되는 핸들러.
@@ -34,11 +36,15 @@ import java.time.Duration;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final AuthService authService;
+    private final ExtensionAuthCodeService extensionAuthCodeService;
     private final JwtProperties jwtProperties;
     private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
 
     @Value("${app.oauth2.redirect-uri}")
     private String oauth2RedirectUri;
+
+    @Value("${app.extension.allowed-redirect-uris:}")
+    private String extensionAllowedRedirectUris;
 
     @Value("${app.cookie.secure}")
     private boolean cookieSecure;
@@ -83,6 +89,16 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .replaceQueryParam("method", method)
                 .build()
                 .toUriString();
+        if (isAuthorizedExtensionRedirectUri(targetUrl)) {
+            String code = extensionAuthCodeService.issueCode(memberId);
+            targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
+                    .replaceQueryParam("code", code)
+                    .build()
+                    .toUriString();
+            response.sendRedirect(targetUrl);
+            return;
+        }
+
         String refreshToken = authService.issueRefreshToken(memberId);
 
         // 보안: 원본 토큰 노출 방지를 위해 마스킹 처리된 로그만 남김
@@ -138,6 +154,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             return false;
         }
 
+        if (isAuthorizedExtensionRedirectUri(uri)) {
+            return true;
+        }
         // 모든 경로는 determineTargetUrl에서 절대 URL로 정규화되었으므로, 호스트와 포트를 엄격하게 비교합니다.
         try {
             URI clientRedirectUri = URI.create(oauth2RedirectUri);
@@ -149,5 +168,48 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private boolean isAuthorizedExtensionRedirectUri(String uri) {
+        if (!StringUtils.hasText(uri) || !StringUtils.hasText(extensionAllowedRedirectUris)) {
+            return false;
+        }
+
+        URI targetUri;
+        try {
+            targetUri = URI.create(uri);
+        } catch (Exception e) {
+            return false;
+        }
+
+        return Arrays.stream(extensionAllowedRedirectUris.split(","))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .map(this::safeCreateUri)
+                .anyMatch(allowedUri -> allowedUri != null && isSameRedirectUri(allowedUri, targetUri));
+    }
+
+    private URI safeCreateUri(String uri) {
+        try {
+            return URI.create(uri);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean isSameRedirectUri(URI allowedUri, URI targetUri) {
+        return equalsIgnoreCase(allowedUri.getScheme(), targetUri.getScheme())
+                && equalsIgnoreCase(allowedUri.getHost(), targetUri.getHost())
+                && allowedUri.getPort() == targetUri.getPort()
+                && normalizePath(allowedUri).equals(normalizePath(targetUri));
+    }
+
+    private boolean equalsIgnoreCase(String left, String right) {
+        return left != null && right != null && left.equalsIgnoreCase(right);
+    }
+
+    private String normalizePath(URI uri) {
+        String path = uri.getPath();
+        return path == null || path.isBlank() ? "/" : path;
     }
 }
