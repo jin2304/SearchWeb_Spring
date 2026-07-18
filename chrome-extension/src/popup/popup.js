@@ -509,7 +509,7 @@ async function loadFolders() {
 
 async function saveBookmark({ silent = false } = {}) {
   if (state.busy || !state.tab?.url) {
-    return;
+    return false;
   }
 
   setBusy(true);
@@ -547,12 +547,30 @@ async function saveBookmark({ silent = false } = {}) {
       folderRefreshFailed ? `${successMessage} 폴더 목록은 다음에 새로고침됩니다.` : successMessage,
       "success"
     );
+    return true;
   } catch (error) {
     const message = describeError(error);
     setStatus(message, "error");
+    return false;
   } finally {
     setBusy(false);
   }
+}
+
+async function maybeAutoSave() {
+  if (
+    state.settings?.saveMode !== "silent"
+    || state.autoSaveAttempted
+    || state.busy
+    || !state.member
+    || !state.tab?.url
+  ) {
+    return false;
+  }
+
+  state.autoSaveAttempted = true;
+  const saved = await saveBookmark({ silent: true });
+  return saved;
 }
 
 async function analyzeCurrentLink() {
@@ -657,6 +675,7 @@ async function handleProviderClick(event) {
     showOnly("save");
     setStatus("로그인되었습니다.", "success");
     setBusy(false);
+    await maybeAutoSave();
   } catch (error) {
     await clearTokens();
     setStatus(error?.message || "로그인에 실패했습니다.", "error");
@@ -672,10 +691,12 @@ async function ensureSession() {
     await loadFolders();
     showOnly("save");
     setStatus("");
+    return true;
   } catch {
     await clearTokens();
     showOnly("login");
     setStatus("로그인이 필요합니다.");
+    return false;
   }
 }
 
@@ -899,7 +920,10 @@ async function init() {
   }
 
   renderTab();
-  await ensureSession();
+  const sessionReady = await ensureSession();
+  if (sessionReady) {
+    await maybeAutoSave();
+  }
 }
 
 init().catch((error) => {
