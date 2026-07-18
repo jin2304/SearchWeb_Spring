@@ -1,0 +1,1137 @@
+:root {
+  color-scheme: light;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-size: 14px;
+  color: #202124;
+  background: #ffffff; /* 흰색 배경으로 지정 */
+  letter-spacing: -0.4px; /* 자간 조정을 통해 촘촘하고 세련되게 구성 */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 360px;
+  margin: 0;
+  background: #ffffff; /* 흰색 배경으로 지정 */
+  overflow: hidden;
+}
+button, input, select, textarea {
+  font: inherit;
+}
+
+.popup-shell {
+  width: 100%;
+  background: #ffffff;
+  padding: 16px;
+  /* border 및 border-radius를 완전 제거하여 직사각형 윈도우에 꽉 차게 일체화 */
+}
+/* 탑바 스타일 */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.brand-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #202124;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #5f6368;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.icon-button:hover {
+  background-color: #f1f3f4;
+  color: #202124;
+}
+
+/* 상태창 스타일 (이미지 감성의 고강조 라이트 그라데이션) */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 아이콘 배경이 없으므로 간격을 조금 좁힘 */
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: 12px; /* 이미지처럼 부드럽고 둥글게 */
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  border: 1px solid transparent;
+  border-right: none;
+  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.03);
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 100px;
+  overflow: hidden;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status.hidden {
+  display: flex !important; /* display: none 우회하여 transition 허용 */
+  opacity: 0;
+  transform: translateY(-8px);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  border-top-width: 0;
+  border-bottom-width: 0;
+  border-color: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px; /* 둥근 스쿼클 배경 없이 아이콘만 단독 배치 */
+  height: 16px;
+  transition: all 0.2s ease;
+}
+
+.status-text {
+  flex-grow: 1;
+  letter-spacing: -0.3px;
+}
+
+.status.success {
+  background: linear-gradient(90deg, #d1fae5 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-color: rgba(16, 185, 129, 0.08);
+  color: #065f46;
+}
+.status.success .status-icon {
+  color: #10b981; /* 한결 부드럽고 연해진 에메랄드 아이콘 지정 */
+}
+
+.status.error {
+  background: linear-gradient(90deg, #fee2e2 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-color: rgba(239, 68, 68, 0.08);
+  color: #991b1b;
+}
+.status.error .status-icon {
+  color: #dc2626; /* 선명한 레드 아이콘 단독 지정 */
+}
+
+.status.loading {
+  background: linear-gradient(90deg, #ede9fe 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-color: rgba(124, 58, 237, 0.08);
+  color: #5b21b6;
+}
+.status.loading .status-icon {
+  color: #7c3aed; /* 선명한 퍼플 아이콘 단독 지정 */
+}
+
+.status.info {
+  background: linear-gradient(90deg, #e0f2fe 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-color: rgba(56, 189, 248, 0.08);
+  color: #0369a1;
+}
+.status.info .status-icon {
+  color: #0284c7; /* 선명한 블루 아이콘 단독 지정 */
+}
+
+/* 스피너 회전 애니메이션 */
+.spinner-icon-status {
+  animation: spin 0.8s linear infinite;
+}
+
+/* 패널 공통 */
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #202124;
+}
+
+.panel p {
+  margin: 0 0 12px;
+  color: #5f6368;
+  line-height: 1.5;
+}
+
+/* 로그인 소셜 버튼 */
+.provider-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.provider {
+  height: 34px;
+  border: 1px solid #dadce0;
+  border-radius: 8px; /* 둥글기 증가 */
+  background: #ffffff;
+  color: #3c4043;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.provider:hover {
+  background-color: #f8f9fa;
+}
+
+/* 입력 필드 (가로 배치 레이아웃) */
+.field {
+  display: grid;
+  grid-template-columns: 55px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.field span {
+  color: #5f6368;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+input, select, textarea {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #dadce0;
+  border-radius: 10px; /* 둥근 팝업 및 버튼 둥글기에 맞게 10px로 상향 */
+  background: #ffffff;
+  color: #202124;
+  outline: none;
+  font-size: 13px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+textarea {
+  height: auto;
+  padding: 8px 12px;
+  resize: vertical;
+}
+
+/* 커스텀 드롭다운(custom-select) 요소 스타일링 (AI 링크분석 팝업 드롭다운 이식) */
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #e2e8f0; /* slate-200 */
+  border-radius: 8px; /* 둥글기 맞춤 */
+  background: #ffffff;
+  color: #1e293b; /* slate-800 */
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.select-trigger:hover {
+  border-color: #c084fc; /* violet-300 */
+  background-color: #f8fafc; /* slate-50 */
+}
+
+.select-trigger:focus, .custom-select.active .select-trigger {
+  border-color: #a78bfa; /* violet-400 */
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2); /* ring-violet-200 */
+}
+
+#selectedFolderText {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.selected-folder-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-folder-badge {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border: 1px solid #c4b5fd;
+  border-radius: 999px;
+  background: #f5f3ff;
+  color: #6d28d9;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+
+.select-trigger .chevron-icon {
+  color: #94a3b8; /* slate-400 */
+  transition: transform 0.2s ease;
+}
+
+.custom-select.active .chevron-icon {
+  transform: rotate(180deg);
+  color: #a78bfa;
+}
+
+/* 드롭다운 옵션 컨테이너 */
+.select-options {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0; /* slate-200 */
+  border-radius: 12px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeInDropdown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInDropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ALL FOLDERS 헤더 */
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9; /* slate-100 */
+  font-size: 9px;
+  font-weight: 800;
+  color: #94a3b8; /* slate-400 */
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.dropdown-header .header-icon {
+  margin-right: 6px;
+  stroke: #a78bfa; /* violet-400 */
+}
+
+/* 옵션 스크롤 영역 */
+.options-scroll-area {
+  max-height: 160px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+}
+
+/* 개별 옵션 */
+.select-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #475569; /* slate-600 */
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.select-option:hover {
+  background-color: #f8fafc; /* slate-50 */
+  color: #0f172a; /* slate-900 */
+}
+
+.select-option .dropdown-folder-icon {
+  width: 14px;
+  height: 14px;
+  stroke: #cbd5e1; /* slate-300 */
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.select-option:hover .dropdown-folder-icon {
+  stroke: #a78bfa;
+}
+
+/* 우측 체크 아이콘 */
+.select-option .check-icon {
+  width: 12px;
+  height: 12px;
+  stroke: #a78bfa;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 선택된 상태 */
+.select-option.selected {
+  background-color: #f5f3ff; /* violet-50 */
+  color: #7c3aed; /* violet-700 */
+  font-weight: 600;
+}
+
+.select-option.selected .dropdown-folder-icon {
+  stroke: #a78bfa;
+}
+
+.pending-folder-option {
+  border-bottom: 1px solid #ede9fe;
+  background: #faf5ff;
+}
+
+.pending-folder-option .option-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pending-folder-option .new-folder-badge {
+  margin-left: auto;
+}
+
+.pending-folder-option .check-icon {
+  margin-left: 6px;
+}
+
+/* 스크롤바 디자인 */
+.options-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.options-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.options-scroll-area::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 3px;
+}
+
+.options-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+input:focus, textarea:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15); /* 소프트 퍼플 포커스 링 */
+}
+
+/* URL 미리보기 */
+.url-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  margin: 4px 0 10px 67px; /* 라벨 너비(55px) + 갭(12px) 정렬 */
+  padding: 0 8px;
+  border-radius: 6px; /* 둥글기 증가 */
+  background: #f1f3f4;
+}
+
+.url-preview img {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.favicon-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #7c3aed; /* Relink 포인트 퍼플 */
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.url-preview span {
+  min-width: 0;
+  overflow: hidden;
+  color: #5f6368;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 상세 영역 접기/펼치기 버튼 (하단 왼쪽 정렬) */
+.text-button {
+  border: none;
+  background: transparent;
+  color: #7c3aed; /* 파란색에서 보라색 포인트로 교체 */
+  font-size: 13px;
+  font-weight: 600; /* 세련미와 가독성을 높이기 위해 굵기 상향 */
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px; /* 둥글기 증가 */
+}
+
+.text-button:hover {
+  background-color: #f5f3ff; /* 연한 보라색 배경으로 호버 효과 */
+  text-decoration: none;
+}
+
+.details {
+  margin-top: 4px;
+}
+
+/* AI 분석 버튼 (화이트 그라디언트 보더 + 그라디언트 텍스트) */
+.secondary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  margin-left: 67px;
+  margin-bottom: 12px;
+  padding: 0 12px;
+  
+  /* 테두리를 1.5px로 주고 투명하게 한 뒤 background-clip으로 처리 */
+  border: 1.5px solid transparent;
+  border-radius: 15px; /* 완전 둥근 알약 형태 */
+  
+  /* 내부 화이트 배경과 외부 보라색 그라디언트 보더 설정 */
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+              linear-gradient(135deg, #7c3aed, #a78bfa) border-box;
+  
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* 화이트 테마에 어울리는 은은한 회색 그림자 */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.secondary:hover {
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2); /* 호버 시 그림자 강조로 입체감 제공 */
+}
+
+/* 텍스트 스타일 (단색 보라색 적용으로 가독성 및 폰트 선명도 극대화) */
+.ai-text {
+  color: #7c3aed;
+  font-weight: 700;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.sparkle-icon {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.secondary:hover .sparkle-icon {
+  transform: scale(1.1);
+}
+
+/* AI 분석 중일 때 스타일 및 애니메이션 */
+.secondary.analyzing {
+  opacity: 0.9 !important;
+  cursor: wait;
+  /* 흐르는 보더 효과를 위해 3가지 색상 그라디언트와 200% 크기 배경 설정 */
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+              linear-gradient(135deg, #7c3aed, #a78bfa, #7c3aed) border-box;
+  background-size: 200% auto;
+  animation: border-glow 1.5s linear infinite;
+}
+
+/* AI 분석 중일 때 기존 아이콘 숨김 */
+.secondary.analyzing .sparkle-icon {
+  display: none !important;
+}
+
+/* AI 분석 중일 때 로딩 스피너 아이콘 노출 및 회전 */
+.secondary.analyzing .spinner-icon {
+  display: inline-block !important;
+  animation: spin 0.8s linear infinite;
+}
+
+/* AI 분석 중일 때 텍스트 숨쉬기 효과 */
+.secondary.analyzing .ai-text {
+  animation: text-blink 1.5s infinite ease-in-out;
+}
+
+@keyframes border-glow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes text-blink {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+/* 하단 버튼 배치 */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.right-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.primary, .ghost {
+  height: 34px;
+  padding: 0 18px; /* 알약 형태에 맞춰 좌우 패딩 확장 */
+  font-size: 13px;
+  font-weight: 600; /* 글씨 굵기를 살짝 더 굵게 하여 세련미 증대 */
+  border-radius: 17px; /* 알약 캡슐형 둥글기 적용 */
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.primary {
+  border: none;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #ffffff;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.primary:hover {
+  background: linear-gradient(135deg, #6d28d9, #9061f9);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
+}
+
+.ghost {
+  border: 1px solid #dadce0;
+  background: #ffffff;
+  color: #5f6368; /* 평상시에는 튀지 않는 차분한 다크 그레이 색상 적용 */
+}
+
+.ghost:hover {
+  background-color: #fff5f5; /* 호버 시에만 소프트 레드 배경 노출 */
+  border-color: #f5c2c2;
+  color: #c95151; /* 호버 시에만 은은한 레드 텍스트로 강조 */
+}
+
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #7c3aed; /* Relink 포인트 퍼플 */
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.url-preview span {
+  min-width: 0;
+  overflow: hidden;
+  color: #5f6368;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 상세 영역 접기/펼치기 버튼 (하단 왼쪽 정렬) */
+.text-button {
+  border: none;
+  background: transparent;
+  color: #7c3aed; /* 파란색에서 보라색 포인트로 교체 */
+  font-size: 13px;
+  font-weight: 600; /* 세련미와 가독성을 높이기 위해 굵기 상향 */
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px; /* 둥글기 증가 */
+}
+
+.text-button:hover {
+  background-color: #f5f3ff; /* 연한 보라색 배경으로 호버 효과 */
+  text-decoration: none;
+}
+
+.details {
+  margin-top: 4px;
+}
+
+/* AI 분석 버튼 (화이트 그라디언트 보더 + 그라디언트 텍스트) */
+.secondary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  margin-left: 67px;
+  margin-bottom: 12px;
+  padding: 0 12px;
+  
+  /* 테두리를 1.5px로 주고 투명하게 한 뒤 background-clip으로 처리 */
+  border: 1.5px solid transparent;
+  border-radius: 15px; /* 완전 둥근 알약 형태 */
+  
+  /* 내부 화이트 배경과 외부 보라색 그라디언트 보더 설정 */
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+              linear-gradient(135deg, #7c3aed, #a78bfa) border-box;
+  
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* 화이트 테마에 어울리는 은은한 회색 그림자 */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.secondary:hover {
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2); /* 호버 시 그림자 강조로 입체감 제공 */
+}
+
+/* 텍스트 스타일 (단색 보라색 적용으로 가독성 및 폰트 선명도 극대화) */
+.ai-text {
+  color: #7c3aed;
+  font-weight: 700;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.sparkle-icon {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.secondary:hover .sparkle-icon {
+  transform: scale(1.1);
+}
+
+/* AI 분석 중일 때 스타일 및 애니메이션 */
+.secondary.analyzing {
+  opacity: 0.9 !important;
+  cursor: wait;
+  /* 흐르는 보더 효과를 위해 3가지 색상 그라디언트와 200% 크기 배경 설정 */
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+              linear-gradient(135deg, #7c3aed, #a78bfa, #7c3aed) border-box;
+  background-size: 200% auto;
+  animation: border-glow 1.5s linear infinite;
+}
+
+/* AI 분석 중일 때 기존 아이콘 숨김 */
+.secondary.analyzing .sparkle-icon {
+  display: none !important;
+}
+
+/* AI 분석 중일 때 로딩 스피너 아이콘 노출 및 회전 */
+.secondary.analyzing .spinner-icon {
+  display: inline-block !important;
+  animation: spin 0.8s linear infinite;
+}
+
+/* AI 분석 중일 때 텍스트 숨쉬기 효과 */
+.secondary.analyzing .ai-text {
+  animation: text-blink 1.5s infinite ease-in-out;
+}
+
+@keyframes border-glow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes text-blink {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+/* 하단 버튼 배치 */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.right-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.primary, .ghost {
+  height: 34px;
+  padding: 0 18px; /* 알약 형태에 맞춰 좌우 패딩 확장 */
+  font-size: 13px;
+  font-weight: 600; /* 글씨 굵기를 살짝 더 굵게 하여 세련미 증대 */
+  border-radius: 17px; /* 알약 캡슐형 둥글기 적용 */
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.primary {
+  border: none;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #ffffff;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.primary:hover {
+  background: linear-gradient(135deg, #6d28d9, #9061f9);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
+}
+
+.ghost {
+  border: 1px solid #dadce0;
+  background: #ffffff;
+  color: #5f6368; /* 평상시에는 튀지 않는 차분한 다크 그레이 색상 적용 */
+}
+
+.ghost:hover {
+  background-color: #fff5f5; /* 호버 시에만 소프트 레드 배경 노출 */
+  border-color: #f5c2c2;
+  color: #c95151; /* 호버 시에만 은은한 레드 텍스트로 강조 */
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Settings Panel Styles */
+#settingsPanel {
+  padding-top: 4px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.settings-field span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5f6368;
+  text-align: left;
+}
+
+.dark .settings-field span {
+  color: #94a3b8;
+}
+
+/* Smooth body transition */
+body {
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode overrides */
+.dark {
+  color-scheme: dark;
+  color: #f8fafc;
+  background: #0f172a !important;
+}
+
+.dark body {
+  background: #0f172a !important;
+}
+
+.dark .popup-shell {
+  background: #0f172a !important;
+}
+
+.dark .topbar h1 {
+  color: #f8fafc;
+}
+
+.dark .icon-button {
+  color: #94a3b8;
+}
+
+.dark .icon-button:hover {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+/* Status Colors */
+.dark .status.success {
+  background: linear-gradient(90deg, #064e3b 0%, #0f172a 100%);
+  border-color: rgba(16, 185, 129, 0.08);
+  color: #34d399;
+}
+.dark .status.success .status-icon {
+  color: #34d399;
+}
+
+.dark .status.error {
+  background: linear-gradient(90deg, #7f1d1d 0%, #0f172a 100%);
+  border-color: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+}
+.dark .status.error .status-icon {
+  color: #f87171;
+}
+
+.dark .status.loading {
+  background: linear-gradient(90deg, #4c1d95 0%, #0f172a 100%);
+  border-color: rgba(124, 58, 237, 0.08);
+  color: #c084fc;
+}
+.dark .status.loading .status-icon {
+  color: #a78bfa;
+}
+
+.dark .status.info {
+  background: linear-gradient(90deg, #0c4a6e 0%, #0f172a 100%);
+  border-color: rgba(56, 189, 248, 0.08);
+  color: #38bdf8;
+}
+.dark .status.info .status-icon {
+  color: #38bdf8;
+}
+
+.dark .panel h2 {
+  color: #f8fafc;
+}
+
+.dark .panel p {
+  color: #94a3b8;
+}
+
+/* Social buttons */
+.dark .provider {
+  border-color: #334155;
+  background: #1e293b;
+  color: #f8fafc;
+}
+.dark .provider:hover {
+  background-color: #334155;
+}
+
+.dark .field span {
+  color: #94a3b8;
+}
+
+.dark input, .dark select, .dark textarea {
+  border-color: #334155;
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+/* Custom dropdown */
+.dark .select-trigger {
+  border-color: #334155;
+  background: #1e293b;
+  color: #f8fafc;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}
+.dark .select-trigger:hover {
+  border-color: #7c3aed;
+  background-color: #334155;
+}
+.dark .select-trigger:focus, .dark .custom-select.active .select-trigger {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
+}
+
+.dark .select-trigger .chevron-icon {
+  color: #64748b;
+}
+.dark .custom-select.active .chevron-icon {
+  color: #a78bfa;
+}
+
+/* Options list */
+.dark .select-options {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+}
+.dark .dropdown-header {
+  background: #1e293b;
+  border-bottom-color: #334155;
+  color: #64748b;
+}
+
+.dark .select-option {
+  color: #cbd5e1;
+}
+.dark .select-option:hover {
+  background-color: #334155;
+  color: #f8fafc;
+}
+.dark .select-option .dropdown-folder-icon {
+  stroke: #475569;
+}
+.dark .select-option:hover .dropdown-folder-icon {
+  stroke: #a78bfa;
+}
+
+.dark .select-option.selected {
+  background-color: rgba(124, 58, 237, 0.2);
+  color: #a78bfa;
+}
+.dark .select-option.selected .dropdown-folder-icon {
+  stroke: #a78bfa;
+}
+
+.dark .pending-folder-option {
+  border-bottom-color: #334155;
+  background: rgba(124, 58, 237, 0.05);
+}
+.dark .pending-folder-option .new-folder-badge {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.2);
+  color: #c084fc;
+}
+
+.dark .options-scroll-area::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+.dark .options-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+.dark input:focus, .dark textarea:focus {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
+}
+
+/* URL Preview */
+.dark .url-preview {
+  background: rgba(255, 255, 255, 0.05);
+}
+.dark .url-preview span {
+  color: #94a3b8;
+}
+
+.dark .text-button {
+  color: #a78bfa;
+}
+.dark .text-button:hover {
+  background-color: rgba(124, 58, 237, 0.15);
+}
+
+/* AI button */
+.dark .secondary {
+  background: linear-gradient(#1e293b, #1e293b) padding-box,
+              linear-gradient(135deg, #7c3aed, #a78bfa) border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.dark .secondary:hover {
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+.dark .ai-text {
+  color: #ede9fe;
+}
+
+.dark .secondary.analyzing {
+  background: linear-gradient(#1e293b, #1e293b) padding-box,
+              linear-gradient(135deg, #7c3aed, #a78bfa, #7c3aed) border-box;
+}
+
+/* Bottom Buttons */
+.dark .ghost {
+  border-color: #334155;
+  background: #1e293b;
+  color: #94a3b8;
+}
+.dark .ghost:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}

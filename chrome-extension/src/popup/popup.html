@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Relink 저장</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <main class="popup-shell">
+      <header class="topbar">
+        <div class="brand-info">
+          <img src="../../icons/icon32.png" alt="Relink Logo" class="brand-logo" />
+          <h1 id="headerTitle">Relink</h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="backButton" class="icon-button hidden" type="button" title="뒤로가기">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <button id="optionsButton" class="icon-button" type="button" title="설정">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+          <button id="closeButton" class="icon-button" type="button" title="닫기">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <section id="status" class="status hidden" role="status" aria-live="polite">
+        <span class="status-icon"></span>
+        <span class="status-text"></span>
+      </section>
+
+      <section id="unsupportedPanel" class="panel hidden">
+        <h2>저장할 수 없는 페이지</h2>
+        <p id="unsupportedReason"></p>
+      </section>
+
+      <section id="loginPanel" class="panel hidden">
+        <h2>로그인</h2>
+        <div class="provider-grid">
+          <button class="provider" type="button" data-provider="google">Google</button>
+          <button class="provider" type="button" data-provider="naver">Naver</button>
+          <button class="provider" type="button" data-provider="kakao">Kakao</button>
+        </div>
+      </section>
+
+      <form id="saveForm" class="panel hidden">
+        <label class="field">
+          <span>제목</span>
+          <input id="titleInput" name="title" autocomplete="off" />
+        </label>
+
+        <div class="field">
+          <span>폴더</span>
+          <div id="customFolderSelect" class="custom-select">
+            <button type="button" class="select-trigger" id="folderSelectTrigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="folderOptionsList">
+              <span id="selectedFolderText">폴더 선택</span>
+              <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="select-options hidden" id="folderOptionsListContainer">
+              <div class="dropdown-header">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="header-icon">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span id="folderCountText">ALL FOLDERS (0)</span>
+              </div>
+              <ul class="options-scroll-area" id="folderOptionsList" role="listbox"></ul>
+            </div>
+          </div>
+          <select id="folderSelect" name="folder" class="hidden"></select>
+        </div>
+
+        <div class="url-preview">
+          <img id="favicon" alt="" />
+          <div id="faviconFallback" class="favicon-fallback hidden"></div>
+          <span id="urlText"></span>
+        </div>
+
+        <div id="detailsPanel" class="details hidden">
+          <label class="field">
+            <span>메모</span>
+            <textarea id="noteInput" rows="3"></textarea>
+          </label>
+          <label class="field">
+            <span>태그</span>
+            <input id="tagsInput" placeholder="쉼표로 구분" autocomplete="off" />
+          </label>
+          <button id="analyzeButton" class="secondary" type="button">
+            <svg class="sparkle-icon" width="14" height="14" viewBox="0 0 24 24" fill="url(#ai-gradient)" stroke="none">
+              <defs>
+                <linearGradient id="ai-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7c3aed" />
+                  <stop offset="100%" stop-color="#a78bfa" />
+                </linearGradient>
+              </defs>
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              <path d="m5 3 1 2.5L8.5 6 6 7 5 9.5 4 7 1.5 6 4 5.5z"/>
+              <path d="m19 17 1 2.5 2.5.5-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1.5z"/>
+            </svg>
+            <svg class="spinner-icon hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round">
+              <circle cx="12" cy="12" r="10" stroke="rgba(124, 58, 237, 0.15)"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10"></path>
+            </svg>
+            <span class="ai-text">AI 분석</span>
+          </button>
+        </div>
+
+        <div class="actions">
+          <button id="detailsButton" class="text-button" type="button">상세</button>
+          <div class="right-actions">
+            <button id="saveButton" class="primary" type="submit">완료</button>
+            <button id="deleteButton" class="ghost" type="button">삭제</button>
+          </div>
+        </div>
+      </form>
+
+      <section id="settingsPanel" class="panel hidden">
+        <form id="settingsForm">
+          <div id="settingsApiServerGroup" class="settings-field">
+            <span>API 서버</span>
+            <input id="settingsApiBaseUrl" type="url" required autocomplete="off" />
+          </div>
+
+          <div id="settingsOauthRedirectGroup" class="settings-field">
+            <span>OAuth redirect URL</span>
+            <input id="settingsRedirectUrl" readonly />
+          </div>
+
+          <div class="settings-field">
+            <span>저장 방식</span>
+            <select id="settingsSaveMode">
+              <option value="silent">원클릭 저장</option>
+              <option value="confirm">확인 후 저장</option>
+            </select>
+          </div>
+
+          <div class="settings-field">
+            <span>화면 테마</span>
+            <select id="settingsTheme">
+              <option value="system">시스템 설정</option>
+              <option value="light">라이트 모드</option>
+              <option value="dark">다크 모드</option>
+            </select>
+          </div>
+
+          <div class="settings-field">
+            <span>기본 로그인</span>
+            <select id="settingsDefaultProvider">
+              <option value="google">Google</option>
+              <option value="naver">Naver</option>
+              <option value="kakao">Kakao</option>
+            </select>
+          </div>
+
+          <div id="settingsAccountLabel" class="settings-field hidden">
+            <span>로그인 계정</span>
+            <input id="settingsUserEmail" readonly />
+          </div>
+
+          <div class="actions">
+            <button id="settingsLogoutButton" class="ghost" type="button">로그아웃</button>
+            <button class="primary" type="submit">저장</button>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

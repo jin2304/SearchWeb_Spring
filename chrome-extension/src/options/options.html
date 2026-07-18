@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Relink 확장 설정</title>
+    <link rel="stylesheet" href="./options.css" />
+  </head>
+  <body>
+    <main class="settings-shell">
+      <header>
+        <img src="../../icons/icon48.png" alt="Relink Logo" class="brand-logo" />
+        <div>
+          <h1>Relink 확장 설정</h1>
+          <p id="status" role="status" aria-live="polite">준비 중</p>
+        </div>
+      </header>
+
+      <form id="settingsForm" class="panel">
+        <label id="apiServerGroup">
+          <span>API 서버</span>
+          <input id="apiBaseUrl" type="url" required />
+        </label>
+
+        <label>
+          <span>저장 방식</span>
+          <select id="saveMode">
+            <option value="silent">원클릭 저장</option>
+            <option value="confirm">확인 후 저장</option>
+          </select>
+        </label>
+
+        <label>
+          <span>화면 테마</span>
+          <select id="theme">
+            <option value="system">시스템 설정</option>
+            <option value="light">라이트 모드</option>
+            <option value="dark">다크 모드</option>
+          </select>
+        </label>
+
+        <label>
+          <span>기본 로그인</span>
+          <select id="defaultProvider">
+            <option value="google">Google</option>
+            <option value="naver">Naver</option>
+            <option value="kakao">Kakao</option>
+          </select>
+        </label>
+
+        <label id="accountLabel" class="hidden">
+          <span>로그인 계정</span>
+          <input id="userEmail" readonly />
+        </label>
+
+        <label id="oauthRedirectGroup">
+          <span>OAuth redirect URL</span>
+          <input id="redirectUrl" readonly />
+        </label>
+
+        <div class="actions">
+          <button class="secondary" id="logoutButton" type="button">로그아웃</button>
+          <button class="primary" type="submit">저장</button>
+        </div>
+      </form>
+    </main>
+    <script type="module" src="./options.js"></script>
+  </body>
+</html>
