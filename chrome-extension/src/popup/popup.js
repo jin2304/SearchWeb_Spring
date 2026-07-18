@@ -518,20 +518,35 @@ async function saveBookmark({ silent = false } = {}) {
   try {
     const result = await createBookmark(buildBookmarkPayload());
     state.savedBookmarkId = result.bookmarkId;
+    let folderRefreshFailed = false;
 
     if (pendingFolderName) {
+      const resolvedFolderId = Number(result.resolvedFolderId);
+      state.pendingFolderName = null;
+      state.selectedFolderId = Number.isFinite(resolvedFolderId) && resolvedFolderId > 0
+        ? resolvedFolderId
+        : null;
+      state.selectedFolderName = pendingFolderName;
+      renderFolders();
+
       try {
         state.folders = await getFolders();
-        const createdFolder = findFolderByName(pendingFolderName);
-        state.pendingFolderName = null;
-        state.selectedFolderId = createdFolder ? Number(createdFolder.memberFolderId) : null;
-        state.selectedFolderName = createdFolder?.folderName ?? null;
+        const resolvedFolder = findFolderById(resolvedFolderId)
+          ?? findFolderByName(pendingFolderName);
+        if (resolvedFolder) {
+          state.selectedFolderId = Number(resolvedFolder.memberFolderId);
+          state.selectedFolderName = resolvedFolder.folderName;
+        }
         renderFolders();
       } catch {
-        // 저장 자체는 성공했으므로 폴더 목록 재조회 실패가 성공 상태를 덮어쓰지 않게 한다.
+        folderRefreshFailed = true;
       }
     }
-    setStatus(result.created ? "저장되었습니다." : "이미 저장된 링크입니다.", "success");
+    const successMessage = result.created ? "저장되었습니다." : "이미 저장된 링크입니다.";
+    setStatus(
+      folderRefreshFailed ? `${successMessage} 폴더 목록은 다음에 새로고침됩니다.` : successMessage,
+      "success"
+    );
   } catch (error) {
     const message = describeError(error);
     setStatus(message, "error");
