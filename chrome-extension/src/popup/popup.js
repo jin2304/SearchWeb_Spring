@@ -549,13 +549,6 @@ async function analyzeCurrentLink() {
     return;
   }
 
-  if (state.pendingFolderName) {
-    state.pendingFolderName = null;
-    state.selectedFolderId = null;
-    state.selectedFolderName = null;
-    renderFolders();
-  }
-
   setBusy(true);
   setStatus("분석 중...");
   
@@ -601,7 +594,11 @@ async function analyzeCurrentLink() {
     renderFolders();
     setStatus("분석 결과를 반영했습니다.", "success");
   } catch (error) {
-    setStatus(describeError(error), "error");
+    const message = describeError(error);
+    setStatus(
+      state.pendingFolderName ? `${message} 이전 추천 폴더를 유지합니다.` : message,
+      "error"
+    );
   } finally {
     // 버튼 상태 원래대로 복구
     els.analyzeButton.classList.remove("analyzing");
