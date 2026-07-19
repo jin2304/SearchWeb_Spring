@@ -226,10 +226,12 @@
     </select>
 
 
-    <!-- 링크 추가 -->
+    <!-- 링크 추가 (중복 시 dummy update를 통한 link_id 반환 유도) -->
     <insert id="insertLink" parameterType="com.web.SearchWeb.bookmark.domain.Link" useGeneratedKeys="true" keyProperty="linkId" keyColumn="link_id">
         INSERT INTO link (canonical_url, original_url, domain, title, description, primary_category_id, created_by_member_id)
         VALUES (#{canonicalUrl}, #{originalUrl}, #{domain}, #{title}, #{description}, #{primaryCategoryId}, #{createdByMemberId})
+        ON CONFLICT (canonical_url)
+        DO UPDATE SET updated_at = EXCLUDED.updated_at
     </insert>
 
 
