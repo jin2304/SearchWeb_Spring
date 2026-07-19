@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -299,6 +298,9 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Long getOrCreateUnorganizedFolderId(Long memberId) {
+        // 같은 회원의 모든 루트 폴더 생성과 직렬화한 뒤, 잠금 획득 후 상태를 다시 확인합니다.
+        memberFolderJpaRepository.lockRootFolderNamespace(memberId);
+
         // 1. 이미 시스템 폴더가 존재하면 해당 ID 반환 (idempotent)
         Optional<MemberFolder> existing = memberFolderJpaRepository
             .findFirstByOwnerMemberIdAndFolderType(memberId, FolderType.UNORGANIZED);
@@ -306,32 +308,22 @@ public class MemberFolderServiceImpl implements MemberFolderService {
             return existing.get().getMemberFolderId();
         }
 
-        // 2 & 3. 동시 호출은 partial unique index 로 DB 에서 차단됨 -> catch 후 재조회
-        try {
-            // 2. 이름("미분류") 이 루트에 이미 있으면 그 커스텀 폴더를 시스템 폴더로 전환
-            Optional<MemberFolder> sameName = memberFolderJpaRepository
-                .findFirstByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(memberId, UNORGANIZED_FOLDER_NAME);
-            if (sameName.isPresent()) {
-                MemberFolder existingFolder = sameName.get();
-                existingFolder.markAsUnorganized();
-                return memberFolderJpaRepository.save(existingFolder).getMemberFolderId();
-            }
-
-            // 3. 신규 생성
-            MemberFolder newFolder = MemberFolder.builder()
-                .ownerMemberId(memberId)
-                .folderName(UNORGANIZED_FOLDER_NAME)
-                .folderType(FolderType.UNORGANIZED)
-                .build();
-            return memberFolderJpaRepository.save(newFolder).getMemberFolderId();
-
-        } catch (DataIntegrityViolationException e) {
-            // 동시 요청으로 인한 중복 생성/전환 방지: 제약 조건 위반 시 이미 생성된 폴더를 재조회하여 반환
-            return memberFolderJpaRepository
-                .findFirstByOwnerMemberIdAndFolderType(memberId, FolderType.UNORGANIZED)
-                .orElseThrow(() -> new FolderException(FolderErrorCode.DEFAULT_FOLDER_NAME_CONFLICT))
-                .getMemberFolderId();
+        // 2. 이름("미분류")이 루트에 이미 있으면 그 커스텀 폴더를 시스템 폴더로 전환
+        Optional<MemberFolder> sameName = memberFolderJpaRepository
+            .findFirstByOwnerMemberIdAndParentFolderIdIsNullAndFolderName(memberId, UNORGANIZED_FOLDER_NAME);
+        if (sameName.isPresent()) {
+            MemberFolder existingFolder = sameName.get();
+            existingFolder.markAsUnorganized();
+            return memberFolderJpaRepository.save(existingFolder).getMemberFolderId();
         }
+
+        // 3. 신규 생성. 락은 트랜잭션 종료까지 유지되므로 같은 회원의 동시 생성이 여기까지 진입하지 않습니다.
+        MemberFolder newFolder = MemberFolder.builder()
+            .ownerMemberId(memberId)
+            .folderName(UNORGANIZED_FOLDER_NAME)
+            .folderType(FolderType.UNORGANIZED)
+            .build();
+        return memberFolderJpaRepository.save(newFolder).getMemberFolderId();
     }
 
     /**
