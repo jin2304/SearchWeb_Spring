@@ -14,6 +14,7 @@ const state = {
   selectedFolderName: null,
   pendingFolderName: null,
   savedBookmarkId: null,
+  aiSuggestedTags: new Set(),
   busy: false,
   autoSaveAttempted: false,
   tempDetailsOpenedByDropdown: false,
@@ -495,6 +496,45 @@ function buildBookmarkPayload() {
   };
 }
 
+function parseTagNames(value) {
+  return String(value ?? "")
+    .split(",")
+    .map((tagName) => tagName.trim())
+    .filter(Boolean);
+}
+
+function applySuggestedTags(suggestedTags) {
+  const manualTags = [];
+  const manualTagNames = new Set();
+
+  for (const tagName of parseTagNames(els.tagsInput.value)) {
+    if (!state.aiSuggestedTags.has(tagName) && !manualTagNames.has(tagName)) {
+      manualTags.push(tagName);
+      manualTagNames.add(tagName);
+    }
+  }
+
+  const mergedTags = [...manualTags];
+  const mergedTagNames = new Set(manualTagNames);
+  const nextAiSuggestedTags = new Set();
+
+  for (const suggestedTag of suggestedTags) {
+    const tagName = String(suggestedTag?.tagName ?? "").trim();
+    if (!tagName) continue;
+
+    if (!mergedTagNames.has(tagName)) {
+      mergedTags.push(tagName);
+      mergedTagNames.add(tagName);
+    }
+    if (!manualTagNames.has(tagName)) {
+      nextAiSuggestedTags.add(tagName);
+    }
+  }
+
+  els.tagsInput.value = mergedTags.join(", ");
+  state.aiSuggestedTags = nextAiSuggestedTags;
+}
+
 function describeError(error) {
   if (error instanceof ApiError && error.status === 409 && error.code === "B001") {
     return "이미 저장된 링크입니다.";
@@ -595,7 +635,7 @@ async function analyzeCurrentLink() {
       els.noteInput.value = result.description;
     }
     if (Array.isArray(result?.suggestedTags)) {
-      els.tagsInput.value = result.suggestedTags.map((tag) => tag.tagName).filter(Boolean).join(", ");
+      applySuggestedTags(result.suggestedTags);
     }
     const suggestedFolder = result?.suggestedFolder;
     state.pendingFolderName = null;
