@@ -3,7 +3,7 @@
   "name": "Relink Link Saver",
   "short_name": "Relink",
   "description": "현재 페이지를 Relink에 저장합니다.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "minimum_chrome_version": "114",
   "action": {
     "default_title": "Relink에 저장",
@@ -21,8 +21,7 @@
   },
   "permissions": ["activeTab", "storage", "identity", "favicon"],
   "host_permissions": [
-    "http://localhost:8080/*",
-    "https://api.searchweb.example/*"
+    "https://relink.ai.kr/*"
   ],
   "options_page": "src/options/options.html",
   "icons": {
