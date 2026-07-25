@@ -84,6 +84,11 @@ public class MemberFolderServiceImpl implements MemberFolderService {
         if (normalizedFolderName.isEmpty() || normalizedFolderName.length() > 50) {
             throw new FolderException(FolderErrorCode.INVALID_FOLDER_NAME);
         }
+
+        if (UNORGANIZED_FOLDER_NAME.equalsIgnoreCase(normalizedFolderName)) {
+            throw new FolderException(FolderErrorCode.INVALID_FOLDER_NAME);
+        }
+
         return normalizedFolderName;
     }
 
@@ -333,6 +338,11 @@ public class MemberFolderServiceImpl implements MemberFolderService {
     @Override
     @Transactional
     public Long getOrCreateRootFolderIdIgnoreCase(Long memberId, String folderName) {
+
+        // 예약어 "미분류" 입력 시 시스템 미분류 폴더 ID 조회로 우회
+        if (folderName != null && UNORGANIZED_FOLDER_NAME.equalsIgnoreCase(folderName.trim())) {
+            return getOrCreateUnorganizedFolderId(memberId);
+        }
 
         // 폴더 이름 정규화
         String normalizedFolderName = normalizeFolderName(folderName);
