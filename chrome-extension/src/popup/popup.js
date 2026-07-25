@@ -125,7 +125,17 @@ function setStatus(message, type = "") {
     iconEl.innerHTML = iconHtml;
     textEl.textContent = message;
   } else {
-    els.status.innerHTML = `<span class="status-icon">${iconHtml}</span><span class="status-text">${message}</span>`;
+    els.status.textContent = "";  // 최초 렌더링 시 XSS 방지를 위해 message는 내용 초기화
+
+    const newIconEl = document.createElement("span");
+    newIconEl.className = "status-icon";
+    newIconEl.innerHTML = iconHtml; // 내부 하드코딩 SVG이므로 innerHTML 사용 안전
+
+    const newTextEl = document.createElement("span");
+    newTextEl.className = "status-text";
+    newTextEl.textContent = message; // 동적 텍스트는 textContent로 안전하게 대입
+
+    els.status.append(newIconEl, newTextEl);
   }
 
   els.status.className = `status ${currentType}`.trim();
