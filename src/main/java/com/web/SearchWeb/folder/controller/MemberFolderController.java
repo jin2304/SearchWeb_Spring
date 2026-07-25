@@ -42,6 +42,17 @@ public class MemberFolderController {
             .body(ApiResponse.success(folderId));
     }
 
+    // 내 루트 폴더 목록 조회
+    @GetMapping("/me/root")
+    public ResponseEntity<ApiResponse<List<MemberFolderResponses>>> listMyRoot(@CurrentMemberId Long memberId) {
+        List<MemberFolderResponses> responses = memberFolderService.listRootFolders(memberId, memberId)
+            .stream()
+            .map(MemberFolderResponses::from)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ApiResponse.success(responses));
+    }
+
     // 폴더 정보 단건 조회
     @GetMapping("/{folderId}")
     public ResponseEntity<ApiResponse<MemberFolderResponses>> get(@CurrentMemberId Long memberId, @PathVariable Long folderId) {

@@ -72,27 +72,27 @@ public class MyPageController {
     /**
      *  북마크 추가 (마이페이지에서 추가)
      */
-    @PostMapping(value ="/myPage/{memberId}/bookmark")
-    @OwnerCheck(idParam = "memberId", service = "memberService")
-    public ResponseEntity<Map<String, Object>> insertBookmark(@PathVariable final Long memberId,
-                                                               @RequestBody BookmarkDto bookmarkDto,
-                                                               @RequestParam String url){
-        Map<String, Object> response = new HashMap<>();
-        bookmarkDto.setCreatedByMemberId(memberId);
+    // @PostMapping(value ="/myPage/{memberId}/bookmark")
+    // @OwnerCheck(idParam = "memberId", service = "memberService")
+    // public ResponseEntity<Map<String, Object>> insertBookmark(@PathVariable final Long memberId,
+    //                                                            @RequestBody BookmarkDto bookmarkDto,
+    //                                                            @RequestParam String url){
+    //     Map<String, Object> response = new HashMap<>();
+    //     bookmarkDto.setCreatedByMemberId(memberId);
 
-        Long bookmarkId = bookmarkService.insertBookmark(
-            memberId,
-            url,
-            bookmarkDto.getMemberFolderId(),
-            bookmarkDto.getDisplayTitle(),
-            bookmarkDto.getNote(),
-            bookmarkDto.getPrimaryCategoryId(),
-            bookmarkDto.getTags()
-        );
+    //     Long bookmarkId = bookmarkService.insertBookmark(
+    //         memberId,
+    //         url,
+    //         bookmarkDto.getMemberFolderId(),
+    //         bookmarkDto.getDisplayTitle(),
+    //         bookmarkDto.getNote(),
+    //         bookmarkDto.getPrimaryCategoryId(),
+    //         bookmarkDto.getTags()
+    //     );
 
-        response.put("success", bookmarkId != null && bookmarkId > 0);
-        return ResponseEntity.ok(response);
-    }
+    //     response.put("success", bookmarkId != null && bookmarkId > 0);
+    //     return ResponseEntity.ok(response);
+    // }
 
 
 

@@ -24,7 +24,10 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import org.springframework.util.StringUtils;
 
 @Configuration
 @EnableWebSecurity
@@ -42,6 +45,9 @@ public class SecurityConfig {
 
     @Value("${app.oauth2.redirect-uri}")
     private String oauth2RedirectUri;
+
+    @Value("${app.extension.allowed-origins:}")
+    private String extensionAllowedOrigins;
 
 
     @Bean
@@ -74,6 +80,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. 인증 없이 접근 가능한 엔드포인트 (WhiteList)
                         .requestMatchers("/api/auth/refresh", "/api/auth/logout").permitAll()
+                        .requestMatchers("/api/auth/extension/exchange", "/api/auth/extension/refresh", "/api/auth/extension/logout").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         
                         // 2. 관리자 전용 엔드포인트
@@ -129,7 +136,16 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true); // 쿠키 및 인증 헤더 허용
-        configuration.setAllowedOrigins(List.of(extractOrigin(oauth2RedirectUri)));                   // 허용할 프론트엔드 도메인 설정
+        
+        List<String> allowedOrigins = new ArrayList<>();
+        allowedOrigins.add(extractOrigin(oauth2RedirectUri));
+        if (StringUtils.hasText(extensionAllowedOrigins)) {
+            Arrays.stream(extensionAllowedOrigins.split(","))
+                    .map(String::trim)
+                    .filter(StringUtils::hasText)
+                    .forEach(allowedOrigins::add);
+        }
+        configuration.setAllowedOrigins(allowedOrigins);                   // 허용할 프론트엔드 및 확장 프로그램 도메인 설정
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // 어떤 HTTP 메서드를 허용할지 설정
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cookie"));          // 어떤 헤더를 포함해야되는 설정
 

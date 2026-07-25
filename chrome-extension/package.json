@@ -1,0 +1,15 @@
+{
+  "name": "searchweb-browser-extension",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build:dev": "node scripts/build-extension.mjs chrome dev && node scripts/build-extension.mjs edge dev",
+    "build:prod": "node scripts/build-extension.mjs chrome prod && node scripts/build-extension.mjs edge prod",
+    "build:chrome:dev": "node scripts/build-extension.mjs chrome dev",
+    "build:chrome:prod": "node scripts/build-extension.mjs chrome prod",
+    "build:edge:dev": "node scripts/build-extension.mjs edge dev",
+    "build:edge:prod": "node scripts/build-extension.mjs edge prod",
+    "build": "npm run build:dev"
+  }
+}

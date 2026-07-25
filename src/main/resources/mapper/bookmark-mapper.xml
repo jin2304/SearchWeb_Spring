@@ -64,8 +64,29 @@
         AND deleted_at IS NULL
     </select>
 
+    <select id="selectActiveBookmarkId" resultType="long">
+        SELECT member_saved_link_id
+        FROM member_saved_link
+        WHERE created_by_member_id = #{memberId}
+          AND member_folder_id = #{folderId}
+          AND link_id = #{linkId}
+          AND deleted_at IS NULL
+        LIMIT 1
+    </select>
+
 
     <!-- 북마크 단일 조회 -->
+    <select id="checkBookmarkExistsByUrl" resultType="int">
+        SELECT COUNT(*)
+          FROM member_saved_link msl
+          JOIN link l
+            ON msl.link_id = l.link_id
+         WHERE msl.created_by_member_id = #{memberId}
+           AND l.canonical_url = #{url}
+           AND msl.deleted_at IS NULL
+           AND l.deleted_at IS NULL
+    </select>
+
     <select id="selectBookmark" parameterType="map" resultMap="BookmarkResultMap">
         SELECT msl.*,
                l.original_url, l.canonical_url, l.domain, l.thumbnail_url,
@@ -205,10 +226,12 @@
     </select>
 
 
-    <!-- 링크 추가 -->
+    <!-- 링크 추가 (중복 시 dummy update를 통한 link_id 반환 유도) -->
     <insert id="insertLink" parameterType="com.web.SearchWeb.bookmark.domain.Link" useGeneratedKeys="true" keyProperty="linkId" keyColumn="link_id">
         INSERT INTO link (canonical_url, original_url, domain, title, description, primary_category_id, created_by_member_id)
         VALUES (#{canonicalUrl}, #{originalUrl}, #{domain}, #{title}, #{description}, #{primaryCategoryId}, #{createdByMemberId})
+        ON CONFLICT (canonical_url)
+        DO UPDATE SET link_id = link.link_id
     </insert>
 
 
@@ -216,6 +239,9 @@
     <insert id="insertBookmark" parameterType="com.web.SearchWeb.bookmark.domain.Bookmark" useGeneratedKeys="true" keyProperty="bookmarkId" keyColumn="member_saved_link_id">
         INSERT INTO member_saved_link (link_id, member_folder_id, display_title, note, primary_category_id, created_by_member_id)
         VALUES (#{linkId}, #{memberFolderId}, #{displayTitle}, #{note}, #{primaryCategoryId}, #{createdByMemberId})
+        ON CONFLICT (member_folder_id, link_id)
+        WHERE deleted_at IS NULL
+        DO NOTHING
     </insert>
 
 

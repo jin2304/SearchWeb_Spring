@@ -1,7 +1,10 @@
 package com.web.SearchWeb.bookmark.controller.dto;
 
+import com.web.SearchWeb.bookmark.service.command.BookmarkFolderTarget;
 import com.web.SearchWeb.bookmark.service.command.BookmarkSearchCommand;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,14 +19,34 @@ public class BookmarkRequests {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CreateDto {
-        private Long bookmarkId;
-        private Long memberFolderId;
         private String displayTitle;
         private String url;
         private String note;
         private Long primaryCategoryId;
-        private Long createdByMemberId;
         private String tags;
+
+        @Valid
+        @NotNull
+        private FolderTargetDto folderTarget;
+    }
+
+    /**
+     * 북마크 생성 API 요청 시 폴더 처리 방식을 전달받는 DTO.
+     */
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FolderTargetDto {
+        private String type;           // EXISTING, CREATE_IF_ABSENT, UNORGANIZED
+        private Long memberFolderId;   // EXISTING인 경우의 대상 폴더 ID
+        private String folderName;     // CREATE_IF_ABSENT인 경우 생성할 폴더 이름
+
+        /**
+         * DTO 객체를 비즈니스 검증 논리를 담고 있는 도메인 레코드 객체로 변환.
+         */
+        public BookmarkFolderTarget toCommand() {
+            return BookmarkFolderTarget.from(type, memberFolderId, folderName);
+        }
     }
 
     @Getter

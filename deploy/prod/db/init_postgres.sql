@@ -579,6 +579,10 @@ CREATE INDEX IF NOT EXISTS idx_member_folder_parent ON "member_folder" ("parent_
 CREATE UNIQUE INDEX IF NOT EXISTS uq_member_folder_parent_name
   ON "member_folder" ("owner_member_id", "parent_folder_id", "folder_name")
   WHERE deleted_at IS NULL;
+-- 활성 루트 폴더 이름은 회원별로 대소문자를 구분하지 않고 유일해야 함
+CREATE UNIQUE INDEX IF NOT EXISTS uq_member_folder_root_name_ci
+  ON "member_folder" ("owner_member_id", LOWER("folder_name"))
+  WHERE "parent_folder_id" IS NULL AND "deleted_at" IS NULL;
 CREATE INDEX IF NOT EXISTS idx_member_folder_name ON "member_folder" ("folder_name");
 CREATE INDEX IF NOT EXISTS idx_member_folder_created ON "member_folder" ("created_at");
 CREATE INDEX IF NOT EXISTS idx_member_folder_deleted ON "member_folder" ("deleted_at");

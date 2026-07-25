@@ -4,6 +4,7 @@ import type {
   BookmarkResponse,
   BookmarkSearchResponse,
   BookmarkSearchParams,
+  BookmarkCreateResponse,
   CreateBookmarkRequest,
   UpdateBookmarkRequest,
 } from '@/lib/types/bookmark';
@@ -31,8 +32,8 @@ async function fetchBookmarks(params: BookmarkSearchParams): Promise<BookmarkSea
  * 북마크 생성 (POST /api/bookmarks)
  * @param data 북마크 생성 정보 (URL, 폴더 ID, 메모, 태그 등)
  */
-async function createBookmark(data: CreateBookmarkRequest): Promise<number> {
-  return fetchClient<number>('/api/bookmarks', {
+async function createBookmark(data: CreateBookmarkRequest): Promise<BookmarkCreateResponse> {
+  return fetchClient<BookmarkCreateResponse>('/api/bookmarks', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -180,6 +181,7 @@ export function useCreateBookmark() {
     mutationFn: createBookmark,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['folders'] });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
     },
   });

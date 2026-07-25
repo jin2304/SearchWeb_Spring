@@ -8,8 +8,11 @@ import com.web.SearchWeb.auth.controller.dto.AuthResponses;
  */
 public interface AuthService {
 
-    // OAuth2 로그인 성공 후 리프레시 토큰만 최초 발급  
+    // OAuth2 로그인 성공 후 리프레시 토큰만 최초 발급
     String issueRefreshToken(Long memberId);
+
+    // 확장 로그인: 기존 웹 세션을 폐기하지 않고 토큰 쌍을 발급한다.
+    AuthResponses.TokenPair issueTokenPairWithoutRevoking(Long memberId);
 
     // 토큰 갱신
     AuthResponses.TokenPair refresh(String refreshToken);

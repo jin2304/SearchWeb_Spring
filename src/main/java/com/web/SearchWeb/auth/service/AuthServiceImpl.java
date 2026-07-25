@@ -63,6 +63,12 @@ public class AuthServiceImpl implements AuthService {
      * 4. 처음 갱신 시도인 경우 로테이션 수행 및 상태 기록
      */
     @Override
+    public AuthResponses.TokenPair issueTokenPairWithoutRevoking(Long memberId) {
+        RefreshToken refreshToken = createAndSaveRefreshToken(memberId, UUID.randomUUID().toString(), 1);
+        return buildTokenPair(refreshToken);
+    }
+
+    @Override
     public AuthResponses.TokenPair refresh(String refreshToken) {
         // 1. 토큰 서명 및 유효성 검증
         try {

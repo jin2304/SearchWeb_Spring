@@ -1,18 +1,18 @@
 package com.web.SearchWeb.bookmark.controller;
 
 
+import com.web.SearchWeb.bookmark.controller.dto.BookmarkCreateResponse;
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkRequests;
 import com.web.SearchWeb.bookmark.controller.dto.BookmarkSearchResponse;
 import com.web.SearchWeb.bookmark.domain.Bookmark;
 import com.web.SearchWeb.bookmark.service.BookmarkService;
 import com.web.SearchWeb.config.common.ApiResponse;
 import com.web.SearchWeb.config.security.CurrentMemberId;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 /**
@@ -34,23 +34,23 @@ public class BookmarkApiController {
      *  북마크 추가
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> insertBookmark(
+    public ResponseEntity<ApiResponse<BookmarkCreateResponse>> insertBookmark(
             @CurrentMemberId Long memberId,
-            @RequestBody BookmarkRequests.CreateDto request) {
+            @Valid @RequestBody BookmarkRequests.CreateDto request) {
         
-        Long bookmarkId = bookmarkService.insertBookmark(
+        BookmarkCreateResponse createResponse = bookmarkService.insertBookmark(
             memberId, 
             request.getUrl(),
-            request.getMemberFolderId(),
             request.getDisplayTitle(),
             request.getNote(),
             request.getPrimaryCategoryId(),
-            request.getTags()
+            request.getTags(),
+            request.getFolderTarget().toCommand()
         );
         
         return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(ApiResponse.success(bookmarkId));
+            .status(createResponse.created() ? HttpStatus.CREATED : HttpStatus.OK)
+            .body(ApiResponse.success(createResponse));
     }
 
 

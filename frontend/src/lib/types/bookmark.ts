@@ -35,9 +35,20 @@ export interface BookmarkSearchResponse {
   totalCount: number;
 }
 
+export type BookmarkFolderTarget =
+  | { type: 'EXISTING'; memberFolderId: number }
+  | { type: 'CREATE_IF_ABSENT'; folderName: string }
+  | { type: 'UNORGANIZED' };
+
+export interface BookmarkCreateResponse {
+  bookmarkId: number;
+  created: boolean;
+  resolvedFolderId: number;
+}
+
 // POST /api/bookmarks 요청 바디
 export interface CreateBookmarkRequest {
-  memberFolderId?: number | null;
+  folderTarget: BookmarkFolderTarget;
   displayTitle: string;
   url: string;
   note?: string;
