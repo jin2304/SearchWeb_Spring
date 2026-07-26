@@ -49,7 +49,7 @@ export function Header({ title = 'My Links' }: HeaderProps) {
       {/* Right: Actions / Right Panel Header Sync */}
       <div className={`flex items-center px-3 tablet-lg:px-4 transition-all duration-300 dark:bg-white/[0.04] ${
         rightPanelOpen 
-          ? 'tablet-lg:w-[700px] tablet-lg:bg-white tablet-lg:dark:bg-[#0a0a0b] tablet-lg:border-l tablet-lg:border-gray-200 tablet-lg:dark:border-white/[0.08]' 
+          ? 'tablet-lg:w-[780px] tablet-lg:bg-white tablet-lg:dark:bg-[#0a0a0b] tablet-lg:border-l tablet-lg:border-gray-200 tablet-lg:dark:border-white/[0.08]' 
           : ''
       }`}>
         <div className="ml-auto flex items-center space-x-1">
