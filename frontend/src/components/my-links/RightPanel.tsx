@@ -1042,20 +1042,28 @@ export function RightPanel() {
       )}>
         
         {/* Top Header & Tags | 상단 헤더 및 태그 필터 영역 */}
-        <div className="px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex flex-col gap-2 bg-white dark:bg-[#0a0a0b] sticky top-0 z-sticky">
+        <div className={cn(
+          "px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex flex-col gap-2.5 bg-white dark:bg-[#0a0a0b] sticky top-0 z-sticky",
+          isDrawerMode && "pt-5 pb-3.5"
+        )}>
           
           {/* Row 1: Title & Actions */}
           <div className="flex flex-col tablet-lg:flex-row tablet-lg:justify-between tablet-lg:items-start gap-3 tablet-lg:gap-0">
             {/* Left: Title, Count, and Mobile Close button */}
-            <div className="flex justify-between items-start w-full tablet-lg:w-auto">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-slate-50 dark:bg-slate-900/20 text-slate-400 rounded-md flex items-center justify-center w-8 h-8">
-                    <span className="material-symbols-outlined text-[16px] block">folder_open</span>
-                  </div>
-                  <h2 className="text-sm font-bold text-gray-900 dark:text-white">{displayTitle}</h2>
+            <div className="flex justify-between items-center w-full tablet-lg:w-auto gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-100/90 dark:bg-white/[0.07] border border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0 shadow-xs">
+                  <span 
+                    className="material-symbols-outlined !text-[20px] sm:!text-[22px] !leading-none flex items-center justify-center select-none"
+                    style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                  >
+                    folder_open
+                  </span>
                 </div>
-                <p className="text-[10px] text-gray-500">{totalCount} Links</p>
+                <div className="flex flex-col min-w-0">
+                  <h2 className="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white tracking-tight leading-snug truncate">{displayTitle}</h2>
+                  <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mt-0.5">{totalCount} Links</p>
+                </div>
               </div>
 
               {/* 닫기(X) 버튼: 고정 모드일 때는 모바일에서만 보이고, 팝업 모드일 때는 데스크톱에서도 상시 노출 */}

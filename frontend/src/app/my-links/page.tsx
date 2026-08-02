@@ -162,7 +162,20 @@ export default function MyLinksPage() {
 
   // 인증 또는 폴더 로딩 중
   const isLoading = isAuthInitializing || isFoldersLoading;
-  const pinnedFolders = folders?.slice(0, 5) ?? [];
+  const isPopupMode = panelMode === 'drawer';
+  const pinnedFolders = folders?.slice(0, isPopupMode ? 6 : 5) ?? [];
+  const totalLinkCount = useMemo(() => (folders ?? []).reduce((total, folder) => total + folder.bookmarkCount, 0), [folders]);
+  const allLinksFolder: FolderResponse = useMemo(() => ({
+    memberFolderId: -1,
+    ownerMemberId: memberId || 0,
+    parentFolderId: null,
+    folderName: 'All Links',
+    description: 'All Links',
+    bookmarkCount: totalLinkCount,
+    folderType: FOLDER_TYPE.CUSTOM,
+    createdAt: '',
+    updatedAt: ''
+  }), [totalLinkCount, memberId]);
 
   const [folderSort, setFolderSort] = useState('recently');
   const folderSortOptions: SortOption[] = [
@@ -382,30 +395,27 @@ export default function MyLinksPage() {
     'bg-gradient-to-br from-blue-500 to-cyan-500',
     'bg-gradient-to-br from-emerald-500 to-teal-600',
     'bg-gradient-to-br from-rose-500 to-pink-600',
-    'bg-gradient-to-br from-amber-500 to-orange-600'
+    'bg-gradient-to-br from-amber-500 to-orange-600',
+    'bg-gradient-to-br from-violet-500 to-fuchsia-600'
   ];
-
-
-
-
 
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* Main Content Area */}
       <div className={cn(
-        "flex-1 min-w-0 overflow-y-auto px-4 py-2 pb-28 tablet-lg:px-5 tablet-lg:py-3 tablet-lg:pb-4 transition-colors duration-300 bg-[#fafafa] dark:bg-white/[0.04]",
-        panelMode === 'drawer' && "pt-2 py-0 pb-0 tablet-lg:py-0 tablet-lg:pb-0 px-2 tablet-lg:px-4"
+        "flex-1 min-w-0 overflow-y-auto px-5 py-2 pb-28 tablet-lg:px-8 tablet-lg:py-3 tablet-lg:pb-4 transition-colors duration-300 bg-[#fafafa] dark:bg-white/[0.04]",
+        isPopupMode && "px-6 py-4 pb-28 tablet-lg:px-10 tablet-lg:py-5 tablet-lg:pb-8 xl:px-16 2xl:px-24"
       )}>
         {/* [분기 1] 팝업 모드일 때 검색바, 태그 필터, 메인 폴더 목록 전체를 단 하나의 통합 메인 카드 영역으로 감쌈 */}
         <div className={cn(
           "w-full transition-all duration-300",
-          panelMode === 'drawer' && "max-w-5xl mx-auto mt-2.5 mb-0 min-h-[calc(100vh-48px)] p-5 tablet-lg:p-6 bg-white dark:bg-[#0c0c0e] rounded-t-xl rounded-b-none border border-b-0 border-gray-200/80 dark:border-white/[0.08] shadow-sm dark:shadow-2xl/40"
+          isPopupMode && "max-w-[1200px] mx-auto min-h-full"
         )}>
           
           {/* Top Search & Filter Section */}
         <div className="mb-5 flex flex-col items-start bg-transparent">
           
-          <div className="relative w-full max-w-md mb-3">
+          <div className={cn("relative w-full max-w-md mb-3", isPopupMode && "mb-3 max-w-[460px]")}>
             <div className="group bg-white dark:bg-gray-900 rounded-full flex items-center p-1 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300">
               <div className="pl-3 pr-2 text-gray-400 dark:text-gray-500 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300 transition-colors flex items-center">
                 <span className="material-symbols-outlined text-[18px]">search</span>
@@ -474,7 +484,7 @@ export default function MyLinksPage() {
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center flex-wrap gap-1 pb-1 pl-1">
             <button type="button" className="flex items-center justify-center gap-1 px-2 py-0.5 bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-full text-[9px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
               <span className="material-symbols-outlined !text-[12px]">tune</span> Filter
@@ -526,7 +536,7 @@ export default function MyLinksPage() {
               </h2>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className={cn("grid grid-cols-2 md:grid-cols-3 gap-2", isPopupMode ? "tablet-lg:grid-cols-5 xl:grid-cols-6" : "lg:grid-cols-4")}>
               {searchResultFolderCount === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-12 bg-white/40 dark:bg-white/5 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
                   <span className="material-symbols-outlined text-3xl text-gray-300 dark:text-gray-700 mb-2">search_off</span>
@@ -539,7 +549,7 @@ export default function MyLinksPage() {
                     layout="position"
                     transition={{ type: 'spring', stiffness: 300, damping: 32 }}
                   >
-                    <FolderCard folder={folder} />
+                    <FolderCard folder={folder} variant={isPopupMode ? 'popup' : 'default'} />
                   </motion.div>
                 ))
               )}
@@ -550,11 +560,14 @@ export default function MyLinksPage() {
         {/* 검색어 없음 & 필터 미활성화: 기존 대시보드 */}
         {!isShowingFiltered && (
           <>
-            {/* Pinned Folders Top Section - Strictly 5 Columns Desktop */}
+            {/* Pinned Folders Top Section - Popup 6 columns / Fixed original 5 columns */}
             {pinnedFolders.length > 0 && (
-              <div className="mb-10 sm:mb-5">
-                <h2 className="text-xs font-bold text-gray-800 dark:text-gray-100 mb-3 ml-1">Pinned</h2>
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+              <div className={cn(isPopupMode ? "mb-5" : "mb-10 sm:mb-5")}>
+                <h2 className={cn("text-xs font-bold text-gray-800 dark:text-gray-100 ml-1", isPopupMode ? "mb-2" : "mb-3")}>Pinned</h2>
+                <div className={cn(
+                  "grid grid-cols-2 gap-2",
+                  isPopupMode ? "sm:grid-cols-3 tablet-lg:grid-cols-6" : "lg:grid-cols-5"
+                )}>
                   {pinnedFolders.map((folder, idx) => (
                     <div
                       key={folder.memberFolderId}
@@ -563,7 +576,10 @@ export default function MyLinksPage() {
                       onClick={() => handleFolderBadgeClick(folder)}
                       className={cn(
                         PINNED_COLORS[idx % PINNED_COLORS.length],
-                        "text-white rounded-lg p-2.5 flex flex-col justify-between h-20 relative overflow-hidden group hover:scale-[1.01] transition-all duration-300 cursor-pointer outline-none",
+                        isPopupMode
+                          ? "h-[92px] rounded-xl p-3 text-white shadow-md hover:shadow-lg"
+                          : "h-20 rounded-lg p-2.5 text-white",
+                        "flex flex-col justify-between relative overflow-hidden group hover:scale-[1.01] transition-all duration-300 cursor-pointer outline-none",
                         selectedFolderId === folder.memberFolderId 
                           ? 'ring-2 ring-inset ring-white/60 dark:ring-white/30 shadow-md scale-[1.02]' 
                           : 'shadow-sm hover:shadow-md',
@@ -571,15 +587,18 @@ export default function MyLinksPage() {
                       )}
                     >
                       <div className="flex justify-between items-start z-10 w-full gap-1">
-                        <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-md shrink-0">
-                          <span className="material-symbols-outlined text-[14px]">folder</span>
+                        <div className={cn("flex items-center justify-center bg-white/20 shrink-0", isPopupMode ? "w-7 h-7 rounded-lg" : "w-8 h-8 rounded-md")}>
+                          <span className={cn("material-symbols-outlined", isPopupMode ? "text-[16px]" : "text-[14px]")}>folder</span>
                         </div>
                         <button type="button" className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white shrink-0">
-                          <span className="material-symbols-outlined text-[14px]">more_vert</span>
+                          <span className={cn("material-symbols-outlined", isPopupMode ? "text-[16px]" : "text-[14px]")}>more_vert</span>
                         </button>
                       </div>
-                      <div className="z-10 mt-1 min-w-0 w-full">
-                        <h3 className="font-semibold text-[10.5px] tablet-lg:text-[11.5px] truncate w-full">{folder.folderName}</h3>
+                      <div className={cn("z-10 min-w-0 w-full", isPopupMode ? "mt-0.5 space-y-0.5" : "mt-1")}>
+                        <h3 className={cn("font-semibold truncate w-full", isPopupMode ? "text-[11.5px]" : "text-[10.5px] tablet-lg:text-[11.5px]")}>{folder.folderName}</h3>
+                        {isPopupMode && (
+                          <p className="text-[9.5px] font-medium text-white/75">{folder.bookmarkCount} links</p>
+                        )}
                       </div>
                       <div className="absolute -right-4 -bottom-4 w-10 h-10 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
                     </div>
@@ -588,7 +607,7 @@ export default function MyLinksPage() {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 mb-3 ml-1 relative z-30">
+            <div className={cn("flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 mb-3 ml-1 relative z-30", isPopupMode && "mb-3")}>
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-bold text-gray-800 dark:text-gray-100">My Folder</h2>
 
@@ -712,65 +731,29 @@ export default function MyLinksPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className={cn("grid grid-cols-2 gap-2 md:grid-cols-3", isPopupMode ? "tablet-lg:grid-cols-5 xl:grid-cols-6" : "lg:grid-cols-4")}>
               {/* ── 로딩 상태 ── */}
               {isLoading && (
                 <div className="col-span-full flex items-center justify-center py-8">
-                  <div className="flex items-center gap-2 text-gray-400 text-xs">
-                    <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
-                    <span>Loading folders...</span>
-                  </div>
+                  <span className="material-symbols-outlined animate-spin text-2xl text-purple-500">sync</span>
                 </div>
               )}
 
               {/* ── 에러 상태 ── */}
               {error && (
-                <div className="col-span-full flex items-center justify-center py-8">
-                  <div className="flex items-center gap-2 text-red-400 text-xs">
-                    <span className="material-symbols-outlined text-sm">error</span>
-                    <span>Failed to load folders: {error.message}</span>
-                  </div>
+                <div className="col-span-full flex flex-col items-center justify-center py-8 text-rose-500">
+                  <span className="material-symbols-outlined text-3xl mb-1">error_outline</span>
+                  <span className="text-xs font-medium">폴더 목록을 불러오지 못했습니다</span>
                 </div>
               )}
 
-              {/* ── 빈 상태 (로딩이 끝난 후 데이터가 없는 경우) ── */}
-              {!isLoading && folders && folders.length === 0 && (
-                <div className="col-span-full flex items-center justify-center py-8">
-                  <div className="flex flex-col items-center gap-1 text-gray-400 text-xs">
-                    <span className="material-symbols-outlined text-2xl">folder_off</span>
-                    <span>No folders created yet</span>
-                  </div>
-                </div>
-              )}
-
-              {/* ── 가상 'All Links' 폴더 카드 ── */}
+              {/* ── 가상 'All Links' 폴더 및 일반 폴더 카드 통일 렌더링 ── */}
               <motion.div
                 key="all-links"
                 layout="position"
                 transition={{ type: 'spring', stiffness: 300, damping: 32 }}
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  setSelectedFolderId(null);
-                  toggleRightPanel(true);
-                }}
-                className={cn(
-                  "bg-white dark:bg-card-dark rounded-lg p-2.5 border transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between outline-none relative overflow-visible",
-                  selectedFolderId === null && useUIStore.getState().rightPanelOpen
-                    ? "border-purple-500 bg-purple-50/40 dark:border-purple-400 dark:bg-purple-500/10 shadow-sm hover:bg-purple-50/40 dark:hover:bg-purple-500/10"
-                    : "border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10 hover:bg-purple-50/30 dark:hover:bg-white/[0.03]"
-                )}
               >
-                <div className="flex justify-between items-start">
-                  <div className="p-1.5 bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-gray-400 group-hover:dark:text-white transition-colors rounded-md flex items-center justify-center w-8 h-8">
-                    <span className="material-symbols-outlined text-[16px] font-bold">bookmarks</span>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-[11.5px] text-gray-800 dark:text-white truncate mt-1.5 flex items-center gap-1">
-                    <span>All Links</span>
-                  </h4>
-                </div>
+                <FolderCard folder={allLinksFolder} variant={isPopupMode ? 'popup' : 'default'} />
               </motion.div>
 
               {/* ── 폴더 카드 목록 (백엔드 데이터 반복 렌더링) ── */}
@@ -780,7 +763,7 @@ export default function MyLinksPage() {
                   layout="position"
                   transition={{ type: 'spring', stiffness: 300, damping: 32 }}
                 >
-                  <FolderCard folder={folder} />
+                  <FolderCard folder={folder} variant={isPopupMode ? 'popup' : 'default'} />
                 </motion.div>
               ))}
             </div>
@@ -789,9 +772,7 @@ export default function MyLinksPage() {
         </div>
       </div>
 
-
-
-      {/* Right Sidebar Panel */}
+      {/* Right Drawer/Panel Container */}
       <RightPanel />
     </div>
   );
