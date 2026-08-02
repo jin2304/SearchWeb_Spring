@@ -3,6 +3,7 @@
 import { useUIStore } from '@/lib/store/uiStore';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface HeaderProps {
   title?: string;
@@ -15,6 +16,7 @@ export function Header({ title = 'My Links' }: HeaderProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
+  const isPopupMode = panelMode === 'drawer';
   // '고정 모드(fixed)'이면서 '우측 패널이 열려 있을 때'만 헤더 우측 분할 배경/경계선 스타일 적용
   const isFixedModePanelOpen = rightPanelOpen && panelMode === 'fixed';
 
@@ -23,14 +25,24 @@ export function Header({ title = 'My Links' }: HeaderProps) {
   }, []);
 
   return (
-    <header className="h-10 tablet-lg:h-8 flex bg-gray-900 dark:bg-black text-gray-200 flex-shrink-0 z-30 transition-all duration-300 border-b border-gray-800 dark:border-white/[0.08]">
+    <header className={cn(
+      "h-10 tablet-lg:h-8 flex flex-shrink-0 z-30 transition-all duration-300",
+      isPopupMode 
+        ? "bg-gray-900 dark:bg-black text-gray-200" 
+        : "bg-[#fafafa] dark:bg-white/[0.04] text-gray-700 dark:text-gray-200"
+    )}>
       {/* Left: Content Area Header */}
       <div className="flex-1 flex items-center px-3 tablet-lg:px-4">
         {/* Mobile Hamburger Button */}
         <button
           type="button"
           onClick={() => toggleMobileSidebar()}
-          className="tablet-lg:hidden flex items-center justify-center p-1.5 text-gray-400 hover:text-white rounded-md hover:bg-white/10 transition-colors mr-2"
+          className={cn(
+            "tablet-lg:hidden flex items-center justify-center p-1.5 rounded-md transition-colors mr-2",
+            isPopupMode
+              ? "text-gray-400 hover:text-white hover:bg-white/10"
+              : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+          )}
           title="메뉴 토글"
         >
           <span className="material-symbols-outlined !text-[18px]">menu</span>
@@ -39,14 +51,23 @@ export function Header({ title = 'My Links' }: HeaderProps) {
         {/* Mobile Logo */}
         <div className="tablet-lg:hidden flex items-center space-x-1 mr-2 select-none">
           <img src="/relink_logo.png" alt="Logo" className="w-4.5 h-4.5 object-contain" />
-          <span className="font-bold text-[11px] text-white tracking-tight">ReLink</span>
+          <span className={cn(
+            "font-bold text-[11px] tracking-tight",
+            isPopupMode ? "text-white" : "text-gray-900 dark:text-white"
+          )}>ReLink</span>
         </div>
-        <span className="tablet-lg:hidden text-[9px] text-gray-500 opacity-40 mr-2">/</span>
+        <span className="tablet-lg:hidden text-[9px] text-gray-400 opacity-60 mr-2">/</span>
 
-        <div className="text-[10px] font-bold text-gray-400 dark:text-gray-400 flex items-center gap-1.5 tracking-tight select-none cursor-default">
+        <div className={cn(
+          "text-[10px] font-bold flex items-center gap-1.5 tracking-tight select-none cursor-default",
+          isPopupMode ? "text-gray-400" : "text-gray-500 dark:text-gray-400"
+        )}>
           <span className="material-symbols-outlined !text-[14px] opacity-70">home</span>
           <span className="text-[9px] opacity-40">/</span>
-          <span className="uppercase tracking-wider text-gray-300 dark:text-gray-300">{title}</span>
+          <span className={cn(
+            "uppercase tracking-wider",
+            isPopupMode ? "text-gray-200" : "text-gray-700 dark:text-gray-300"
+          )}>{title}</span>
         </div>
       </div>
 
@@ -65,7 +86,12 @@ export function Header({ title = 'My Links' }: HeaderProps) {
           */}
           <button
             type="button"
-            className="p-1.5 tablet-lg:p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-md transition-colors"
+            className={cn(
+              "p-1.5 tablet-lg:p-1 rounded-md transition-colors",
+              isPopupMode
+                ? "text-gray-400 hover:text-white hover:bg-white/10"
+                : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10"
+            )}
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
           >
             <span className="material-symbols-outlined !text-[14px]">
