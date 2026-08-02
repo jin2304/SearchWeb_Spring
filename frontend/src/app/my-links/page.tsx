@@ -17,7 +17,7 @@ import { motion } from 'framer-motion';
 import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
 
 export default function MyLinksPage() {
-  const { toggleRightPanel, toggleSaveLinkDialog, saveLinkDialogOpen } = useUIStore();
+  const { toggleRightPanel, toggleSaveLinkDialog, saveLinkDialogOpen, panelMode, setPanelMode } = useUIStore();
   const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [shouldRenderTooltip, setShouldRenderTooltip] = useState(false);
@@ -139,12 +139,15 @@ export default function MyLinksPage() {
       const breakpoint = getTabletLgBreakpoint();
       const isDesktop = window.innerWidth >= breakpoint;
       const currentPanelState = useUIStore.getState().rightPanelOpen;
+      const currentPanelMode = useUIStore.getState().panelMode;
       
-      // 상태가 실제로 변경될 때만 업데이트를 호출하여 무한 렌더링/렉을 예방합니다.
-      if (isDesktop && !currentPanelState) {
-        toggleRightPanel(true);
-      } else if (!isDesktop && currentPanelState) {
-        toggleRightPanel(false);
+      // 고정 모드(fixed)일 때만 데스크톱에서 기본 열림 처리
+      if (currentPanelMode === 'fixed') {
+        if (isDesktop && !currentPanelState) {
+          toggleRightPanel(true);
+        } else if (!isDesktop && currentPanelState) {
+          toggleRightPanel(false);
+        }
       }
     };
 
@@ -389,9 +392,17 @@ export default function MyLinksPage() {
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 overflow-y-auto px-4 py-2 pb-28 tablet-lg:px-5 tablet-lg:py-3 tablet-lg:pb-4 transition-colors duration-300 bg-[#fafafa] dark:bg-white/[0.04]">
-        
-        {/* Top Search & Filter Section */}
+      <div className={cn(
+        "flex-1 min-w-0 overflow-y-auto px-4 py-2 pb-28 tablet-lg:px-5 tablet-lg:py-3 tablet-lg:pb-4 transition-colors duration-300 bg-[#fafafa] dark:bg-white/[0.04]",
+        panelMode === 'drawer' && "pt-2 py-0 pb-0 tablet-lg:py-0 tablet-lg:pb-0 px-2 tablet-lg:px-4"
+      )}>
+        {/* [분기 1] 팝업 모드일 때 검색바, 태그 필터, 메인 폴더 목록 전체를 단 하나의 통합 메인 카드 영역으로 감쌈 */}
+        <div className={cn(
+          "w-full transition-all duration-300",
+          panelMode === 'drawer' && "max-w-5xl mx-auto mt-2.5 mb-0 min-h-[calc(100vh-48px)] p-5 tablet-lg:p-6 bg-white dark:bg-[#0c0c0e] rounded-t-xl rounded-b-none border border-b-0 border-gray-200/80 dark:border-white/[0.08] shadow-sm dark:shadow-2xl/40"
+        )}>
+          
+          {/* Top Search & Filter Section */}
         <div className="mb-5 flex flex-col items-start bg-transparent">
           
           <div className="relative w-full max-w-md mb-3">
@@ -580,6 +591,46 @@ export default function MyLinksPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 mb-3 ml-1 relative z-30">
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-bold text-gray-800 dark:text-gray-100">My Folder</h2>
+
+                {/* [분기 2] 패널 표시 방식 변경 스위처 (Fixed: 우측 상시 고정 모드 vs Popup: 폴더 클릭 시 팝업 모드) */}
+                <div className="hidden tablet-lg:flex items-center bg-gray-200/60 dark:bg-gray-800/60 p-0.5 rounded-lg border border-gray-200/80 dark:border-gray-700/60 ml-1">
+                  {/* Fixed 모드 버튼 (panelMode === 'fixed' 일 때 보라색 활성화 스타일 적용) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPanelMode('fixed');
+                      toggleRightPanel(true);
+                    }}
+                    className={cn(
+                      "px-2 py-0.5 text-[9.5px] font-semibold rounded-md flex items-center gap-1 transition-all duration-200",
+                      panelMode === 'fixed'
+                        ? "bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-300 shadow-xs"
+                        : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                    )}
+                    title="우측 패널 상시 고정 모드"
+                  >
+                    <span className="material-symbols-outlined !text-[13px]">vertical_split</span>
+                    <span>Fixed</span>
+                  </button>
+                  {/* Popup 모드 버튼 (panelMode === 'drawer' 일 때 보라색 활성화 스타일 적용) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPanelMode('drawer');
+                      toggleRightPanel(false);
+                    }}
+                    className={cn(
+                      "px-2 py-0.5 text-[9.5px] font-semibold rounded-md flex items-center gap-1 transition-all duration-200",
+                      panelMode === 'drawer'
+                        ? "bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-300 shadow-xs"
+                        : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                    )}
+                    title="폴더 클릭 시 팝업(드로어) 모드"
+                  >
+                    <span className="material-symbols-outlined !text-[13px]">dock_to_left</span>
+                    <span>Popup</span>
+                  </button>
+                </div>
               </div>
               
               <div className="flex items-center flex-wrap gap-1.5 focus-within:z-20 relative w-full sm:w-auto justify-start sm:justify-end">
@@ -735,6 +786,7 @@ export default function MyLinksPage() {
             </div>
           </>
         )}
+        </div>
       </div>
 
 

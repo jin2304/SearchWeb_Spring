@@ -12,6 +12,7 @@ import { FOLDER_TYPE } from '@/lib/types/folder';
 import { compareFolders } from '@/lib/utils/folderUtils';
 import { buildGoogleFaviconUrl, getUrlHostname, buildDirectFaviconUrl, isGoogleFaviconUrl } from '@/lib/utils/favicon';
 import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
+import { cn } from '@/lib/utils';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -609,7 +610,7 @@ function LinkItem({
  */
 export function RightPanel() {
   // --- Central State (Zustand) | 중앙 상태 관리 ---
-  const { rightPanelOpen } = useUIStore(); // 패널 오픈 여부
+  const { rightPanelOpen, panelMode } = useUIStore(); // 패널 오픈 여부 & 표시 모드 (fixed | drawer)
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
@@ -1013,43 +1014,66 @@ export function RightPanel() {
 
   if (!rightPanelOpen) return null;
 
-  return (
-    <aside className={`fixed inset-y-0 right-0 z-drawer bg-white dark:bg-[#0a0a0b] flex flex-col w-full h-full shadow-2xl transition-colors duration-300 tablet-lg:relative tablet-lg:inset-auto tablet-lg:w-[780px] tablet-lg:shrink-0 tablet-lg:border-l tablet-lg:border-gray-200 tablet-lg:dark:border-white/[0.08] tablet-lg:shadow-none tablet-lg:z-10 tablet-lg:flex ${
-      mounted
-        ? "flex animate-in slide-in-from-right duration-300 tablet-lg:animate-none"
-        : "hidden tablet-lg:flex"
-    }`}>
-      
-      {/* Top Header & Tags | 상단 헤더 및 태그 필터 영역 */}
-      <div className="px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex flex-col gap-2 bg-white dark:bg-[#0a0a0b] sticky top-0 z-sticky">
-        
-        {/* Row 1: Title & Actions */}
-        <div className="flex flex-col tablet-lg:flex-row tablet-lg:justify-between tablet-lg:items-start gap-3 tablet-lg:gap-0">
-          {/* Left: Title, Count, and Mobile Close button */}
-          <div className="flex justify-between items-start w-full tablet-lg:w-auto">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-slate-50 dark:bg-slate-900/20 text-slate-400 rounded-md flex items-center justify-center w-8 h-8">
-                  <span className="material-symbols-outlined text-[16px] block">folder_open</span>
-                </div>
-                <h2 className="text-sm font-bold text-gray-900 dark:text-white">{displayTitle}</h2>
-              </div>
-              <p className="text-[10px] text-gray-500">{totalCount} Links</p>
-            </div>
+  // 팝업 드로어 모드 여부 판정
+  const isDrawerMode = panelMode === 'drawer';
 
-            {/* Close Button (Mobile/Tablet Only) */}
-            <button
-              type="button"
-              onClick={() => {
-                useUIStore.getState().toggleRightPanel(false);
-                useFolderStore.getState().setSelectedFolderId(null);
-              }}
-              className="tablet-lg:hidden flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg transition-colors w-8 h-8 shrink-0"
-              title="Close panel"
-            >
-              <span className="material-symbols-outlined !text-[18px]">close</span>
-            </button>
-          </div>
+  return (
+    <>
+      {/* 팝업 모드일 때만 어두운 배경 딤(Backdrop) 레이어 표시 (바깥 클릭 시 닫힘) */}
+      {isDrawerMode && (
+        <div 
+          onClick={() => {
+            useUIStore.getState().toggleRightPanel(false);
+            useFolderStore.getState().setSelectedFolderId(null);
+          }}
+          className="fixed inset-0 bg-black/25 dark:bg-black/60 backdrop-blur-xs z-40 animate-in fade-in duration-200"
+        />
+      )}
+
+      {/* 옵션에 따른 패널 배치 CSS 클래스 분기 */}
+      <aside className={cn(
+        "bg-white dark:bg-[#0a0a0b] flex flex-col w-full h-full shadow-2xl transition-colors duration-300",
+        isDrawerMode
+          // 팝업(Drawer) 모드: 화면 우측 상단 오버레이 슬라이드 팝업 (Width: 740px, fixed)
+          ? "fixed inset-y-0 right-0 z-50 w-full sm:w-[600px] tablet-lg:w-[740px] border-l border-gray-200 dark:border-white/[0.08] animate-in slide-in-from-right duration-300"
+          // 고정(Fixed) 모드: 2컬럼 레이아웃의 고정 우측 영역 상시 차지 (Width: 780px, relative)
+          : "fixed inset-y-0 right-0 z-drawer tablet-lg:relative tablet-lg:inset-auto tablet-lg:w-[780px] tablet-lg:shrink-0 tablet-lg:border-l tablet-lg:border-gray-200 tablet-lg:dark:border-white/[0.08] tablet-lg:shadow-none tablet-lg:z-10 tablet-lg:flex " +
+            (mounted ? "flex animate-in slide-in-from-right duration-300 tablet-lg:animate-none" : "hidden tablet-lg:flex")
+      )}>
+        
+        {/* Top Header & Tags | 상단 헤더 및 태그 필터 영역 */}
+        <div className="px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex flex-col gap-2 bg-white dark:bg-[#0a0a0b] sticky top-0 z-sticky">
+          
+          {/* Row 1: Title & Actions */}
+          <div className="flex flex-col tablet-lg:flex-row tablet-lg:justify-between tablet-lg:items-start gap-3 tablet-lg:gap-0">
+            {/* Left: Title, Count, and Mobile Close button */}
+            <div className="flex justify-between items-start w-full tablet-lg:w-auto">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-slate-50 dark:bg-slate-900/20 text-slate-400 rounded-md flex items-center justify-center w-8 h-8">
+                    <span className="material-symbols-outlined text-[16px] block">folder_open</span>
+                  </div>
+                  <h2 className="text-sm font-bold text-gray-900 dark:text-white">{displayTitle}</h2>
+                </div>
+                <p className="text-[10px] text-gray-500">{totalCount} Links</p>
+              </div>
+
+              {/* 닫기(X) 버튼: 고정 모드일 때는 모바일에서만 보이고, 팝업 모드일 때는 데스크톱에서도 상시 노출 */}
+              <button
+                type="button"
+                onClick={() => {
+                  useUIStore.getState().toggleRightPanel(false);
+                  useFolderStore.getState().setSelectedFolderId(null);
+                }}
+                className={cn(
+                  "flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg transition-colors w-8 h-8 shrink-0",
+                  !isDrawerMode && "tablet-lg:hidden"
+                )}
+                title="Close panel"
+              >
+                <span className="material-symbols-outlined !text-[18px]">close</span>
+              </button>
+            </div>
 
           {/* Right: Action Buttons & Search | 우측 액션 버튼 및 검색창 */}
           <div className="flex flex-wrap items-center gap-1.5 mt-0.5 w-full tablet-lg:w-auto">
@@ -1405,5 +1429,6 @@ export function RightPanel() {
       )}
 
     </aside>
+    </>
   );
 }
