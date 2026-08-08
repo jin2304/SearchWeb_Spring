@@ -1,6 +1,7 @@
 'use client';
 
 import { useUIStore } from '@/lib/store/uiStore';
+import { useStore } from '@/lib/hooks/useStore';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -11,7 +12,8 @@ interface HeaderProps {
 
 export function Header({ title = 'My Links' }: HeaderProps) {
   const rightPanelOpen = useUIStore((s) => s.rightPanelOpen);
-  const panelMode = useUIStore((s) => s.panelMode);
+  const persistedPanelMode = useStore(useUIStore, (s) => s.panelMode);
+  const panelMode = persistedPanelMode ?? 'drawer';
   const toggleMobileSidebar = useUIStore((s) => s.toggleMobileSidebar);
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
