@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useUIStore } from '@/lib/store/uiStore';
+import { useStore } from '@/lib/hooks/useStore';
 import { useFolders } from '@/lib/api/folderApi';
 import { useInfiniteBookmarks, useDeleteBookmark, useUpdateBookmark, useRecordBookmarkView } from '@/lib/api/bookmarkApi';
 import { useTags } from '@/lib/api/tagApi';
@@ -12,6 +14,7 @@ import { FOLDER_TYPE } from '@/lib/types/folder';
 import { compareFolders } from '@/lib/utils/folderUtils';
 import { buildGoogleFaviconUrl, getUrlHostname, buildDirectFaviconUrl, isGoogleFaviconUrl } from '@/lib/utils/favicon';
 import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
+import { cn } from '@/lib/utils';
 
 /**
  * 날짜 문자열을 받아 현재 시간 기준 상대적인 시간(예: Just now, 5m ago)으로 변환합니다.
@@ -271,7 +274,7 @@ function LinkItem({
   return (
     <div
       ref={itemRef}
-      className={`group relative isolate z-0 hover:z-20 flex items-center p-3 rounded-xl transition-all duration-300 cursor-pointer border shadow-sm backdrop-blur-[6px] dark:backdrop-blur-none select-none ${
+      className={`group relative isolate z-0 hover:z-20 flex items-center p-3.5 rounded-xl transition-all duration-300 cursor-pointer border shadow-sm backdrop-blur-[6px] dark:backdrop-blur-none select-none ${
         isActive
           ? 'border-violet-400/25 bg-white/94 shadow-[0_22px_45px_-20px_rgba(124,58,237,0.22),0_15px_25px_-10px_rgba(124,58,237,0.14),0_0_0_1px_rgba(167,139,250,0.18)]'
           : 'border-gray-200/75 bg-white/88 hover:border-violet-500/50 hover:bg-white/90 hover:shadow-[0_12px_36px_-12px_rgba(0,0,0,0.08),inset_0_0_0_1px_rgba(124,58,237,0.4)] hover:backdrop-blur-md'
@@ -313,18 +316,18 @@ function LinkItem({
       {/* Bulk Edit Checkbox | 대량 편집 체크박스 */}
       {isBulkEditMode && (
         <div className="relative z-10 mr-3 shrink-0 flex items-center">
-          <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
+          <div className={`w-4.5 h-4.5 rounded-md border flex items-center justify-center transition-all ${
             isSelected
               ? 'border-transparent bg-[linear-gradient(135deg,#6d28d9_0%,#8b5cf6_55%,#a78bfa_100%)] text-white shadow-[0_8px_18px_-10px_rgba(124,58,237,0.8)]'
               : 'border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/90 group-hover:border-violet-300 dark:group-hover:border-violet-500/50'
           }`}>
-            {isSelected && <span className="material-symbols-outlined !text-[12px] font-bold">check</span>}
+            {isSelected && <span className="material-symbols-outlined !text-[13px] font-bold">check</span>}
           </div>
         </div>
       )}
 
       {/* Favicon & Domain Icon | 파비콘 및 도메인 아이콘 */}
-      <div className={`relative z-10 h-8 w-8 rounded-lg bg-gray-100 text-gray-400 dark:text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold shrink-0 overflow-hidden border border-gray-100 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-violet-200/90 group-hover:bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(243,232,255,0.96)_100%)] group-hover:text-violet-600 group-hover:shadow-[0_12px_20px_-12px_rgba(124,58,237,0.28)] ${iconDarkClass}`}>
+      <div className={`relative z-10 h-9 w-9 rounded-lg bg-gray-100 text-gray-400 dark:text-gray-500 flex items-center justify-center flex-shrink-0 text-sm font-bold shrink-0 overflow-hidden border border-gray-100 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-violet-200/90 group-hover:bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(243,232,255,0.96)_100%)] group-hover:text-violet-600 group-hover:shadow-[0_12px_20px_-12px_rgba(124,58,237,0.28)] ${iconDarkClass}`}>
         {/* 로딩 지연 시 답답함을 주지 않기 위해 알파벳을 우선 띄우고, 성공 시에만 opacity-0으로 숨김 */}
         <span className={`uppercase absolute transition-opacity duration-200 ${faviconVisible ? 'opacity-0' : 'opacity-100'}`}>{fallbackInitial}</span>
         
@@ -333,7 +336,7 @@ function LinkItem({
             <img 
               src={storedFaviconUrl} 
               alt="" 
-              className={`w-5 h-5 object-contain transition-opacity duration-200 relative z-10 ${faviconVisible ? 'opacity-100' : 'opacity-0'}`} 
+              className={`w-5.5 h-5.5 object-contain transition-opacity duration-200 relative z-10 ${faviconVisible ? 'opacity-100' : 'opacity-0'}`} 
               onLoad={(e) => {
                 const img = e.currentTarget;
                 const fallbackStep = img.dataset.fallbackStep;
@@ -368,7 +371,7 @@ function LinkItem({
             <img 
               src={fallbackFaviconUrl} 
               alt="" 
-              className={`w-5 h-5 object-contain transition-opacity duration-200 relative z-10 ${faviconVisible ? 'opacity-100' : 'opacity-0'}`}
+              className={`w-5.5 h-5.5 object-contain transition-opacity duration-200 relative z-10 ${faviconVisible ? 'opacity-100' : 'opacity-0'}`}
               onLoad={(e) => {
                 const img = e.currentTarget;
                 if (faviconFallbackStep === 'google' && img.naturalWidth === 16 && img.naturalHeight === 16) {
@@ -393,12 +396,12 @@ function LinkItem({
       <div className="relative z-10 ml-3 flex-1 flex flex-col min-w-0">
         <div className="flex items-center w-full">
           {/* Title Area | 제목 영역 (호버 시 전체 제목 및 URL 표시) */}
-          <div className="flex-1 flex items-center min-w-0 h-[28px]">
+          <div className="flex-1 flex items-center min-w-0 h-[30px]">
             {isTitleEditing ? (
                 <input
                 ref={titleInputRef}
                 type="text"
-                className="flex-1 text-[10.5px] font-medium bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/50 rounded-md outline-none text-gray-900 dark:text-gray-100 px-2 h-full py-0 leading-none focus:border-gray-300 dark:focus:border-gray-600"
+                className="flex-1 text-xs font-medium bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/50 rounded-md outline-none text-gray-900 dark:text-gray-100 px-2 h-full py-0 leading-none focus:border-gray-300 dark:focus:border-gray-600"
                 value={titleContent}
                 onChange={(e) => setTitleContent(e.target.value)}
                 onBlur={(e) => handleTitleEditComplete(e)}
@@ -407,7 +410,7 @@ function LinkItem({
               />
             ) : (
               <h4
-                className="text-[10.5px] font-semibold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:whitespace-normal group-hover:line-clamp-2 transition-all duration-300 group-hover:text-violet-700 dark:group-hover:text-violet-100 cursor-pointer w-full border border-transparent flex items-center px-0 leading-tight"
+                className="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:whitespace-normal group-hover:line-clamp-2 transition-all duration-300 group-hover:text-violet-700 dark:group-hover:text-violet-100 cursor-pointer w-full border border-transparent flex items-center px-0 leading-tight"
               >{titleContent}</h4>
             )}
           </div>
@@ -420,16 +423,16 @@ function LinkItem({
             <>
               <div className="relative" ref={folderDropdownRef}>
                 <button 
-                  className={`inline-flex items-center gap-1 text-[8.5px] font-semibold px-2 py-0.5 rounded transition-all ${isFolderDropdownOpen ? 'bg-gray-100 text-gray-700' : 'bg-gray-100/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/20'}`}
+                  className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded transition-all ${isFolderDropdownOpen ? 'bg-gray-100 text-gray-700' : 'bg-gray-100/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/20'}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsFolderDropdownOpen(!isFolderDropdownOpen);
                   }}
                   title="폴더 이동"
                 >
-                  <span className="material-symbols-outlined !text-[11px] scale-90 text-slate-400">folder</span>
+                  <span className="material-symbols-outlined !text-[13px] scale-90 text-slate-400">folder</span>
                   <span>{folders?.find(f => f.memberFolderId === data.memberFolderId)?.folderName ?? 'Unordered'}</span>
-                  <span className={`material-symbols-outlined !text-[10px] text-slate-400 transition-transform ${isFolderDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                  <span className={`material-symbols-outlined !text-[11px] text-slate-400 transition-transform ${isFolderDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
                 </button>
 
                 {isFolderDropdownOpen && (
@@ -472,7 +475,7 @@ function LinkItem({
               <input
                 ref={tagInputRef}
                 type="text"
-                className="text-[8.5px] font-medium bg-gray-50/50 dark:bg-gray-800/10 border border-gray-200 dark:border-gray-700 rounded-md outline-none text-gray-700 dark:text-gray-300 px-1.5 py-0 min-w-[60px] h-[18px]"
+                className="text-[10px] font-medium bg-gray-50/50 dark:bg-gray-800/10 border border-gray-200 dark:border-gray-700 rounded-md outline-none text-gray-700 dark:text-gray-300 px-1.5 py-0 min-w-[60px] h-[20px]"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onBlur={handleTagEditComplete}
@@ -486,11 +489,11 @@ function LinkItem({
                   data.tags.map((tag, idx) => (
                     <span 
                       key={idx} 
-                      className={`text-[8.5px] px-2 py-0.5 rounded border border-transparent bg-gray-100/90 text-gray-500 font-medium whitespace-nowrap transition-all duration-300 hover:bg-gray-200 hover:text-gray-800 group-hover:border-violet-200/80 group-hover:bg-[linear-gradient(135deg,rgba(250,245,255,0.95)_0%,rgba(243,232,255,0.78)_100%)] group-hover:text-violet-600 ${tagDarkClass}`}
+                      className={`text-[10px] px-2.5 py-0.5 rounded border border-transparent bg-gray-100/90 text-gray-500 font-medium whitespace-nowrap transition-all duration-300 hover:bg-gray-200 hover:text-gray-800 group-hover:border-violet-200/80 group-hover:bg-[linear-gradient(135deg,rgba(250,245,255,0.95)_0%,rgba(243,232,255,0.78)_100%)] group-hover:text-violet-600 ${tagDarkClass}`}
                     >#{tag}</span>
                   ))
                 ) : (isTitleEditing || isNoteEditing) ? (
-                  <span className="text-[8.5px] text-gray-300 dark:text-gray-600 font-medium italic hover:text-gray-400 transition-colors px-2 py-0.5">Add tags...</span>
+                  <span className="text-[9.5px] text-gray-300 dark:text-gray-600 font-medium italic hover:text-gray-400 transition-colors px-2 py-0.5">Add tags...</span>
                 ) : null}
               </>
             )}
@@ -500,11 +503,11 @@ function LinkItem({
 
       {/* Note Edit Input | 메모 편집창 (편집 모드 시에만 나타남) */}
       {isNoteEditing && (
-        <div className="relative z-10 flex-1 min-w-0 ml-4 h-[28px]">
+        <div className="relative z-10 flex-1 min-w-0 ml-4 h-[30px]">
           <input
             ref={noteInputRef}
             type="text"
-            className="w-full text-[10.5px] font-medium bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/50 rounded-md outline-none text-gray-900 dark:text-gray-100 px-2 h-full py-0 leading-none focus:border-gray-300 dark:focus:border-gray-600"
+            className="w-full text-xs font-medium bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/50 rounded-md outline-none text-gray-900 dark:text-gray-100 px-2 h-full py-0 leading-none focus:border-gray-300 dark:focus:border-gray-600"
             value={noteContent}
             onChange={(e) => setNoteContent(e.target.value)}
             onBlur={(e) => handleNoteEditComplete(e)}
@@ -517,7 +520,7 @@ function LinkItem({
 
       {/* Tooltip for full note content (위치 우측 복구 & 꼬리만 왼쪽 유지) */}
       {!isNoteEditing && noteContent && !isDropdownOpen && (
-        <div className="absolute right-12 top-1/2 -translate-y-1/2 mr-2 w-max max-w-[280px] z-popover opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 bg-white/95 dark:bg-gray-800/90 backdrop-blur-md text-gray-700 dark:text-gray-200 text-[11px] font-medium p-3 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700/50 whitespace-normal break-words leading-relaxed pointer-events-none translate-x-1 group-hover:translate-x-0 text-left">
+        <div className="absolute right-12 top-1/2 -translate-y-1/2 mr-2 w-max max-w-[280px] z-popover opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 bg-white/95 dark:bg-gray-800/90 backdrop-blur-md text-gray-700 dark:text-gray-200 text-xs font-medium p-3 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700/50 whitespace-normal break-words leading-relaxed pointer-events-none translate-x-1 group-hover:translate-x-0 text-left">
           <div className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 bg-white/95 dark:bg-gray-800/90 transform rotate-45 border-b border-l border-gray-100 dark:border-gray-700/50"></div>
           <div className="relative z-10 break-all tablet-lg:break-words">{noteContent}</div>
         </div>
@@ -525,7 +528,7 @@ function LinkItem({
 
       <div className="relative z-10 shrink-0 ml-4 flex items-center justify-end w-8" ref={dropdownRef}>
         {!isBulkEditMode && !(isNoteEditing || isTitleEditing) && (
-          <span className={`text-[8px] text-gray-400 dark:text-gray-500 whitespace-nowrap transition-all duration-200 absolute right-0 pointer-events-none ${isDropdownOpen ? 'opacity-0' : 'group-hover:opacity-0 group-hover:-translate-x-1 group-hover:text-violet-500/80 dark:group-hover:text-violet-300/80'}`}>
+          <span className={`text-[9.5px] text-gray-400 dark:text-gray-500 whitespace-nowrap transition-all duration-200 absolute right-0 pointer-events-none ${isDropdownOpen ? 'opacity-0' : 'group-hover:opacity-0 group-hover:-translate-x-1 group-hover:text-violet-500/80 dark:group-hover:text-violet-300/80'}`}>
             {formatRelativeTime(data.createdAt)}
           </span>
         )}
@@ -547,7 +550,7 @@ function LinkItem({
           title={(isNoteEditing || isTitleEditing) ? "Cancel editing" : "More actions"}
         >
           <svg 
-            className="w-3.5 h-3.5 transition-transform duration-200" 
+            className="w-4 h-4 transition-transform duration-200" 
             style={{ transform: (isNoteEditing || isTitleEditing) ? 'rotate(90deg)' : 'none' }}
             viewBox="0 0 24 24" 
             fill="none" 
@@ -570,10 +573,10 @@ function LinkItem({
 
         {/* Dropdown Menu | 드롭다운 메뉴 (수정/삭제) */}
         {isDropdownOpen && !isBulkEditMode && (
-          <div className="absolute right-0 top-full mt-1 w-24 bg-white dark:bg-gray-800 rounded-lg shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 dark:border-gray-700 py-1 z-20 flex flex-col">
+          <div className="absolute right-0 top-full mt-1 w-28 bg-white dark:bg-gray-800 rounded-lg shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 dark:border-gray-700 py-1 z-20 flex flex-col">
             {/* Edit Button | 수정 버튼 */}
             <button 
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 transition-colors text-left"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsDropdownOpen(false);
@@ -581,19 +584,19 @@ function LinkItem({
                 setIsNoteEditing(true);
               }}
             >
-              <span className="material-symbols-outlined !text-[13px]" style={{ fontVariationSettings: "'wght' 300" }}>edit</span>
+              <span className="material-symbols-outlined !text-[14px]" style={{ fontVariationSettings: "'wght' 300" }}>edit</span>
               Edit 
             </button>
             {/* Delete Button | 삭제 버튼 */}
             <button 
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors text-left"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsDropdownOpen(false);
                 onDelete?.(data.bookmarkId);
               }}
             >
-              <span className="material-symbols-outlined !text-[13px]" style={{ fontVariationSettings: "'wght' 300" }}>delete</span>
+              <span className="material-symbols-outlined !text-[14px]" style={{ fontVariationSettings: "'wght' 300" }}>delete</span>
               Delete
             </button>
           </div>
@@ -609,7 +612,9 @@ function LinkItem({
  */
 export function RightPanel() {
   // --- Central State (Zustand) | 중앙 상태 관리 ---
-  const { rightPanelOpen } = useUIStore(); // 패널 오픈 여부
+  const rightPanelOpen = useUIStore((s) => s.rightPanelOpen);
+  const persistedPanelMode = useStore(useUIStore, (s) => s.panelMode);
+  const panelMode = persistedPanelMode ?? 'drawer';
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
@@ -1013,43 +1018,74 @@ export function RightPanel() {
 
   if (!rightPanelOpen) return null;
 
-  return (
-    <aside className={`fixed inset-y-0 right-0 z-drawer bg-white dark:bg-[#0a0a0b] flex flex-col w-full h-full shadow-2xl transition-colors duration-300 tablet-lg:relative tablet-lg:inset-auto tablet-lg:w-[700px] tablet-lg:shrink-0 tablet-lg:border-l tablet-lg:border-gray-200 tablet-lg:dark:border-white/[0.08] tablet-lg:shadow-none tablet-lg:z-10 tablet-lg:flex ${
-      mounted
-        ? "flex animate-in slide-in-from-right duration-300 tablet-lg:animate-none"
-        : "hidden tablet-lg:flex"
-    }`}>
-      
-      {/* Top Header & Tags | 상단 헤더 및 태그 필터 영역 */}
-      <div className="px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex flex-col gap-2 bg-white dark:bg-[#0a0a0b] sticky top-0 z-sticky">
-        
-        {/* Row 1: Title & Actions */}
-        <div className="flex flex-col tablet-lg:flex-row tablet-lg:justify-between tablet-lg:items-start gap-3 tablet-lg:gap-0">
-          {/* Left: Title, Count, and Mobile Close button */}
-          <div className="flex justify-between items-start w-full tablet-lg:w-auto">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-slate-50 dark:bg-slate-900/20 text-slate-400 rounded-md flex items-center justify-center w-8 h-8">
-                  <span className="material-symbols-outlined text-[16px] block">folder_open</span>
-                </div>
-                <h2 className="text-sm font-bold text-gray-900 dark:text-white">{displayTitle}</h2>
-              </div>
-              <p className="text-[10px] text-gray-500">{totalCount} Links</p>
-            </div>
+  // 팝업 드로어 모드 여부 판정
+  const isDrawerMode = panelMode === 'drawer';
 
-            {/* Close Button (Mobile/Tablet Only) */}
-            <button
-              type="button"
-              onClick={() => {
-                useUIStore.getState().toggleRightPanel(false);
-                useFolderStore.getState().setSelectedFolderId(null);
-              }}
-              className="tablet-lg:hidden flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg transition-colors w-8 h-8 shrink-0"
-              title="Close panel"
-            >
-              <span className="material-symbols-outlined !text-[18px]">close</span>
-            </button>
-          </div>
+  return (
+    <>
+      {/* 팝업 모드일 때만 어두운 배경 딤(Backdrop) 레이어 표시 (바깥 클릭 시 닫힘) */}
+      {isDrawerMode && (
+        <div 
+          onClick={() => {
+            useUIStore.getState().toggleRightPanel(false);
+            useFolderStore.getState().setSelectedFolderId(null);
+          }}
+          className="fixed inset-0 bg-black/25 dark:bg-black/60 backdrop-blur-xs z-40 animate-in fade-in duration-200"
+        />
+      )}
+
+      {/* 옵션에 따른 패널 배치 CSS 클래스 분기 */}
+      <aside className={cn(
+        "bg-white dark:bg-[#0a0a0b] flex flex-col w-full h-full shadow-2xl transition-colors duration-300",
+        isDrawerMode
+          // 팝업(Drawer) 모드: 화면 우측 상단 오버레이 슬라이드 팝업 (Width: 740px, fixed)
+          ? "fixed inset-y-0 right-0 z-50 w-full sm:w-[600px] tablet-lg:w-[740px] border-l border-gray-200 dark:border-white/[0.08] animate-in slide-in-from-right duration-300"
+          // 고정(Fixed) 모드: 2컬럼 레이아웃의 고정 우측 영역 상시 차지 (Width: 780px, relative)
+          : "fixed inset-y-0 right-0 z-drawer tablet-lg:relative tablet-lg:inset-auto tablet-lg:w-[780px] tablet-lg:shrink-0 tablet-lg:border-l tablet-lg:border-gray-200 tablet-lg:dark:border-white/[0.08] tablet-lg:shadow-none tablet-lg:z-10 tablet-lg:flex " +
+            (mounted ? "flex animate-in slide-in-from-right duration-300 tablet-lg:animate-none" : "hidden tablet-lg:flex")
+      )}>
+        
+        {/* Top Header & Tags | 상단 헤더 및 태그 필터 영역 */}
+        <div className={cn(
+          "px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex flex-col gap-2.5 bg-white dark:bg-[#0a0a0b] sticky top-0 z-sticky",
+          isDrawerMode && "pt-5 pb-3.5"
+        )}>
+          
+          {/* Row 1: Title & Actions */}
+          <div className="flex flex-col tablet-lg:flex-row tablet-lg:justify-between tablet-lg:items-start gap-3 tablet-lg:gap-0">
+            {/* Left: Title, Count, and Mobile Close button */}
+            <div className="flex justify-between items-center w-full tablet-lg:w-auto gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-100/90 dark:bg-white/[0.07] border border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0 shadow-xs">
+                  <span 
+                    className="material-symbols-outlined !text-[20px] sm:!text-[22px] !leading-none flex items-center justify-center select-none"
+                    style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                  >
+                    folder_open
+                  </span>
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <h2 className="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white tracking-tight leading-snug truncate">{displayTitle}</h2>
+                  <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mt-0.5">{totalCount} Links</p>
+                </div>
+              </div>
+
+              {/* 닫기(X) 버튼: 고정 모드일 때는 모바일에서만 보이고, 팝업 모드일 때는 데스크톱에서도 상시 노출 */}
+              <button
+                type="button"
+                onClick={() => {
+                  useUIStore.getState().toggleRightPanel(false);
+                  useFolderStore.getState().setSelectedFolderId(null);
+                }}
+                className={cn(
+                  "flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg transition-colors w-8 h-8 shrink-0",
+                  !isDrawerMode && "tablet-lg:hidden"
+                )}
+                title="Close panel"
+              >
+                <span className="material-symbols-outlined !text-[18px]">close</span>
+              </button>
+            </div>
 
           {/* Right: Action Buttons & Search | 우측 액션 버튼 및 검색창 */}
           <div className="flex flex-wrap items-center gap-1.5 mt-0.5 w-full tablet-lg:w-auto">
@@ -1214,7 +1250,7 @@ export function RightPanel() {
 
 
       {/* Link List Section | 링크 목록 섹션 */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+      <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-2.5">
         {isBookmarksLoading ? (
           <div className="flex items-center justify-center h-48 text-gray-400 gap-2">
             <span className="material-symbols-outlined animate-spin text-xl">progress_activity</span>
@@ -1314,8 +1350,8 @@ export function RightPanel() {
         </div>
       )}
 
-      {/* Move Modal | 폴더 이동 모달 */}
-      {isMoveModalOpen && (
+      {/* Move Modal | 폴더 이동 모달 (Stacking Context 상위 이탈을 위해 document.body에 Portal 렌더링) */}
+      {isMoveModalOpen && mounted && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-gray-800 w-[420px] rounded-2xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05),0_10px_10px_-5px_rgba(0,0,0,0.01),0_0_1px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-gray-700 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
             
@@ -1401,9 +1437,11 @@ export function RightPanel() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </aside>
+    </>
   );
 }

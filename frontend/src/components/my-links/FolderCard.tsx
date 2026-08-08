@@ -12,11 +12,12 @@ import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
 interface FolderCardProps {
   folder: FolderResponse;
   color?: string;
+  variant?: 'default' | 'popup';
 }
 
 const MENU_OFFSET_Y = 4; // 버튼과 메뉴 사이의 상하 간격
 
-export function FolderCard({ folder, color }: FolderCardProps) {
+export function FolderCard({ folder, color, variant = 'default' }: FolderCardProps) {
   const setSelectedFolderId = useFolderStore((s) => s.setSelectedFolderId);
   const currentSelectedFolderId = useFolderStore((s) => s.selectedFolderId);
   const searchQuery = useFolderStore((s) => s.searchQuery);
@@ -76,28 +77,39 @@ export function FolderCard({ folder, color }: FolderCardProps) {
     };
   }, [showMenu]);
 
+  const isAllLinks = folder.memberFolderId === -1;
+  const isSelected = isAllLinks 
+    ? (currentSelectedFolderId === null && useUIStore.getState().rightPanelOpen)
+    : (currentSelectedFolderId === folder.memberFolderId);
+
+  const isPopupCard = variant === 'popup';
+
   // 카드 클릭 시 폴더 선택 처리 (메뉴가 열려있지 않을 때만)
   const handleCardClick = () => {
     if (!showMenu) {
-      // 1. 이미 선택된 폴더를 다시 클릭하면 선택 해제, 아니면 해당 폴더 선택
-      if (currentSelectedFolderId === folder.memberFolderId) {
+      if (isAllLinks) {
         setSelectedFolderId(null);
-      } else {
-        setSelectedFolderId(folder.memberFolderId);
-        // KPI: 폴더 클릭(탐색) 이벤트 전송 (해당 폴더 내부 북마크 개수 포함)
-        trackEvent(ANALYTICS_EVENTS.FOLDER_CLICK, {
-          event_params: {
-            result_count: folder.bookmarkCount,
-          }
-        });
-        
-        // 2. 선택 시에만 수행: 기존 폴더 검색어가 있다면 링크 검색어로 전이
-        if (searchQuery) {
-          setLinkSearchQuery(searchQuery);
-        }
-        
-        // 3. 선택 시에만 수행: 우측 패널이 닫혀있다면 자동으로 열어줌
         useUIStore.getState().toggleRightPanel(true);
+      } else {
+        if (currentSelectedFolderId === folder.memberFolderId) {
+          setSelectedFolderId(null);
+        } else {
+          setSelectedFolderId(folder.memberFolderId);
+          // KPI: 폴더 클릭(탐색) 이벤트 전송 (해당 폴더 내부 북마크 개수 포함)
+          trackEvent(ANALYTICS_EVENTS.FOLDER_CLICK, {
+            event_params: {
+              result_count: folder.bookmarkCount,
+            }
+          });
+          
+          // 2. 선택 시에만 수행: 기존 폴더 검색어가 있다면 링크 검색어로 전이
+          if (searchQuery) {
+            setLinkSearchQuery(searchQuery);
+          }
+          
+          // 3. 선택 시에만 수행: 우측 패널이 닫혀있다면 자동으로 열어줌
+          useUIStore.getState().toggleRightPanel(true);
+        }
       }
     }
   };
@@ -119,8 +131,6 @@ export function FolderCard({ folder, color }: FolderCardProps) {
     setShowMenu(false);
   };
 
-  const isSelected = currentSelectedFolderId === folder.memberFolderId;
-
   return (
     <>
       <div
@@ -133,38 +143,52 @@ export function FolderCard({ folder, color }: FolderCardProps) {
             handleCardClick();
           }
         }}
-        className={`bg-white dark:bg-card-dark rounded-lg p-2.5 border transition-all duration-300 group cursor-pointer h-[90px] flex flex-col justify-between outline-none relative overflow-visible ${
+        className={`bg-white dark:bg-card-dark border transition-all duration-300 group cursor-pointer outline-none relative overflow-visible ${
+          isPopupCard
+            ? 'flex h-[88px] flex-col justify-between rounded-xl p-3 shadow-xs hover:shadow-md hover:-translate-y-0.5'
+            : 'flex h-[72px] items-center gap-2 rounded-lg px-3 py-2.5'
+        } ${
           isSelected 
             ? 'border-purple-500 bg-purple-50/40 dark:border-purple-400 dark:bg-purple-500/10 shadow-sm hover:bg-purple-50/40 dark:hover:bg-purple-500/10' 
             : 'border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10 hover:bg-purple-50/30 dark:hover:bg-white/[0.03]'
         } ${color || ''}`}
       >
-        <div className="flex justify-between items-start">
-          <div className={`p-1.5 bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-gray-400 group-hover:dark:text-white transition-colors rounded-md flex items-center justify-center w-8 h-8`}>
-            <span className="material-symbols-outlined text-[16px]">folder_open</span>
+        <div className={isPopupCard ? 'flex justify-between items-start' : 'contents'}>
+          <div className={`bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-slate-400 group-hover:dark:text-white transition-colors flex items-center justify-center ${isPopupCard ? 'w-7 h-7 rounded-lg' : 'order-1 h-8 w-8 shrink-0 rounded-md'}`}>
+            <span className="material-symbols-outlined text-[16px]">
+              {isAllLinks ? 'bookmarks' : 'folder_open'}
+            </span>
           </div>
 
-          <div className="relative">
-            <button
-              ref={menuButtonRef}
-              onClick={toggleMenu}
-              type="button"
-              className="text-gray-300 dark:text-gray-600 hover:text-purple-500 dark:hover:text-purple-400 transition-colors h-5 w-5 flex items-center justify-center"
-            >
-              <span
-                className="material-symbols-outlined !text-[18px] !leading-none"
-                style={{ fontVariationSettings: "'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}
+          {!isAllLinks && (
+            <div className={isPopupCard ? 'relative' : 'relative order-3 ml-auto shrink-0'}>
+              <button
+                ref={menuButtonRef}
+                onClick={toggleMenu}
+                type="button"
+                className="text-gray-300 dark:text-slate-500 hover:text-purple-500 dark:hover:text-purple-400 transition-colors flex h-5 w-5 items-center justify-center"
               >
-                more_horiz
-              </span>
-            </button>
-          </div>
+                <span
+                  className={`material-symbols-outlined leading-none! ${isPopupCard ? 'text-[16px]!' : 'text-[18px]!'}`}
+                  style={{ fontVariationSettings: "'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}
+                >
+                  more_horiz
+                </span>
+              </button>
+            </div>
+          )}
+          {isAllLinks && !isPopupCard && (
+            <span aria-hidden="true" className="material-symbols-outlined order-3 ml-auto shrink-0 text-[18px] text-gray-300 dark:text-slate-500">more_horiz</span>
+          )}
         </div>
 
-        <div>
-          <h4 className="font-semibold text-[10.5px] xl:text-[11.5px] text-gray-800 dark:text-white truncate mt-1.5">
+        <div className={isPopupCard ? undefined : 'order-2 min-w-0 flex-1'}>
+          <h4 className={`font-semibold text-gray-800 dark:text-white truncate ${isPopupCard ? 'mt-0.5 text-[11.5px]' : 'text-[11.5px]'}`}>
             {folder.folderName}
           </h4>
+          <p className="text-[9.5px] font-medium text-gray-400 dark:text-slate-400">
+            {folder.bookmarkCount} {isPopupCard ? 'links' : 'Links'}
+          </p>
         </div>
       </div>
 
@@ -180,7 +204,7 @@ export function FolderCard({ folder, color }: FolderCardProps) {
             onClick={(e) => handleMenuItemClick('edit', e)}
             className="w-full text-left px-3 py-2 text-[11px] text-gray-700 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors"
           >
-            <span className="material-symbols-outlined !text-[16px] !leading-none">edit</span>
+            <span className="material-symbols-outlined text-[16px]! leading-none!">edit</span>
             <span className="font-medium">Rename</span>
           </button>
           {/*
@@ -189,7 +213,7 @@ export function FolderCard({ folder, color }: FolderCardProps) {
             disabled={isSystemFolder}
             className="w-full text-left px-3 py-2 text-[11px] text-gray-700 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
           >
-            <span className="material-symbols-outlined !text-[16px] !leading-none">drive_file_move</span>
+            <span className="material-symbols-outlined text-[16px]! leading-none!">drive_file_move</span>
             <span className="font-medium">Move</span>
           </button>
           */}
@@ -199,7 +223,7 @@ export function FolderCard({ folder, color }: FolderCardProps) {
             disabled={isSystemFolder}
             className="w-full text-left px-3 py-2 text-[11px] text-rose-500 dark:text-red-400 hover:bg-rose-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
           >
-            <span className="material-symbols-outlined !text-[16px] !leading-none text-rose-500 dark:text-red-400">delete</span>
+            <span className="material-symbols-outlined text-[16px]! leading-none! text-rose-500 dark:text-red-400">delete</span>
             <span className="font-medium">Delete</span>
           </button>
         </div>,
