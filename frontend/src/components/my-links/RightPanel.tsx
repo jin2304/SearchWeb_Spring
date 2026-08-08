@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useUIStore } from '@/lib/store/uiStore';
+import { useStore } from '@/lib/hooks/useStore';
 import { useFolders } from '@/lib/api/folderApi';
 import { useInfiniteBookmarks, useDeleteBookmark, useUpdateBookmark, useRecordBookmarkView } from '@/lib/api/bookmarkApi';
 import { useTags } from '@/lib/api/tagApi';
@@ -610,7 +612,9 @@ function LinkItem({
  */
 export function RightPanel() {
   // --- Central State (Zustand) | 중앙 상태 관리 ---
-  const { rightPanelOpen, panelMode } = useUIStore(); // 패널 오픈 여부 & 표시 모드 (fixed | drawer)
+  const rightPanelOpen = useUIStore((s) => s.rightPanelOpen);
+  const persistedPanelMode = useStore(useUIStore, (s) => s.panelMode);
+  const panelMode = persistedPanelMode ?? 'drawer';
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
@@ -1346,8 +1350,8 @@ export function RightPanel() {
         </div>
       )}
 
-      {/* Move Modal | 폴더 이동 모달 */}
-      {isMoveModalOpen && (
+      {/* Move Modal | 폴더 이동 모달 (Stacking Context 상위 이탈을 위해 document.body에 Portal 렌더링) */}
+      {isMoveModalOpen && mounted && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-gray-800 w-[420px] rounded-2xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05),0_10px_10px_-5px_rgba(0,0,0,0.01),0_0_1px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-gray-700 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
             
@@ -1433,7 +1437,8 @@ export function RightPanel() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </aside>
