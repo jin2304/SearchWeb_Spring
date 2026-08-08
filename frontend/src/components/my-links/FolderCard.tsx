@@ -169,7 +169,7 @@ export function FolderCard({ folder, color, variant = 'default' }: FolderCardPro
                 className="text-gray-300 dark:text-slate-500 hover:text-purple-500 dark:hover:text-purple-400 transition-colors flex h-5 w-5 items-center justify-center"
               >
                 <span
-                  className={`material-symbols-outlined !leading-none ${isPopupCard ? '!text-[16px]' : '!text-[18px]'}`}
+                  className={`material-symbols-outlined leading-none! ${isPopupCard ? 'text-[16px]!' : 'text-[18px]!'}`}
                   style={{ fontVariationSettings: "'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}
                 >
                   more_horiz
@@ -204,7 +204,7 @@ export function FolderCard({ folder, color, variant = 'default' }: FolderCardPro
             onClick={(e) => handleMenuItemClick('edit', e)}
             className="w-full text-left px-3 py-2 text-[11px] text-gray-700 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors"
           >
-            <span className="material-symbols-outlined !text-[16px] !leading-none">edit</span>
+            <span className="material-symbols-outlined text-[16px]! leading-none!">edit</span>
             <span className="font-medium">Rename</span>
           </button>
           {/*
@@ -213,7 +213,7 @@ export function FolderCard({ folder, color, variant = 'default' }: FolderCardPro
             disabled={isSystemFolder}
             className="w-full text-left px-3 py-2 text-[11px] text-gray-700 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
           >
-            <span className="material-symbols-outlined !text-[16px] !leading-none">drive_file_move</span>
+            <span className="material-symbols-outlined text-[16px]! leading-none!">drive_file_move</span>
             <span className="font-medium">Move</span>
           </button>
           */}
@@ -223,7 +223,7 @@ export function FolderCard({ folder, color, variant = 'default' }: FolderCardPro
             disabled={isSystemFolder}
             className="w-full text-left px-3 py-2 text-[11px] text-rose-500 dark:text-red-400 hover:bg-rose-50 dark:hover:bg-purple-600/20 flex items-center gap-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
           >
-            <span className="material-symbols-outlined !text-[16px] !leading-none text-rose-500 dark:text-red-400">delete</span>
+            <span className="material-symbols-outlined text-[16px]! leading-none! text-rose-500 dark:text-red-400">delete</span>
             <span className="font-medium">Delete</span>
           </button>
         </div>,
