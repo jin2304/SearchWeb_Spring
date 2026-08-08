@@ -403,13 +403,13 @@ export default function MyLinksPage() {
     <div className="flex h-full w-full overflow-hidden">
       {/* Main Content Area */}
       <div className={cn(
-        "flex-1 min-w-0 overflow-y-auto px-5 py-2 pb-28 tablet-lg:px-8 tablet-lg:py-3 tablet-lg:pb-4 transition-colors duration-300 bg-[#fafafa] dark:bg-white/[0.04]",
-        isPopupMode && "px-6 py-4 pb-28 tablet-lg:px-10 tablet-lg:py-5 tablet-lg:pb-8 xl:px-16 2xl:px-24"
+        "flex-1 min-w-0 overflow-y-auto px-6 py-2 pb-28 tablet-lg:px-10 tablet-lg:py-3 tablet-lg:pb-4 transition-colors duration-300 bg-[#fafafa] dark:bg-white/[0.04]",
+        isPopupMode && "px-8 py-4 pb-28 tablet-lg:px-12 tablet-lg:py-5 tablet-lg:pb-8 xl:px-20 2xl:px-28"
       )}>
         {/* [분기 1] 팝업 모드일 때 검색바, 태그 필터, 메인 폴더 목록 전체를 단 하나의 통합 메인 카드 영역으로 감쌈 */}
         <div className={cn(
           "w-full transition-all duration-300",
-          isPopupMode && "max-w-[1200px] mx-auto min-h-full"
+          isPopupMode ? "max-w-[1080px] mx-auto min-h-full" : "max-w-[1400px]"
         )}>
           
           {/* Top Search & Filter Section */}
@@ -536,7 +536,7 @@ export default function MyLinksPage() {
               </h2>
             </div>
             
-            <div className={cn("grid grid-cols-2 md:grid-cols-3 gap-2", isPopupMode ? "tablet-lg:grid-cols-5 xl:grid-cols-6" : "lg:grid-cols-4")}>
+            <div className={cn("grid grid-cols-2 md:grid-cols-3 gap-2", isPopupMode ? "tablet-lg:grid-cols-5 xl:grid-cols-6" : "lg:grid-cols-3")}>
               {searchResultFolderCount === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-12 bg-white/40 dark:bg-white/5 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
                   <span className="material-symbols-outlined text-3xl text-gray-300 dark:text-gray-700 mb-2">search_off</span>
@@ -611,26 +611,8 @@ export default function MyLinksPage() {
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-bold text-gray-800 dark:text-gray-100">My Folder</h2>
 
-                {/* [분기 2] 패널 표시 방식 변경 스위처 (Fixed: 우측 상시 고정 모드 vs Popup: 폴더 클릭 시 팝업 모드) */}
+                {/* [분기 2] 패널 표시 방식 변경 스위처 (Popup: 폴더 클릭 시 팝업 모드 vs Fixed: 우측 상시 고정 모드) */}
                 <div className="hidden tablet-lg:flex items-center bg-gray-200/60 dark:bg-gray-800/60 p-0.5 rounded-lg border border-gray-200/80 dark:border-gray-700/60 ml-1">
-                  {/* Fixed 모드 버튼 (panelMode === 'fixed' 일 때 보라색 활성화 스타일 적용) */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPanelMode('fixed');
-                      toggleRightPanel(true);
-                    }}
-                    className={cn(
-                      "px-2 py-0.5 text-[9.5px] font-semibold rounded-md flex items-center gap-1 transition-all duration-200",
-                      panelMode === 'fixed'
-                        ? "bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-300 shadow-xs"
-                        : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-                    )}
-                    title="우측 패널 상시 고정 모드"
-                  >
-                    <span className="material-symbols-outlined !text-[13px]">vertical_split</span>
-                    <span>Fixed</span>
-                  </button>
                   {/* Popup 모드 버튼 (panelMode === 'drawer' 일 때 보라색 활성화 스타일 적용) */}
                   <button
                     type="button"
@@ -648,6 +630,24 @@ export default function MyLinksPage() {
                   >
                     <span className="material-symbols-outlined !text-[13px]">dock_to_left</span>
                     <span>Popup</span>
+                  </button>
+                  {/* Fixed 모드 버튼 (panelMode === 'fixed' 일 때 보라색 활성화 스타일 적용) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPanelMode('fixed');
+                      toggleRightPanel(true);
+                    }}
+                    className={cn(
+                      "px-2 py-0.5 text-[9.5px] font-semibold rounded-md flex items-center gap-1 transition-all duration-200",
+                      panelMode === 'fixed'
+                        ? "bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-300 shadow-xs"
+                        : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                    )}
+                    title="우측 패널 상시 고정 모드"
+                  >
+                    <span className="material-symbols-outlined !text-[13px]">vertical_split</span>
+                    <span>Fixed</span>
                   </button>
                 </div>
               </div>
@@ -731,7 +731,7 @@ export default function MyLinksPage() {
               </div>
             </div>
 
-            <div className={cn("grid grid-cols-2 gap-2 md:grid-cols-3", isPopupMode ? "tablet-lg:grid-cols-5 xl:grid-cols-6" : "lg:grid-cols-4")}>
+            <div className={cn("grid grid-cols-2 gap-2 md:grid-cols-3", isPopupMode ? "tablet-lg:grid-cols-5 xl:grid-cols-6" : "lg:grid-cols-3")}>
               {/* ── 로딩 상태 ── */}
               {isLoading && (
                 <div className="col-span-full flex items-center justify-center py-8">

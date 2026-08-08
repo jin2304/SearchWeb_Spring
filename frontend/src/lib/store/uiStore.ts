@@ -30,7 +30,7 @@ export const useUIStore = create<UIStore>()(
       saveLinkDefaultUrl: undefined,
       createFolderDialogOpen: false,
       rightPanelOpen: false,
-      panelMode: 'fixed', // 기본값: 기존 상시 고정 모드
+      panelMode: 'drawer', // 기본값: 팝업(Drawer) 모드
       mobileSidebarOpen: false,
 
       toggleSaveLinkDialog: (open, defaultUrl) =>

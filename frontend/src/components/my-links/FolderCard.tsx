@@ -143,25 +143,25 @@ export function FolderCard({ folder, color, variant = 'default' }: FolderCardPro
             handleCardClick();
           }
         }}
-        className={`bg-white dark:bg-card-dark border transition-all duration-300 group cursor-pointer flex flex-col justify-between outline-none relative overflow-visible ${
+        className={`bg-white dark:bg-card-dark border transition-all duration-300 group cursor-pointer outline-none relative overflow-visible ${
           isPopupCard
-            ? 'h-[88px] rounded-xl p-3 shadow-xs hover:shadow-md hover:-translate-y-0.5'
-            : 'h-[90px] rounded-lg p-2.5'
+            ? 'flex h-[88px] flex-col justify-between rounded-xl p-3 shadow-xs hover:shadow-md hover:-translate-y-0.5'
+            : 'flex h-[72px] items-center gap-2 rounded-lg px-3 py-2.5'
         } ${
           isSelected 
             ? 'border-purple-500 bg-purple-50/40 dark:border-purple-400 dark:bg-purple-500/10 shadow-sm hover:bg-purple-50/40 dark:hover:bg-purple-500/10' 
             : 'border-gray-200/70 dark:border-white/5 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-white/10 hover:bg-purple-50/30 dark:hover:bg-white/[0.03]'
         } ${color || ''}`}
       >
-        <div className="flex justify-between items-start">
-          <div className={`bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-slate-400 group-hover:dark:text-white transition-colors flex items-center justify-center ${isPopupCard ? 'w-7 h-7 rounded-lg' : 'w-8 h-8 p-1.5 rounded-md'}`}>
+        <div className={isPopupCard ? 'flex justify-between items-start' : 'contents'}>
+          <div className={`bg-purple-50 dark:bg-white/5 text-gray-400 dark:text-slate-400 group-hover:dark:text-white transition-colors flex items-center justify-center ${isPopupCard ? 'w-7 h-7 rounded-lg' : 'order-1 h-8 w-8 shrink-0 rounded-md'}`}>
             <span className="material-symbols-outlined text-[16px]">
               {isAllLinks ? 'bookmarks' : 'folder_open'}
             </span>
           </div>
 
           {!isAllLinks && (
-            <div className="relative">
+            <div className={isPopupCard ? 'relative' : 'relative order-3 ml-auto shrink-0'}>
               <button
                 ref={menuButtonRef}
                 onClick={toggleMenu}
@@ -177,17 +177,18 @@ export function FolderCard({ folder, color, variant = 'default' }: FolderCardPro
               </button>
             </div>
           )}
+          {isAllLinks && !isPopupCard && (
+            <span aria-hidden="true" className="material-symbols-outlined order-3 ml-auto shrink-0 text-[18px] text-gray-300 dark:text-slate-500">more_horiz</span>
+          )}
         </div>
 
-        <div>
-          <h4 className={`font-semibold text-gray-800 dark:text-white truncate ${isPopupCard ? 'mt-0.5 text-[11.5px]' : 'mt-1.5 text-[10.5px] xl:text-[11.5px]'}`}>
+        <div className={isPopupCard ? undefined : 'order-2 min-w-0 flex-1'}>
+          <h4 className={`font-semibold text-gray-800 dark:text-white truncate ${isPopupCard ? 'mt-0.5 text-[11.5px]' : 'text-[11.5px]'}`}>
             {folder.folderName}
           </h4>
-          {isPopupCard && (
-            <p className="text-[9.5px] font-medium text-gray-400 dark:text-slate-400">
-              {folder.bookmarkCount} links
-            </p>
-          )}
+          <p className="text-[9.5px] font-medium text-gray-400 dark:text-slate-400">
+            {folder.bookmarkCount} {isPopupCard ? 'links' : 'Links'}
+          </p>
         </div>
       </div>
 
