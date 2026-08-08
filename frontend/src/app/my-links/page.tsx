@@ -3,6 +3,7 @@
 import { FolderCard } from '@/components/my-links/FolderCard';
 import { RightPanel } from '@/components/my-links/RightPanel';
 import { useUIStore } from '@/lib/store/uiStore';
+import { useStore } from '@/lib/hooks/useStore';
 import { useFolders } from '@/lib/api/folderApi';
 import { useFolderStore, type SearchScope } from '@/lib/store/folderStore';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -17,7 +18,9 @@ import { motion } from 'framer-motion';
 import { ANALYTICS_EVENTS, trackEvent } from '@/lib/analytics';
 
 export default function MyLinksPage() {
-  const { toggleRightPanel, toggleSaveLinkDialog, saveLinkDialogOpen, panelMode, setPanelMode } = useUIStore();
+  const { toggleRightPanel, toggleSaveLinkDialog, saveLinkDialogOpen, setPanelMode } = useUIStore();
+  const persistedPanelMode = useStore(useUIStore, (s) => s.panelMode);
+  const panelMode = persistedPanelMode ?? 'drawer';
   const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [shouldRenderTooltip, setShouldRenderTooltip] = useState(false);
@@ -164,6 +167,8 @@ export default function MyLinksPage() {
   const isLoading = isAuthInitializing || isFoldersLoading;
   const isPopupMode = panelMode === 'drawer';
   const pinnedFolders = folders?.slice(0, isPopupMode ? 6 : 5) ?? [];
+  // TODO: 하위 폴더(Subfolder) 기능 도입 시, 루트 폴더 단순 reduce 합산은 하위 폴더의 북마크를 누락하여 과소 집계(underreport)될 수 있음.
+  // 추후 하위 폴더 구현 시 전체 북마크 응답(useBookmarks totalCount) 또는 집계 API 응답값 기반으로 totalLinkCount 산출 방식 변경 필요.
   const totalLinkCount = useMemo(() => (folders ?? []).reduce((total, folder) => total + folder.bookmarkCount, 0), [folders]);
   const allLinksFolder: FolderResponse = useMemo(() => ({
     memberFolderId: -1,
@@ -747,25 +752,29 @@ export default function MyLinksPage() {
                 </div>
               )}
 
-              {/* ── 가상 'All Links' 폴더 및 일반 폴더 카드 통일 렌더링 ── */}
-              <motion.div
-                key="all-links"
-                layout="position"
-                transition={{ type: 'spring', stiffness: 300, damping: 32 }}
-              >
-                <FolderCard folder={allLinksFolder} variant={isPopupMode ? 'popup' : 'default'} />
-              </motion.div>
+              {/* ── 데이터 조회가 성공한 경우에만 All Links 및 일반 폴더 카드 렌더링 ── */}
+              {!isLoading && !error && folders && (
+                <>
+                  <motion.div
+                    key="all-links"
+                    layout="position"
+                    transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+                  >
+                    <FolderCard folder={allLinksFolder} variant={isPopupMode ? 'popup' : 'default'} />
+                  </motion.div>
 
-              {/* ── 폴더 카드 목록 (백엔드 데이터 반복 렌더링) ── */}
-              {processedAllFolders.map((folder) => (
-                <motion.div
-                  key={folder.memberFolderId}
-                  layout="position"
-                  transition={{ type: 'spring', stiffness: 300, damping: 32 }}
-                >
-                  <FolderCard folder={folder} variant={isPopupMode ? 'popup' : 'default'} />
-                </motion.div>
-              ))}
+                  {/* ── 폴더 카드 목록 (백엔드 데이터 반복 렌더링) ── */}
+                  {processedAllFolders.map((folder) => (
+                    <motion.div
+                      key={folder.memberFolderId}
+                      layout="position"
+                      transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+                    >
+                      <FolderCard folder={folder} variant={isPopupMode ? 'popup' : 'default'} />
+                    </motion.div>
+                  ))}
+                </>
+              )}
             </div>
           </>
         )}
