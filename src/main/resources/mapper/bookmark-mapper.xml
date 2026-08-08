@@ -231,7 +231,7 @@
         INSERT INTO link (canonical_url, original_url, domain, title, description, primary_category_id, created_by_member_id)
         VALUES (#{canonicalUrl}, #{originalUrl}, #{domain}, #{title}, #{description}, #{primaryCategoryId}, #{createdByMemberId})
         ON CONFLICT (canonical_url)
-        DO UPDATE SET link_id = link.link_id
+        DO UPDATE SET updated_at = link.updated_at
     </insert>
 
 
